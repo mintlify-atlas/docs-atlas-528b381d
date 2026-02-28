@@ -1,0 +1,164 @@
+{
+  "projectType": "framework",
+  "projectName": "Beaver Builder",
+  "projectDescription": "A professional drag-and-drop WordPress page builder plugin with a modular architecture, front-end editing, and extensive customization capabilities.",
+  "theme": "maple",
+  "primaryColor": "#0066CC",
+  "lightColor": "#3399FF",
+  "darkColor": "#004C99",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/architecture",
+              "concepts/modules",
+              "concepts/rows-and-columns",
+              "concepts/templates",
+              "concepts/responsive-design"
+            ]
+          },
+          {
+            "group": "Building Pages",
+            "pages": [
+              "building/frontend-editor",
+              "building/modules-guide",
+              "building/styling",
+              "building/layouts",
+              "building/global-settings"
+            ]
+          },
+          {
+            "group": "Extensions",
+            "pages": [
+              "extensions/overview",
+              "extensions/theme-builder",
+              "extensions/cloud-templates",
+              "extensions/white-label"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "pages": [
+              "integrations/wordpress",
+              "integrations/woocommerce",
+              "integrations/email-services",
+              "integrations/third-party"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Developer Guide",
+        "groups": [
+          {
+            "group": "Development",
+            "pages": [
+              "developer/getting-started",
+              "developer/custom-modules",
+              "developer/hooks-filters",
+              "developer/module-settings"
+            ]
+          },
+          {
+            "group": "Module Development",
+            "pages": [
+              "developer/modules/creating-modules",
+              "developer/modules/module-structure",
+              "developer/modules/frontend-rendering",
+              "developer/modules/module-settings-forms"
+            ]
+          },
+          {
+            "group": "Advanced Topics",
+            "pages": [
+              "developer/advanced/custom-fields",
+              "developer/advanced/ajax-operations",
+              "developer/advanced/css-js-assets",
+              "developer/advanced/data-model"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Core Classes",
+            "pages": [
+              "api/fl-builder",
+              "api/fl-builder-model",
+              "api/fl-builder-module",
+              "api/fl-builder-ajax"
+            ]
+          },
+          {
+            "group": "Available Modules",
+            "pages": [
+              "api/modules/basic-modules",
+              "api/modules/layout-modules",
+              "api/modules/content-modules",
+              "api/modules/premium-modules"
+            ]
+          },
+          {
+            "group": "Hooks & Filters",
+            "pages": [
+              "api/hooks/actions",
+              "api/hooks/filters"
+            ]
+          },
+          {
+            "group": "Services",
+            "pages": [
+              "api/services/email-integrations",
+              "api/services/custom-services"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Drag-and-drop frontend page builder with real-time visual editing",
+    "42+ built-in content modules including buttons, galleries, forms, and sliders",
+    "Responsive design controls with mobile, tablet, and desktop breakpoints",
+    "Modular plugin architecture supporting custom module development",
+    "Theme Builder for creating custom WordPress theme templates",
+    "Extensive hooks and filters for developers to extend functionality",
+    "Pre-built templates and layouts with cloud library integration",
+    "Integration with email marketing services and WooCommerce",
+    "Global color palettes and styles for consistent design",
+    "Row and column-based layout system with flexbox and CSS grid support"
+  ],
+  "publicApiSurface": [
+    "FLBuilder - Main builder class with UI and rendering methods",
+    "FLBuilderModel - Data model for managing layouts, rows, columns, and modules",
+    "FLBuilderModule - Base class for all custom module development",
+    "FLBuilderAJAX - AJAX request handling for builder operations",
+    "FLBuilderConfig - Configuration and settings management",
+    "FLBuilderCSS - Dynamic CSS generation and management",
+    "FLBuilderExport - Export/import functionality for layouts",
+    "FLBuilderIcons - Icon management system (Font Awesome, Dashicons)",
+    "FLBuilderLoop - Query and loop handling for dynamic content",
+    "FLBuilderService - Base class for third-party service integrations",
+    "FLThemeBuilderFieldConnections - Dynamic field connections for theme builder",
+    "fl_builder_register_module() - Register custom modules",
+    "fl_builder_register_settings_form() - Register module settings forms",
+    "fl_builder_insert_layout() - Programmatically insert layouts",
+    "fl_builder_render_module() - Render module output",
+    "Actions: fl_builder_ui_enqueue_scripts, fl_builder_before_save_layout, fl_builder_after_save_layout",
+    "Filters: fl_builder_register_module, fl_builder_render_css, fl_builder_load_modules_paths"
+  ]
+}
