@@ -1,0 +1,927 @@
+---
+title: Third-Party Plugin Integrations
+description: Comprehensive guide to Beaver Builder's compatibility with popular WordPress plugins including ACF, BigCommerce, SEO plugins, and 100+ other integrations.
+icon: plug
+---
+
+Beaver Builder includes automatic compatibility fixes for over 100 popular WordPress plugins, ensuring smooth operation regardless of what other tools you're using on your site.
+
+## Advanced Custom Fields (ACF)
+
+Beaver Builder provides deep integration with Advanced Custom Fields for dynamic content.
+
+### ACF Support Features
+
+<CardGroup cols={2}>
+  <Card title="ACF Blocks" icon="cube">
+    Use ACF blocks directly within the Beaver Builder interface
+  </Card>
+  
+  <Card title="Field Connections" icon="link">
+    Connect builder modules to ACF fields for dynamic content
+  </Card>
+  
+  <Card title="Repeater Fields" icon="repeat">
+    Support for ACF repeater and flexible content fields
+  </Card>
+  
+  <Card title="Options Pages" icon="sliders">
+    Pull data from ACF options pages
+  </Card>
+</CardGroup>
+
+### Enabling ACF Blocks
+
+<Steps>
+  <Step title="Access Settings">
+    Navigate to **Settings → Page Builder → Advanced**
+  </Step>
+  
+  <Step title="Enable ACF Blocks">
+    Toggle on the **ACF Blocks** setting:
+    
+    > When enabled, this allows blocks built with ACF to be used in the builder.
+  </Step>
+  
+  <Step title="Save Settings">
+    Save your changes and ACF blocks will appear in the builder panel
+  </Step>
+</Steps>
+
+### ACF Field Connections
+
+Connect ACF fields to builder modules:
+
+```php class-fl-builder-module-data-repeater.php
+/**
+ * Set the data source based on selected settings and ACF availability.
+ */
+```
+
+The builder automatically detects ACF field types including:
+
+- Text fields
+- Textarea fields  
+- Number fields
+- Image fields
+- Gallery fields
+- Repeater fields
+- Flexible content fields
+- Relationship fields
+
+<Tip>
+  ACF color picker values are automatically handled, even when they return arrays instead of strings.
+</Tip>
+
+## SEO Plugins
+
+Beaver Builder works seamlessly with all major SEO plugins.
+
+### Yoast SEO
+
+**Compatibility Features:**
+
+- Category pagination fix for removed category prefix
+- Duplicate post integration with builder layouts
+- Schema markup compatibility
+- Content analysis of builder content
+
+```php class-fl-builder-compatibility.php
+public static function fix_wpseo_category_pagination_rule( $rewrite_rules ) {
+    // Fixes pagination when category prefix is removed
+    $wpseo_rewrite_rules = $GLOBALS['wpseo_rewrite']->category_rewrite_rules();
+    $page_base = $wp_rewrite->pagination_base;
+    $flpaged_base = 'paged-[0-9]{1,}';
+    
+    foreach ( $wpseo_rewrite_rules as $regex => $redirect ) {
+        if ( strpos( $regex, '/' . $page_base . '/' ) !== false ) {
+            $flregex = str_replace( $page_base, $flpaged_base, $regex );
+            $flpaged_rules[ $flregex ] = 'index.php?category_name=$matches[1]&flpaged=$matches[2]';
+        }
+    }
+    return array_merge( $flpaged_rules, $rewrite_rules );
+}
+```
+
+<Note>
+  The builder automatically adds custom pagination rules to work with Yoast's category rewrite rules.
+</Note>
+
+### SEOPress
+
+**Compatibility Features:**
+
+- Category pagination support
+- Prevents conflicts during template creation
+- Schema markup compatibility
+
+```php
+public static function fix_seopress( $arg ) {
+    if ( isset( $_POST['fl-template'] ) ) {
+        remove_action( 'save_post', 'seopress_bulk_quick_edit_save_post' );
+    }
+}
+```
+
+### All in One SEO (AIOSEO)
+
+**Compatibility Features:**
+
+- Shortcode conflict prevention
+- Schema markup support
+- Content analysis compatibility
+
+```php
+public static function aioseo_conflicting_shortcodes( $shortcodes ) {
+    $shortcodes['Beaver Builder'] = '[fl_builder_insert_layout';
+    return $shortcodes;
+}
+```
+
+<Check>
+  AIOSEO won't try to render builder shortcodes too early, preventing content duplication issues.
+</Check>
+
+## E-Commerce Plugins
+
+### WooCommerce
+
+See the dedicated [WooCommerce Integration](/integrations/woocommerce) page for complete details.
+
+Key features:
+- Product page building
+- WooCommerce module
+- Shop customization
+- Memberships support
+
+### BigCommerce
+
+Automatic compatibility with the BigCommerce for WordPress plugin:
+
+- Product display support
+- Cart integration
+- Category pages
+- Custom product templates
+
+### Easy Digital Downloads (EDD)
+
+**Compatibility Features:**
+
+- Download post type support
+- Custom sorting disabled (prevents conflicts)
+- Product display integration
+
+```php
+public static function admin_edit_sort_blocklist_edd( $blocklist ) {
+    $types = FLBuilderModel::get_post_types();
+    if ( in_array( 'download', $types ) && class_exists( 'Easy_Digital_Downloads' ) ) {
+        $blocklist[] = 'download';
+    }
+    return $blocklist;
+}
+```
+
+## Event Plugins
+
+### The Events Calendar (Tribe Events)
+
+**Comprehensive Integration:**
+
+<AccordionGroup>
+  <Accordion title="Event Post Type Support">
+    Full builder support on the `tribe_events` post type:
+    
+    - Custom event templates
+    - Event page builder integration
+    - Widget compatibility
+  </Accordion>
+  
+  <Accordion title="Archive Pagination">
+    Custom pagination rules for event archives:
+    
+    ```php
+    public static function fix_tribe_events_pagination_rule( $rules, $tribe_rewrite, $wp_rewrite ) {
+        $bases = $tribe_rewrite->get_bases();
+        
+        // Archive pagination
+        $tec_archive_rules = $bases->archive . '/paged-[0-9]{1,}/?([0-9]{1,})/?$';
+        $flpaged_rules[ $tec_archive_rules ] = 'index.php?post_type=tribe_events&eventDisplay=default&flpaged=$matches[1]';
+        
+        // Category and tag pagination
+        // ...
+        
+        return array_merge( $flpaged_rules, $rules );
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Recurring Events">
+    Automatically shows only the first instance of recurring events:
+    
+    ```php
+    public static function hide_tribe_child_recurring_events( $query ) {
+        $hide_child_events = (bool) tribe_get_option( 'hideSubsequentRecurrencesDefault', false );
+        if ( $hide_child_events ) {
+            $query->set( 'post_parent', 0 );
+        }
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Events Per Page">
+    Respects the "Events per Page" setting from TEC:
+    
+    ```php
+    public static function use_tribe_events_per_page( $query ) {
+        if ( $query->is_main_query() && is_post_type_archive( 'tribe_events' ) ) {
+            $events_per_page = (int) tribe_get_option( 'postsPerPage', 10 );
+            $query->set( 'posts_per_page', $events_per_page );
+        }
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Widget Assets">
+    Ensures calendar widget scripts load correctly:
+    
+    ```php
+    public static function tribe_events_pro_widget_render_fix( $class, $args, $instance ) {
+        if ( isset( $args['widget_id'] ) && false !== strpos( $args['widget_id'], 'fl_builder_widget' ) ) {
+            if ( class_exists( 'Tribe__Events__Pro__Mini_Calendar' ) ) {
+                Tribe__Events__Pro__Mini_Calendar::instance()->register_assets();
+            }
+        }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+<Info>
+  The Events Calendar is one of the most deeply integrated third-party plugins, with support for pagination, recurring events, widgets, and custom queries.
+</Info>
+
+### Event Espresso
+
+**Compatibility Features:**
+
+- Suppresses error notices in the builder
+- Prevents HTML output in AJAX responses
+- Removes conflicting stylesheet
+
+```php
+public static function ee_suppress_notices() {
+    if ( FLBuilderModel::is_builder_active() ) {
+        add_filter( 'FHEE__EE_Front_Controller__display_errors', '__return_false' );
+    }
+}
+
+public static function ee_before_ajax() {
+    add_filter( 'FHEE__EE_Front_Controller__display_errors', '__return_false' );
+}
+
+public static function ee_remove_stylesheet() {
+    if ( FLBuilderModel::is_builder_active() ) {
+        wp_deregister_style( 'espresso_default' );
+    }
+}
+```
+
+## Form Plugins
+
+### Gravity Forms
+
+**Compatibility Features:**
+
+- TinyMCE editor compatibility
+- Form display within builder layouts
+- AJAX submission support
+
+```php
+public static function fix_gf_tinymce() {
+    if ( isset( $_REQUEST['fl_builder'] ) ) {
+        remove_action( 'wp_tiny_mce_init', array( 'GF_Field_Textarea', 'start_wp_tiny_mce_init_buffer' ) );
+    }
+}
+```
+
+### Ninja Forms
+
+**Compatibility Features:**
+
+- JS template rendering in AJAX layouts
+- Form functionality preserved
+
+```php
+public static function render_ninja_forms_js( $response ) {
+    if ( class_exists( 'NF_Display_Render' ) && strstr( $response['html'], 'nf-form-cont' ) ) {
+        ob_start();
+        NF_Display_Render::output_templates();
+        $response['html'] .= ob_get_clean();
+    }
+    return $response;
+}
+```
+
+### WPForms
+
+**Compatibility Features:**
+
+- Spam field compatibility
+- Form rendering in builder
+- Anti-spam honeypot control
+
+```php
+public static function wp_forms_spam_field( $enabled ) {
+    if ( isset( $_GET['fl_builder'] ) ) {
+        return false;
+    }
+    return $enabled;
+}
+```
+
+## Membership & Restriction Plugins
+
+### BuddyPress
+
+**Compatibility:**
+
+- Builder disabled on BuddyPress pages (prevents `the_content` conflicts)
+- Page list exclusions
+- Frontend and admin checks
+
+```php
+public static function bp_pages_support( $is_editable, $post = false ) {
+    // Frontend check
+    if ( ! is_admin() && class_exists( 'BuddyPress' ) && ! bp_is_blog_page() ) {
+        $is_editable = false;
+    }
+    return $is_editable;
+}
+```
+
+<Warning>
+  Beaver Builder is intentionally disabled on BuddyPress component pages to prevent conflicts with BuddyPress's content filters.
+</Warning>
+
+### WooCommerce Memberships
+
+See the [WooCommerce Integration](/integrations/woocommerce#woocommerce-memberships) section.
+
+### Ultimate Member
+
+**Compatibility Features:**
+
+- Profile header shortcode parsing control
+- Prevents double rendering
+- Switcher plugin compatibility
+
+```php
+public static function um_prevent_shortcode_parse() {
+    remove_filter( 'the_content', 'do_shortcode', 11 );
+}
+
+public static function um_restore_shortcode_parse() {
+    add_filter( 'the_content', 'do_shortcode', 11 );
+}
+```
+
+### Memberium
+
+**Compatibility:**
+
+- Select2 disabled (prevents conflicts)
+- Form compatibility
+
+```php
+public static function fix_memberium( $enabled ) {
+    if ( defined( 'MEMBERIUM_VERSION' ) ) {
+        return false;
+    }
+    return $enabled;
+}
+```
+
+## Optimization Plugins
+
+### Performance & Caching
+
+<Tabs>
+  <Tab title="WP Rocket">
+    - Lazy load compatibility
+    - Cache exclusions for builder
+    - Minification handling
+    - Header lazy load fix for Themer
+    
+    ```php
+    public static function fix_lazyload_header_attributes( $attrs ) {
+        return $attrs . ' data-no-lazy="1"';
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Hummingbird">
+    - Minification disabled in builder
+    - Asset optimization compatibility
+    
+    ```php
+    public static function fix_hummingbird() {
+        if ( FLBuilderModel::is_builder_active() ) {
+            add_filter( 'wp_hummingbird_is_active_module_minify', '__return_false', 500 );
+        }
+    }
+    ```
+  </Tab>
+  
+  <Tab title="BWP Minify">
+    - Optimization disabled in builder
+    
+    ```php
+    public static function bwp_minify_is_loadable_filter( $args ) {
+        if ( FLBuilderModel::is_builder_active() ) {
+            return false;
+        }
+        return $args;
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Smush (WPMU DEV)">
+    - iFrame lazy load disabled in builder
+    - Image optimization compatibility
+    
+    ```php
+    public static function fix_smush( $option ) {
+        if ( isset( $_GET['fl_builder'] ) ) {
+            $option['format']['iframe'] = false;
+        }
+        return $option;
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Image Optimization
+
+**TinyPNG Integration:**
+
+```php
+public static function tinypng_support( $cropped_path, $editor ) {
+    if ( class_exists( 'Tiny_Settings' ) ) {
+        try {
+            $settings = new Tiny_Settings();
+            $settings->xmlrpc_init();
+            $compressor = $settings->get_compressor();
+            if ( $compressor ) {
+                $compressor->compress_file( $cropped_path['path'], false, false );
+            }
+        } catch ( Exception $e ) {
+            // Silent fail
+        }
+    }
+}
+```
+
+<Check>
+  Images cropped in the Photo module are automatically compressed by TinyPNG if the plugin is active.
+</Check>
+
+## Translation Plugins
+
+### Polylang
+
+**Compatibility Features:**
+
+- Custom pagination rules for translated pages
+- Language-specific rewrite rules
+
+```php
+public static function fix_polylang_pagination_rule( $rewrite_rules ) {
+    if ( function_exists( 'pll_languages_list' ) ) {
+        $langs = pll_languages_list();
+        if ( ! empty( $langs ) ) {
+            $lang_rules = '(' . implode( '|', $langs ) . ')';
+            $paged_rules = $lang_rules . '/(.?.+?)/paged-[0-9]{1,}/?([0-9]{1,})/?$';
+            $new_rules[ $paged_rules ] = 'index.php?lang=$matches[1]&pagename=$matches[2]&flpaged=$matches[3]';
+            $rewrite_rules = array_merge( $new_rules, $rewrite_rules );
+        }
+    }
+    return $rewrite_rules;
+}
+```
+
+### WPML
+
+Full compatibility with WPML for multilingual sites:
+
+- Language-specific templates
+- Translation management
+- Language switcher widgets
+
+## Security & Privacy Plugins
+
+### Cookiebot
+
+**Compatibility:**
+
+```php
+public static function fix_cookiebot( $arg ) {
+    if ( isset( $_GET['fl_builder'] ) ) {
+        return true;
+    }
+    return $arg;
+}
+```
+
+### iubenda
+
+**Cookie consent compatibility:**
+
+```php
+public static function fix_iubenda( $options ) {
+    $options['parse'] = isset( $_GET['fl_builder'] ) ? false : $options['parse'];
+    return $options;
+}
+```
+
+### Prevent Direct Access (Gold)
+
+**Compatibility with file protection:**
+
+```php
+public static function fix_protector_gold() {
+    if ( FLBuilderModel::is_builder_active() && class_exists( 'Prevent_Direct_Access_Gold' ) ) {
+        if ( ! function_exists( 'get_current_screen' ) ) {
+            function get_current_screen() {
+                $args = new StdClass();
+                $args->id = 'Beaver';
+                $args->action = 'Builder';
+                return $args;
+            }
+        }
+    }
+}
+```
+
+## Media & Gallery Plugins
+
+### NextGen Gallery
+
+**Compatibility:**
+
+```php
+public static function fix_nextgen_gallery() {
+    if ( isset( $_GET['fl_builder'] ) || FLBuilderAJAX::doing_ajax() ) {
+        if ( ! defined( 'NGG_DISABLE_RESOURCE_MANAGER' ) ) {
+            define( 'NGG_DISABLE_RESOURCE_MANAGER', true );
+        }
+    }
+}
+```
+
+### Real Media Library
+
+**Compatibility:**
+
+```php
+public static function fix_real_media_library_lite( $ignore ) {
+    $ignore[] = 'real-media-library-lite';
+    return $ignore;
+}
+```
+
+### Media Library Organizer
+
+**Attachment field compatibility:**
+
+```php
+public static function attachment_fields_to_edit( $form_fields, $post = null ) {
+    if ( ! function_exists( 'get_current_screen' ) && class_exists( 'Media_Library_Organizer' ) ) {
+        include_once ABSPATH . 'wp-admin/includes/template.php';
+        include_once ABSPATH . 'wp-admin/includes/screen.php';
+    }
+    return $form_fields;
+}
+```
+
+## Theme-Specific Integrations
+
+### GeneratePress
+
+**Font Awesome 5 compatibility:**
+
+```php
+public static function fix_generatepress_fa5() {
+    if ( FLBuilderModel::is_builder_active() ) {
+        add_filter( 'generate_fontawesome_essentials', '__return_true' );
+    }
+}
+```
+
+### Twenty Twenty / Twenty Twenty-One
+
+See [WordPress Integration](/integrations/wordpress#theme-compatibility) for theme-specific fixes.
+
+### Enfold
+
+**Media element compatibility:**
+
+```php
+public static function not_load_mediaelement( $condition, $options ) {
+    if ( FLBuilderModel::is_builder_active() ) {
+        $condition = true;
+    }
+    return $condition;
+}
+```
+
+## Marketing & Analytics
+
+### Klaviyo
+
+**Themer layout compatibility:**
+
+```php
+public static function fix_klaviyo_themer_layout() {
+    if ( class_exists( 'WPKlaviyoAnalytics' ) && class_exists( 'FLThemeBuilder' ) ) {
+        global $klaviyowp_analytics, $wp_the_query;
+        if ( 'fl-theme-layout' == $wp_the_query->post->post_type ) {
+            remove_action( 'wp_enqueue_scripts', array( $klaviyowp_analytics, 'insert_analytics' ), 0 );
+            remove_action( 'wp_enqueue_scripts', array( $klaviyowp_analytics, 'identify_browser' ) );
+        }
+    }
+}
+```
+
+### SumoMe
+
+**Builder interference prevention:**
+
+```php
+public static function fix_sumo( $option ) {
+    if ( isset( $_GET['fl_builder'] ) ) {
+        return false;
+    }
+    return $option;
+}
+```
+
+## Live Chat Plugins
+
+### 3CX Live Chat
+
+**Admin screen compatibility:**
+
+```php
+public static function fix_3cx_live_chat() {
+    if ( class_exists( 'TCXSettings' ) && isset( $_GET['page'] ) && 'fl-builder-add-new' == $_GET['page'] ) {
+        remove_action( 'admin_enqueue_scripts', 'wplc_initiate_admin_js', 11 );
+    }
+}
+```
+
+### HappyFox Chat
+
+**Text editor compatibility:**
+
+```php
+public static function fix_happyfoxchat() {
+    if ( isset( $_GET['fl_builder'] ) ) {
+        remove_action( 'wp_footer', 'hfc_add_visitor_widget' );
+    }
+}
+```
+
+### Pipedrive
+
+**Chat popup prevention:**
+
+```php
+public static function fix_pipedrive() {
+    if ( isset( $_GET['fl_builder'] ) ) {
+        remove_action( 'wp_head', 'pipedrive_add_embed_code' );
+    }
+}
+```
+
+## Developer Tools
+
+### PHPCompatibility Checker
+
+**Whitelist BB files:**
+
+```php
+public static function bb_compat_fix( $folders ) {
+    // Theme
+    $folders[] = '*/bb-theme/includes/vendor/Less/*';
+    // Themer
+    $folders[] = '*/bb-theme-builder/includes/post-grid-default-html.php';
+    $folders[] = '*/bb-theme-builder/includes/post-grid-default-css.php';
+    // Plugin
+    $folders[] = '*/bb-plugin/includes/ui-field*.php';
+    $folders[] = '*/bb-plugin/includes/ui-settings-form*.php';
+    return $folders;
+}
+```
+
+### Duplicate Post / Clone
+
+**Template ID regeneration:**
+
+```php
+public static function template_meta_add( $meta_id, $object_id, $meta_key, $meta_value ) {
+    if ( 'duplicate_post_save_as_new_post' != $_REQUEST['action'] ) return;
+    if ( 'fl-builder-template' != get_post_type( $object_id ) ) return;
+    if ( '_fl_builder_template_id' != $meta_key ) return;
+    
+    // Generate new template ID
+    $template_id = FLBuilderModel::generate_node_id();
+    update_post_meta( $object_id, '_fl_builder_template_id', $template_id );
+}
+```
+
+<Info>
+  When duplicating builder templates, a new unique template ID is automatically generated to prevent conflicts.
+</Info>
+
+## Additional Integrations
+
+Beaver Builder includes compatibility fixes for 50+ additional plugins:
+
+<CardGroup cols={3}>
+  <Card title="Tasty Recipes" icon="utensils">
+    Recipe card compatibility
+  </Card>
+  
+  <Card title="Jetpack" icon="jet-fighter">
+    Photon, stats, and features
+  </Card>
+  
+  <Card title="BugHerd" icon="bug">
+    Feedback tool compatibility
+  </Card>
+  
+  <Card title="ConvertBox" icon="box">
+    Popup builder integration
+  </Card>
+  
+  <Card title="Popup Builder" icon="window">
+    Popup plugin compatibility
+  </Card>
+  
+  <Card title="Templator" icon="file-code">
+    Template management
+  </Card>
+  
+  <Card title="Enjoy Instagram" icon="instagram" iconType="brands">
+    Instagram feed widget
+  </Card>
+  
+  <Card title="Frontend Dashboard" icon="dashboard">
+    Frontend editing plugin
+  </Card>
+  
+  <Card title="Theme My Login" icon="right-to-bracket">
+    Login page customization
+  </Card>
+  
+  <Card title="Toolset" icon="toolbox">
+    Views and content templates
+  </Card>
+  
+  <Card title="Ultimate Dashboard" icon="gauge">
+    WordPress dashboard customizer
+  </Card>
+  
+  <Card title="Enlighter" icon="code">
+    Syntax highlighting
+  </Card>
+</CardGroup>
+
+## ClassicPress Support
+
+Full compatibility with ClassicPress (WordPress fork):
+
+```php
+public static function fix_classicpress_v2() {
+    if ( ! function_exists( 'classicpress_version' ) ) return false;
+    
+    global $wp_scripts;
+    $deps = $wp_scripts->registered['media-views']->deps;
+    foreach ( $deps as $key => $dep ) {
+        if ( 'sortable-js' === $dep ) {
+            unset( $deps[ $key ] );
+            $deps[ $key ] = 'jquery-ui-sortable';
+            ksort( $deps );
+            $wp_scripts->registered['media-views']->deps = $deps;
+            break;
+        }
+    }
+}
+```
+
+## Troubleshooting Plugin Conflicts
+
+<AccordionGroup>
+  <Accordion title="Identifying Conflicts">
+    If you experience issues with the builder:
+    
+    1. Deactivate all plugins except Beaver Builder
+    2. Test if the issue persists
+    3. Reactivate plugins one by one
+    4. Identify which plugin causes the conflict
+  </Accordion>
+  
+  <Accordion title="Safe Mode">
+    Use Safe Mode to bypass potential module conflicts:
+    
+    ```
+    ?safemode=true
+    ```
+    
+    Add this to the URL when editing with the builder.
+  </Accordion>
+  
+  <Accordion title="JavaScript Console">
+    Check for JavaScript errors:
+    
+    1. Open browser developer tools (F12)
+    2. Go to the Console tab
+    3. Look for red error messages
+    4. Note which plugin file is causing errors
+  </Accordion>
+  
+  <Accordion title="Reporting Issues">
+    If you find a plugin conflict not listed here:
+    
+    1. Document the plugin name and version
+    2. Note the specific issue
+    3. Check if others have reported it
+    4. Contact Beaver Builder support
+  </Accordion>
+</AccordionGroup>
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Test in Staging" icon="flask">
+    - Test new plugins in staging first
+    - Check builder functionality after updates
+    - Keep backup before major changes
+  </Card>
+  
+  <Card title="Keep Updated" icon="arrows-rotate">
+    - Update Beaver Builder regularly
+    - Keep WordPress core updated
+    - Update plugins to latest versions
+    - Check changelogs for compatibility notes
+  </Card>
+  
+  <Card title="Minimal Plugins" icon="minimize">
+    - Only use plugins you actually need
+    - Remove unused plugins
+    - Consolidate functionality when possible
+    - Choose well-maintained plugins
+  </Card>
+  
+  <Card title="Performance" icon="gauge-high">
+    - Use caching plugins wisely
+    - Optimize images before upload
+    - Minimize JavaScript conflicts
+    - Monitor site performance
+  </Card>
+</CardGroup>
+
+## Developer Hooks
+
+Disable specific compatibility fixes if needed:
+
+```php
+// Disable admin SSL upload fix
+add_filter( 'fl_admin_ssl_upload_fix', '__return_false' );
+
+// Disable Photon circle image fix
+add_filter( 'fl_photo_photon_exception', '__return_false' );
+
+// Enable MailChimp double opt-in
+add_filter( 'fl_builder_mailchimp_double_option', '__return_true' );
+```
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="WordPress Integration" icon="wordpress" href="/integrations/wordpress">
+    Core WordPress features
+  </Card>
+  
+  <Card title="WooCommerce" icon="shopping-cart" href="/integrations/woocommerce">
+    E-commerce integration
+  </Card>
+  
+  <Card title="Email Services" icon="envelope" href="/integrations/email-services">
+    Email marketing integrations
+  </Card>
+  
+  <Card title="Developer Hooks" icon="code" href="/developer/hooks">
+    Custom integration development
+  </Card>
+</CardGroup>

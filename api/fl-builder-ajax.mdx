@@ -1,0 +1,409 @@
+---
+title: FLBuilderAJAX class
+description: Frontend AJAX handler for Beaver Builder with security and action registration
+---
+
+The `FLBuilderAJAX` class handles frontend AJAX requests for the Beaver Builder interface. It provides a secure way to execute builder operations without using WordPress admin AJAX.
+
+## Overview
+
+The `FLBuilderAJAX` class is defined in `classes/class-fl-builder-ajax.php` and provides:
+
+- Secure frontend AJAX handling
+- Action registration system
+- User authentication and capability checks
+- Nonce verification
+- Method routing
+
+<Warning>
+This class only handles AJAX for the builder UI. Custom modules should use WordPress's `wp_ajax_` hooks instead.
+</Warning>
+
+## Why Frontend AJAX?
+
+Beaver Builder uses frontend AJAX instead of `wp-admin/admin-ajax.php` because:
+
+1. **Shortcode compatibility** - Some shortcodes only work on the frontend
+2. **Theme context** - Preview with actual theme styles and scripts
+3. **Performance** - Lighter than loading the entire admin
+4. **Accuracy** - What you see is what you get
+
+**Source:** `class-fl-builder-ajax.php:3-12`
+
+## Class Methods
+
+### init()
+
+Initializes the AJAX handler.
+
+```php
+FLBuilderAJAX::init();
+```
+
+Registers the `wp` action to run AJAX handlers.
+
+**Source:** `class-fl-builder-ajax.php:30`
+
+### add_action()
+
+Registers a new AJAX action.
+
+```php
+FLBuilderAJAX::add_action( $action, $method, $args = array() );
+```
+
+<ParamField path="$action" type="string" required>
+  The AJAX action name (e.g., `'save_settings'`)
+</ParamField>
+
+<ParamField path="$method" type="string" required>
+  The static method to call (e.g., `'FLBuilderModel::save_settings'`)
+</ParamField>
+
+<ParamField path="$args" type="array">
+  Array of POST parameter names to pass to the method
+</ParamField>
+
+**Example:**
+
+```php
+FLBuilderAJAX::add_action( 'save_settings', 'FLBuilderModel::save_settings', array(
+    'node_id',
+    'settings'
+));
+```
+
+**Source:** `class-fl-builder-ajax.php:54`
+
+### remove_action()
+
+Removes a registered AJAX action.
+
+```php
+FLBuilderAJAX::remove_action( 'save_settings' );
+```
+
+<ParamField path="$action" type="string" required>
+  The action name to remove
+</ParamField>
+
+**Source:** `class-fl-builder-ajax.php:69`
+
+## Registered Actions
+
+The following AJAX actions are registered by default:
+
+### FLBuilderModel Actions
+
+<Accordion title="Node management actions">
+
+- `get_node_settings` - Get settings for a node
+- `delete_node` - Delete a node
+- `delete_col` - Delete a column
+- `reorder_node` - Change node position
+- `reorder_col` - Change column position
+- `move_node` - Move node to new parent
+- `move_col` - Move column to new parent
+- `resize_cols` - Resize column widths
+- `reset_col_widths` - Reset columns to equal width
+- `resize_row_content` - Resize row content width
+
+</Accordion>
+
+<Accordion title="Settings actions">
+
+- `save_settings` - Save node settings
+- `verify_settings` - Verify settings before save
+- `save_layout_settings` - Save layout settings
+- `save_global_settings` - Save global settings
+- `save_color_presets` - Save color presets
+
+</Accordion>
+
+<Accordion title="Layout actions">
+
+- `save_layout` - Save and optionally publish layout
+- `save_draft` - Save draft layout
+- `clear_draft_layout` - Clear draft data
+- `apply_template` - Apply a template
+- `apply_user_template` - Apply a user template
+- `duplicate_post` - Duplicate a post
+
+</Accordion>
+
+### FLBuilderAJAXLayout Actions
+
+<Accordion title="Rendering actions">
+
+- `get_layout` - Get entire layout HTML
+- `render_layout` - Render entire layout
+- `render_node` - Render a single node
+- `render_new_row` - Render a new row
+- `render_new_module` - Render a new module
+- `copy_row` - Copy a row
+- `copy_col` - Copy a column
+- `copy_module` - Copy a module
+
+</Accordion>
+
+**Source:** `class-fl-builder-ajax.php:82-150`
+
+## Security
+
+All AJAX requests are secured with:
+
+### 1. User Authentication
+
+```php
+if ( ! is_user_logged_in() ) {
+    die( json_encode( array(
+        'error' => true,
+        'message' => __( 'You must be logged in to do that.', 'fl-builder' )
+    )));
+}
+```
+
+### 2. Nonce Verification
+
+```php
+if ( ! isset( $_POST['fl_builder_nonce'] ) || 
+     ! wp_verify_nonce( $_POST['fl_builder_nonce'], 'fl_builder_nonce' ) ) {
+    die( json_encode( array(
+        'error' => true,
+        'message' => __( 'Invalid security token.', 'fl-builder' )
+    )));
+}
+```
+
+### 3. Capability Check
+
+```php
+if ( ! FLBuilderModel::is_builder_enabled() ) {
+    die( json_encode( array(
+        'error' => true,
+        'message' => __( 'Builder not enabled for this post.', 'fl-builder' )
+    )));
+}
+```
+
+## Making AJAX Requests
+
+From JavaScript, use the builder's AJAX helper:
+
+```javascript
+FLBuilder.ajax({
+    action: 'save_settings',
+    node_id: '5a3d9f12345',
+    settings: settingsData
+}, function( response ) {
+    // Success callback
+    console.log( response );
+});
+```
+
+The `FLBuilder.ajax()` method automatically includes:
+- The builder nonce
+- Post ID
+- Error handling
+- Loading indicators
+
+## Custom AJAX for Modules
+
+<Warning>
+Custom modules should NOT use `FLBuilderAJAX`. Use WordPress's standard AJAX hooks instead:
+</Warning>
+
+```php
+// In your module class or plugin
+add_action( 'wp_ajax_my_custom_action', 'my_custom_ajax_handler' );
+add_action( 'wp_ajax_nopriv_my_custom_action', 'my_custom_ajax_handler' );
+
+function my_custom_ajax_handler() {
+    // Verify nonce
+    check_ajax_referer( 'my-nonce', 'nonce' );
+    
+    // Process request
+    $result = do_something();
+    
+    // Return JSON
+    wp_send_json_success( $result );
+}
+```
+
+```javascript
+// Frontend JavaScript
+jQuery.ajax({
+    url: FLBuilderConfig.ajaxurl,
+    type: 'POST',
+    data: {
+        action: 'my_custom_action',
+        nonce: MyModuleData.nonce,
+        param: value
+    },
+    success: function( response ) {
+        console.log( response );
+    }
+});
+```
+
+## AJAX Hooks
+
+Beaver Builder provides hooks to modify AJAX behavior:
+
+### Before Action
+
+```php
+do_action( 'fl_ajax_before_' . $action );
+```
+
+**Example:**
+
+```php
+add_action( 'fl_ajax_before_save_settings', function() {
+    // Run before settings are saved
+    error_log( 'About to save settings' );
+});
+```
+
+### After Action
+
+```php
+do_action( 'fl_ajax_after_' . $action, $result );
+```
+
+**Example:**
+
+```php
+add_action( 'fl_ajax_after_save_settings', function( $result ) {
+    // Run after settings are saved
+    error_log( 'Settings saved: ' . print_r( $result, true ) );
+});
+```
+
+### Filter Response
+
+```php
+apply_filters( 'fl_ajax_' . $action, $result );
+```
+
+**Example:**
+
+```php
+add_filter( 'fl_ajax_save_settings', function( $result ) {
+    // Modify the response
+    $result['custom_data'] = 'extra info';
+    return $result;
+});
+```
+
+## Response Format
+
+AJAX responses are JSON-encoded:
+
+### Success Response
+
+```json
+{
+  "data": {
+    "node_id": "5a3d9f12345",
+    "saved": true
+  }
+}
+```
+
+### Error Response
+
+```json
+{
+  "error": true,
+  "message": "Could not save settings"
+}
+```
+
+## Usage Examples
+
+### Adding a Custom AJAX Action
+
+```php
+add_action( 'init', function() {
+    if ( class_exists( 'FLBuilderAJAX' ) ) {
+        FLBuilderAJAX::add_action(
+            'my_custom_action',
+            'MyClass::my_method',
+            array( 'param1', 'param2' )
+        );
+    }
+});
+
+class MyClass {
+    public static function my_method( $param1, $param2 ) {
+        // Process request
+        $result = array(
+            'success' => true,
+            'data'    => 'processed'
+        );
+        
+        return $result;
+    }
+}
+```
+
+### Calling from JavaScript
+
+```javascript
+FLBuilder.ajax({
+    action: 'my_custom_action',
+    param1: 'value1',
+    param2: 'value2'
+}, function( response ) {
+    if ( ! response.error ) {
+        console.log( 'Success:', response );
+    } else {
+        console.error( 'Error:', response.message );
+    }
+});
+```
+
+## Related Classes
+
+<CardGroup cols={2}>
+  <Card title="FLBuilderAJAXLayout" icon="layer-group" href="/developer/advanced/ajax-operations">
+    Layout rendering AJAX operations
+  </Card>
+  <Card title="FLBuilderModel" icon="database" href="/api/fl-builder-model">
+    Data model with AJAX-callable methods
+  </Card>
+  <Card title="AJAX Operations" icon="bolt" href="/developer/advanced/ajax-operations">
+    Learn about AJAX in custom modules
+  </Card>
+  <Card title="Hooks & Filters" icon="link" href="/api/hooks/actions">
+    Complete hooks reference
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+<Tip>
+Use the builder's AJAX helper for consistency:
+
+```javascript
+FLBuilder.ajax( data, callback );
+```
+
+This handles nonces, error states, and loading indicators automatically.
+</Tip>
+
+<Warning>
+Always verify nonces and user capabilities in your AJAX handlers. Never trust client-side data.
+</Warning>
+
+<Info>
+For custom module AJAX, use WordPress's standard `wp_ajax_` hooks instead of `FLBuilderAJAX`.
+</Info>
+
+## Source Code Reference
+
+- **File:** `classes/class-fl-builder-ajax.php`
+- **File:** `classes/class-fl-builder-ajax-layout.php` (rendering)
+- **Since:** Version 1.7
+- **Version:** 2.10.1.1

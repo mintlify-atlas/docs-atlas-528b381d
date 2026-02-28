@@ -1,0 +1,1026 @@
+---
+title: 'Filter Hooks'
+description: 'Complete reference of filter hooks in Beaver Builder for modifying data, customizing output, and extending functionality.'
+---
+
+Filter hooks allow you to modify data and output in Beaver Builder. Unlike action hooks, filters must return a value and are used to transform data before it's used or displayed.
+
+## Module Registration Filters
+
+### fl_builder_register_module
+
+Filters module registration data before a module is registered.
+
+```php
+add_filter('fl_builder_register_module', 'modify_module_registration', 10, 2);
+
+function modify_module_registration($class, $form) {
+    // Modify module settings form
+    // Add custom validation
+    return array($class, $form);
+}
+```
+
+### fl_builder_load_modules_paths
+
+Filters the array of module paths that are loaded.
+
+**Location:** `class-fl-builder.php:107`
+
+```php
+add_filter('fl_builder_load_modules_paths', 'custom_module_paths', 10, 1);
+
+function custom_module_paths($paths) {
+    // Add custom module directories
+    $paths[] = get_stylesheet_directory() . '/bb-modules';
+    return $paths;
+}
+```
+
+### is_module_disable_enabled
+
+Enables advanced module enable/disable mode.
+
+**Location:** `class-fl-builder.php:167`
+
+```php
+add_filter('is_module_disable_enabled', '__return_true');
+```
+
+### fl_module_dependencies
+
+Filters module dependencies array.
+
+**Location:** `class-fl-builder.php:218`
+
+```php
+add_filter('fl_module_dependencies', 'add_module_dependencies', 10, 1);
+
+function add_module_dependencies($deps) {
+    // Add custom module dependencies
+    $deps['my-module'] = array('button', 'photo');
+    return $deps;
+}
+```
+
+## CSS Rendering Filters
+
+### fl_builder_render_css
+
+Filters all rendered CSS before output. This is the main CSS filter.
+
+**Location:** `class-fl-builder.php:96, 3475`
+
+```php
+add_filter('fl_builder_render_css', 'modify_builder_css', 10, 4);
+
+function modify_builder_css($css, $nodes, $global_settings, $include_global) {
+    // Add custom CSS
+    $css .= '.custom-class { color: red; }';
+    
+    // Or modify existing CSS
+    $css = str_replace('old-value', 'new-value', $css);
+    
+    return $css;
+}
+```
+
+### fl_builder_render_css_row
+
+Filters CSS for a specific row before it's added to the main CSS.
+
+**Location:** `class-fl-builder.php:3349`
+
+```php
+add_filter('fl_builder_render_css_row', 'custom_row_css', 10, 3);
+
+function custom_row_css($row_css, $row, $settings) {
+    // Add custom row CSS based on settings
+    if (isset($settings->custom_property)) {
+        $row_css .= '.fl-node-' . $row->node . ' { custom-property: value; }';
+    }
+    return $row_css;
+}
+```
+
+### fl_builder_render_css_col
+
+Filters CSS for a specific column.
+
+**Location:** `class-fl-builder.php:3391`
+
+```php
+add_filter('fl_builder_render_css_col', 'custom_column_css', 10, 3);
+
+function custom_column_css($col_css, $col, $settings) {
+    // Add column-specific CSS
+    return $col_css;
+}
+```
+
+### fl_builder_render_css_module
+
+Filters CSS for all modules.
+
+**Location:** `class-fl-builder.php:3238`
+
+```php
+add_filter('fl_builder_render_css_module', 'custom_module_css', 10, 3);
+
+function custom_module_css($module_css, $module, $settings) {
+    // Add CSS for all modules
+    return $module_css;
+}
+```
+
+### fl_builder_render_css_module_{slug}
+
+Filters CSS for a specific module type.
+
+**Location:** `class-fl-builder.php:3245`
+
+```php
+add_filter('fl_builder_render_css_module_photo', 'custom_photo_css', 10, 3);
+
+function custom_photo_css($module_css, $module, $settings) {
+    // Add CSS specifically for photo modules
+    $module_css .= '.fl-node-' . $module->node . ' img { border-radius: 10px; }';
+    return $module_css;
+}
+```
+
+### fl_builder_before_render_css_row
+
+Filters row object before CSS is rendered for it.
+
+**Location:** `class-fl-builder.php:3319`
+
+```php
+add_filter('fl_builder_before_render_css_row', 'modify_row_before_css', 10, 1);
+
+function modify_row_before_css($row) {
+    // Modify row object before CSS generation
+    return $row;
+}
+```
+
+### fl_builder_before_render_css_col
+
+Filters column object before CSS is rendered.
+
+**Location:** `class-fl-builder.php:3361`
+
+```php
+add_filter('fl_builder_before_render_css_col', 'modify_col_before_css', 10, 1);
+
+function modify_col_before_css($col) {
+    // Modify column object before CSS generation
+    return $col;
+}
+```
+
+### fl_builder_before_render_css_module
+
+Filters module object before CSS is rendered.
+
+**Location:** `class-fl-builder.php:3411`
+
+```php
+add_filter('fl_builder_before_render_css_module', 'modify_module_before_css', 10, 1);
+
+function modify_module_before_css($module) {
+    // Modify module object before CSS generation
+    return $module;
+}
+```
+
+### fl_builder_render_module_css
+
+Filters the CSS output for a specific module instance.
+
+**Location:** `class-fl-builder.php:3192`
+
+```php
+add_filter('fl_builder_render_module_css', 'modify_single_module_css', 10, 3);
+
+function modify_single_module_css($css, $module, $id) {
+    // Modify CSS for this specific module instance
+    return $css;
+}
+```
+
+### fl_builder_render_module_css_settings
+
+Filters module settings before CSS is rendered.
+
+**Location:** `class-fl-builder.php:3165`
+
+```php
+add_filter('fl_builder_render_module_css_settings', 'modify_css_settings', 10, 3);
+
+function modify_css_settings($settings, $id, $type) {
+    // Modify settings used for CSS generation
+    return $settings;
+}
+```
+
+### fl_builder_global_css_string
+
+Filters the global CSS string.
+
+**Location:** `class-fl-builder.php:3718`
+
+```php
+add_filter('fl_builder_global_css_string', 'modify_global_css');
+
+function modify_global_css($css) {
+    // Add global CSS rules
+    return $css;
+}
+```
+
+### fl_builder_minify
+
+Controls whether CSS should be minified.
+
+**Location:** `class-fl-builder.php:3503`
+
+```php
+add_filter('fl_builder_minify', '__return_false');
+```
+
+## Asset Enqueuing Filters
+
+### fl_builder_render_assets_inline
+
+Controls whether assets are rendered inline instead of as files.
+
+**Location:** `class-fl-builder.php:59-63`
+
+```php
+add_filter('fl_builder_render_assets_inline', '__return_true');
+```
+
+### fl_builder_layout_style_dependencies
+
+Filters CSS dependencies for the main layout stylesheet.
+
+**Location:** `class-fl-builder.php:688`
+
+```php
+add_filter('fl_builder_layout_style_dependencies', 'add_css_dependencies');
+
+function add_css_dependencies($deps) {
+    $deps[] = 'my-custom-styles';
+    return $deps;
+}
+```
+
+### fl_builder_layout_style_media
+
+Filters the media attribute for layout styles.
+
+**Location:** `class-fl-builder.php:689`
+
+```php
+add_filter('fl_builder_layout_style_media', 'change_media_attr');
+
+function change_media_attr($media) {
+    return 'screen and (min-width: 768px)';
+}
+```
+
+### fl_builder_layout_script_enqueue_deps
+
+Filters JavaScript dependencies for layout scripts.
+
+**Location:** `class-fl-builder.php:745`
+
+```php
+add_filter('fl_builder_layout_script_enqueue_deps', 'add_js_dependencies', 10, 2);
+
+function add_js_dependencies($deps, $path) {
+    $deps[] = 'my-custom-script';
+    return $deps;
+}
+```
+
+### fl_select2_enabled
+
+Controls whether Select2 is enabled in the builder.
+
+**Location:** `class-fl-builder.php:817, 874`
+
+```php
+add_filter('fl_select2_enabled', '__return_false');
+```
+
+## Content Rendering Filters
+
+### fl_builder_do_render_content
+
+Controls whether builder content should be rendered.
+
+**Location:** `class-fl-builder.php:1036, 2063`
+
+```php
+add_filter('fl_builder_do_render_content', 'conditional_render', 10, 2);
+
+function conditional_render($do_render, $post_id) {
+    // Conditionally render based on user role
+    if (!current_user_can('read_private_posts')) {
+        return false;
+    }
+    return $do_render;
+}
+```
+
+### fl_builder_render_content
+
+Standard WordPress 'the_content' filter applied to builder content.
+
+**Location:** `class-fl-builder.php:104`
+
+```php
+add_filter('fl_builder_render_content', 'modify_builder_content', 10, 1);
+
+function modify_builder_content($content) {
+    // Modify rendered content
+    return $content;
+}
+```
+
+### fl_builder_content_classes
+
+Filters CSS classes for the content wrapper.
+
+**Location:** `class-fl-builder.php:2131`
+
+```php
+add_filter('fl_builder_content_classes', 'add_content_classes', 10, 2);
+
+function add_content_classes($classes, $layout_type) {
+    $classes[] = 'my-custom-class';
+    if ($layout_type === 'landing') {
+        $classes[] = 'landing-page';
+    }
+    return $classes;
+}
+```
+
+### fl_builder_render_nodes
+
+Controls whether nodes should be rendered.
+
+**Location:** `class-fl-builder.php:2147`
+
+```php
+add_filter('fl_builder_render_nodes', '__return_false');
+```
+
+### fl_builder_editor_content
+
+Filters content in the WordPress editor.
+
+**Location:** `class-fl-builder.php:2270`
+
+```php
+add_filter('fl_builder_editor_content', 'modify_editor_content');
+
+function modify_editor_content($content) {
+    // Modify content shown in WP editor
+    return $content;
+}
+```
+
+### fl_render_content_by_id_can_view
+
+Filters whether content can be viewed when rendered by ID.
+
+**Location:** `class-fl-builder.php:1963`
+
+```php
+add_filter('fl_render_content_by_id_can_view', 'check_view_permission', 10, 2);
+
+function check_view_permission($can_view, $post_id) {
+    // Custom permission check
+    return $can_view && user_has_special_access();
+}
+```
+
+### fl_render_content_by_id_attrs
+
+Filters attributes for the content wrapper when rendering by ID.
+
+**Location:** `class-fl-builder.php:1978`
+
+```php
+add_filter('fl_render_content_by_id_attrs', 'add_wrapper_attrs', 10, 2);
+
+function add_wrapper_attrs($attrs, $post_id) {
+    $attrs['data-custom'] = 'value';
+    return $attrs;
+}
+```
+
+### fl_builder_render_shortcodes
+
+Controls whether shortcodes should be processed in content.
+
+**Location:** `class-fl-builder.php:2014`
+
+```php
+add_filter('fl_builder_render_shortcodes', '__return_false');
+```
+
+### fl_builder_before_render_shortcodes
+
+Filters content before shortcodes are processed.
+
+**Location:** `class-fl-builder.php:2016`
+
+```php
+add_filter('fl_builder_before_render_shortcodes', 'prepare_shortcodes');
+
+function prepare_shortcodes($content) {
+    // Prepare content for shortcode processing
+    return $content;
+}
+```
+
+### fl_builder_after_render_shortcodes
+
+Filters content after shortcodes are processed.
+
+**Location:** `class-fl-builder.php:2026`
+
+```php
+add_filter('fl_builder_after_render_shortcodes', 'cleanup_shortcodes', 10, 3);
+
+function cleanup_shortcodes($content, $layout_type, $post_id) {
+    // Clean up after shortcode processing
+    return $content;
+}
+```
+
+## Template Filters
+
+### fl_builder_row_template_base
+
+Filters the base template name for row rendering.
+
+**Location:** `class-fl-builder.php:2420`
+
+```php
+add_filter('fl_builder_row_template_base', 'custom_row_template', 10, 2);
+
+function custom_row_template($base, $row) {
+    return 'custom-row';
+}
+```
+
+### fl_builder_row_template_slug
+
+Filters the template slug for row rendering.
+
+**Location:** `class-fl-builder.php:2421`
+
+```php
+add_filter('fl_builder_row_template_slug', 'custom_row_slug', 10, 2);
+
+function custom_row_slug($slug, $row) {
+    if (isset($row->settings->custom_type)) {
+        return $row->settings->custom_type;
+    }
+    return $slug;
+}
+```
+
+### fl_builder_row_video_bg_template_base
+
+Filters the template base for row video backgrounds.
+
+**Location:** `class-fl-builder.php:2600`
+
+```php
+add_filter('fl_builder_row_video_bg_template_base', 'custom_video_template');
+
+function custom_video_template($base, $row) {
+    return 'custom-row-video';
+}
+```
+
+### fl_builder_column_group_template_base
+
+Filters the template base for column groups.
+
+**Location:** `class-fl-builder.php:2651`
+
+```php
+add_filter('fl_builder_column_group_template_base', 'custom_colgroup_template', 10, 2);
+
+function custom_colgroup_template($base, $group) {
+    return 'custom-column-group';
+}
+```
+
+### fl_builder_module_template_base
+
+Filters the template base for modules.
+
+**Location:** `class-fl-builder.php:2955`
+
+```php
+add_filter('fl_builder_module_template_base', 'custom_module_template', 10, 2);
+
+function custom_module_template($base, $module) {
+    return 'custom-module';
+}
+```
+
+### fl_builder_locate_template_order
+
+Filters the order in which template locations are checked.
+
+**Location:** `class-fl-builder.php:1191`
+
+```php
+add_filter('fl_builder_locate_template_order', 'custom_template_order', 10, 3);
+
+function custom_template_order($order, $template_dir, $template_base, $slug) {
+    // Add custom template directory
+    array_unshift($order, get_stylesheet_directory() . '/bb-templates/' . $template_base . '.php');
+    return $order;
+}
+```
+
+### fl_builder_template_path
+
+Filters the final template path.
+
+**Location:** `class-fl-builder.php:1206`
+
+```php
+add_filter('fl_builder_template_path', 'override_template_path', 10, 3);
+
+function override_template_path($path, $template_base, $slug) {
+    // Override template path
+    return $path;
+}
+```
+
+## Node Attribute Filters
+
+### fl_builder_node_attributes
+
+Filters attributes for all node types (rows, columns, modules).
+
+**Location:** Multiple locations (2575, 2718, 2858, 3136)
+
+```php
+add_filter('fl_builder_node_attributes', 'add_node_attrs', 10, 2);
+
+function add_node_attrs($attrs, $node) {
+    $attrs['data-custom'] = 'value';
+    return $attrs;
+}
+```
+
+### fl_builder_row_attributes
+
+Filters attributes specifically for rows.
+
+**Location:** `class-fl-builder.php:2577`
+
+```php
+add_filter('fl_builder_row_attributes', 'add_row_attrs', 10, 2);
+
+function add_row_attrs($attrs, $row) {
+    $attrs['data-row-type'] = $row->settings->bg_type;
+    return $attrs;
+}
+```
+
+### fl_builder_column_group_attributes
+
+Filters attributes for column groups.
+
+**Location:** `class-fl-builder.php:2720`
+
+```php
+add_filter('fl_builder_column_group_attributes', 'add_colgroup_attrs', 10, 2);
+
+function add_colgroup_attrs($attrs, $group) {
+    $attrs['data-columns'] = count($group->columns);
+    return $attrs;
+}
+```
+
+### fl_builder_column_attributes
+
+Filters attributes for columns.
+
+**Location:** `class-fl-builder.php:2864`
+
+```php
+add_filter('fl_builder_column_attributes', 'add_column_attrs', 10, 2);
+
+function add_column_attrs($attrs, $col) {
+    $attrs['data-width'] = $col->settings->size;
+    return $attrs;
+}
+```
+
+### fl_builder_module_attributes
+
+Filters attributes for modules.
+
+**Location:** `class-fl-builder.php:3142`
+
+```php
+add_filter('fl_builder_module_attributes', 'add_module_attrs', 10, 2);
+
+function add_module_attrs($attrs, $module) {
+    $attrs['data-module-type'] = $module->slug;
+    return $attrs;
+}
+```
+
+## Custom Class Filters
+
+### fl_builder_row_custom_class
+
+Filters custom CSS class for rows.
+
+**Location:** `class-fl-builder.php:2455`
+
+```php
+add_filter('fl_builder_row_custom_class', 'add_row_class', 10, 2);
+
+function add_row_class($class, $row) {
+    $class .= ' custom-row-class';
+    return $class;
+}
+```
+
+### fl_builder_column_custom_class
+
+Filters custom CSS class for columns.
+
+**Location:** `class-fl-builder.php:2774`
+
+```php
+add_filter('fl_builder_column_custom_class', 'add_column_class', 10, 2);
+
+function add_column_class($class, $col) {
+    if ($col->settings->size > 50) {
+        $class .= ' large-column';
+    }
+    return $class;
+}
+```
+
+### fl_builder_module_custom_class
+
+Filters custom CSS class for modules.
+
+**Location:** `class-fl-builder.php:3033`
+
+```php
+add_filter('fl_builder_module_custom_class', 'add_module_class', 10, 2);
+
+function add_module_class($class, $module) {
+    $class .= ' module-' . $module->slug;
+    return $class;
+}
+```
+
+### fl_builder_body_classes
+
+Filters body classes added by Beaver Builder.
+
+**Location:** `class-fl-builder.php:1138`
+
+```php
+add_filter('fl_builder_body_classes', 'add_custom_body_class');
+
+function add_custom_body_class($classes) {
+    $classes[] = 'custom-builder-class';
+    return $classes;
+}
+```
+
+## Module Frontend Filters
+
+### fl_builder_render_module_html
+
+Filters the path to a module's frontend.php file.
+
+**Location:** `class-fl-builder.php:3004`
+
+```php
+add_filter('fl_builder_render_module_html', 'custom_module_html_path', 10, 4);
+
+function custom_module_html_path($path, $type, $settings, $module) {
+    // Use custom template for specific module
+    if ($module->slug === 'photo') {
+        return get_stylesheet_directory() . '/bb-modules/photo/frontend.php';
+    }
+    return $path;
+}
+```
+
+### fl_builder_module_frontend_custom_{slug}
+
+Replaces module frontend rendering with custom output.
+
+**Location:** `class-fl-builder.php:3002`
+
+```php
+add_filter('fl_builder_module_frontend_custom_photo', 'custom_photo_output', 10, 2);
+
+function custom_photo_output($settings, $module) {
+    // Return custom HTML instead of loading frontend.php
+    return '<div class="custom-photo">Custom Output</div>';
+}
+```
+
+### fl_builder_render_module_html_content
+
+Filters the HTML content output by a module.
+
+**Location:** `class-fl-builder.php:3009`
+
+```php
+add_filter('fl_builder_render_module_html_content', 'modify_module_html', 10, 4);
+
+function modify_module_html($content, $type, $settings, $module) {
+    // Wrap module content
+    return '<div class="wrapper">' . $content . '</div>';
+}
+```
+
+### fl_builder_force_module_wrappers
+
+Forces module wrappers even when not needed.
+
+**Location:** `class-fl-builder.php:3582`
+
+```php
+add_filter('fl_builder_force_module_wrappers', '__return_true');
+```
+
+## UI and Settings Filters
+
+### fl_builder_main_menu
+
+Filters the main menu data structure.
+
+**Location:** `class-fl-builder.php:1545`
+
+```php
+add_filter('fl_builder_main_menu', 'customize_main_menu');
+
+function customize_main_menu($views) {
+    // Add custom menu items
+    $views['main']['items'][999] = array(
+        'label' => 'Custom Item',
+        'type' => 'event',
+        'eventName' => 'customEvent'
+    );
+    return $views;
+}
+```
+
+### fl_builder_keyboard_shortcuts
+
+Filters keyboard shortcuts array.
+
+**Location:** `class-fl-builder.php:1654`
+
+```php
+add_filter('fl_builder_keyboard_shortcuts', 'add_custom_shortcuts');
+
+function add_custom_shortcuts($shortcuts) {
+    $shortcuts['myCustomAction'] = array(
+        'label' => 'My Custom Action',
+        'keyCode' => 'mod+k'
+    );
+    return $shortcuts;
+}
+```
+
+### fl_builder_ui_bar_title
+
+Filters the title shown in the builder UI bar.
+
+**Location:** `class-fl-builder.php:1721`
+
+```php
+add_filter('fl_builder_ui_bar_title', 'custom_ui_title');
+
+function custom_ui_title($title) {
+    return 'Editing: ' . $title;
+}
+```
+
+### fl_builder_ui_bar_pretitle
+
+Filters the pretitle shown in the builder UI bar.
+
+**Location:** `class-fl-builder.php:1749`
+
+```php
+add_filter('fl_builder_ui_bar_pretitle', 'custom_pretitle');
+
+function custom_pretitle($pretitle) {
+    return 'Custom Pretitle';
+}
+```
+
+### fl_builder_ui_bar_buttons
+
+Filters the buttons shown in the builder UI bar.
+
+**Location:** `class-fl-builder.php:1785`
+
+```php
+add_filter('fl_builder_ui_bar_buttons', 'add_custom_button');
+
+function add_custom_button($buttons) {
+    $buttons['my-button'] = array(
+        'label' => 'My Button',
+        'onclick' => 'myCustomFunction();'
+    );
+    return $buttons;
+}
+```
+
+### fl_disable_notifications
+
+Disables builder notifications.
+
+**Location:** `class-fl-builder.php:1773, 1866`
+
+```php
+add_filter('fl_disable_notifications', '__return_true');
+```
+
+### fl_get_wp_editor_args
+
+Filters arguments passed to wp_editor for text modules.
+
+**Location:** `class-fl-builder.php:356`
+
+```php
+add_filter('fl_get_wp_editor_args', 'custom_editor_args');
+
+function custom_editor_args($args) {
+    $args['textarea_rows'] = 20;
+    $args['teeny'] = true;
+    return $args;
+}
+```
+
+### fl_builder_crash_white_label_text
+
+Custom info text for crash popup.
+
+**Location:** `class-fl-builder.php:945`
+
+```php
+add_filter('fl_builder_crash_white_label_text', 'custom_crash_text');
+
+function custom_crash_text($text) {
+    return 'Please contact our support team.';
+}
+```
+
+### fl_builder_duplicatemenu_enabled
+
+Enables duplicate menu in admin bar.
+
+**Location:** `class-fl-builder.php:1169`
+
+```php
+add_filter('fl_builder_duplicatemenu_enabled', '__return_true');
+```
+
+## Localization Filters
+
+### fl_set_ui_locale
+
+Allows overriding the UI locale.
+
+**Location:** `class-fl-builder.php:245`
+
+```php
+add_filter('fl_set_ui_locale', 'force_locale');
+
+function force_locale($locale) {
+    return 'de_DE';
+}
+```
+
+## AJAX Filters
+
+### fl_ajax_{action}
+
+Filters the result of a specific AJAX action.
+
+**Location:** `class-fl-builder-ajax.php:240`
+
+```php
+add_filter('fl_ajax_save_layout', 'modify_save_result', 10, 2);
+
+function modify_save_result($result, $args) {
+    // Modify AJAX response
+    return $result;
+}
+```
+
+## Service-Specific Filters
+
+### fl_builder_mailchimp_double_option
+
+Enables double opt-in for MailChimp integrations.
+
+**Location:** `class-fl-builder-service-mailchimp.php:302`
+
+```php
+add_filter('fl_builder_mailchimp_double_option', '__return_true');
+```
+
+## Common Use Cases
+
+### Add Custom CSS to All Layouts
+
+```php
+add_filter('fl_builder_render_css', 'add_custom_global_css', 10, 4);
+
+function add_custom_global_css($css, $nodes, $global_settings, $include_global) {
+    $custom_css = '
+        .fl-builder-content {
+            --custom-color: #ff0000;
+        }
+        .fl-module {
+            margin-bottom: 2rem;
+        }
+    ';
+    return $css . $custom_css;
+}
+```
+
+### Conditionally Hide Modules
+
+```php
+add_filter('fl_builder_render_nodes', 'hide_modules_for_guests', 10, 1);
+
+function hide_modules_for_guests($render) {
+    if (!is_user_logged_in()) {
+        // Only show to logged in users
+        $nodes = FLBuilderModel::get_categorized_nodes();
+        foreach ($nodes['modules'] as $module) {
+            if (isset($module->settings->members_only) && $module->settings->members_only) {
+                // Remove member-only modules
+                FLBuilderModel::delete_node($module->node);
+            }
+        }
+    }
+    return $render;
+}
+```
+
+### Add Custom Module Path
+
+```php
+add_filter('fl_builder_load_modules_paths', 'add_child_theme_modules');
+
+function add_child_theme_modules($paths) {
+    // Add modules from child theme
+    $child_modules = get_stylesheet_directory() . '/bb-modules';
+    if (is_dir($child_modules)) {
+        $paths[] = $child_modules;
+    }
+    return $paths;
+}
+```
+
+### Modify Module Output
+
+```php
+add_filter('fl_builder_render_module_html_content', 'wrap_photo_modules', 10, 4);
+
+function wrap_photo_modules($content, $type, $settings, $module) {
+    if ($module->slug === 'photo') {
+        $content = '<div class="custom-photo-wrapper">' . $content . '</div>';
+    }
+    return $content;
+}
+```
+
+## Related Documentation
+
+- [Action Hooks](/api/hooks/actions)
+- [Custom Module Development](/developer/custom-modules/overview)
+- [Services API](/api/services/email-integrations)

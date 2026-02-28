@@ -1,0 +1,630 @@
+---
+title: AJAX Operations
+description: Handle AJAX requests in Beaver Builder using FLBuilderAJAX and FLBuilderAJAXLayout classes
+---
+
+Beaver Builder uses a custom AJAX system that runs on the frontend instead of wp-admin. This allows proper rendering of shortcodes and widgets while maintaining security through nonces and user capability checks.
+
+## FLBuilderAJAX Class
+
+The `FLBuilderAJAX` class handles all frontend AJAX operations for the builder interface. Unlike `wp_ajax`, it runs in the frontend context to properly render content.
+
+<Note>
+  From class-fl-builder-ajax.php:3-10: Frontend AJAX is used because `wp_ajax` only works in the admin and certain things like some shortcodes won't render there. AJAX requests only run for logged-in users for extra security.
+</Note>
+
+### How It Works
+
+<Steps>
+  <Step title="Action Registration">
+    Actions are registered with `FLBuilderAJAX::add_action()` during initialization.
+  </Step>
+  
+  <Step title="Request Handling">
+    The `run()` method processes requests on the `wp` hook.
+  </Step>
+  
+  <Step title="Security Checks">
+    Requests are verified for logged-in users, valid nonces, and edit capabilities.
+  </Step>
+  
+  <Step title="Action Execution">
+    The specified method is called with extracted arguments.
+  </Step>
+</Steps>
+
+### Registering AJAX Actions
+
+Actions are registered in the `add_actions()` method (class-fl-builder-ajax.php:82-157):
+
+```php
+self::add_action(
+    'action_name',           // AJAX action identifier
+    'ClassName::method',     // Method to call
+    array( 'arg1', 'arg2' )  // Arguments from POST data
+);
+```
+
+#### Example: Built-in Actions
+
+From class-fl-builder-ajax.php:85-109:
+
+```php
+// Get node settings
+self::add_action(
+    'get_node_settings',
+    'FLBuilderModel::get_node_settings',
+    array( 'node_id' )
+);
+
+// Delete node
+self::add_action(
+    'delete_node',
+    'FLBuilderModel::delete_node',
+    array( 'node_id' )
+);
+
+// Save settings
+self::add_action(
+    'save_settings',
+    'FLBuilderModel::save_settings',
+    array( 'node_id', 'settings' )
+);
+
+// Save layout
+self::add_action(
+    'save_layout',
+    'FLBuilderModel::save_layout',
+    array( 'publish', 'exit' )
+);
+```
+
+### Creating Custom AJAX Actions
+
+<Warning>
+  For custom modules, use `wp_ajax` instead of FLBuilderAJAX (class-fl-builder-ajax.php:8-9). FLBuilderAJAX is for core builder operations only.
+</Warning>
+
+For core builder extensions, you can register custom actions:
+
+```php
+/**
+ * Add custom AJAX action
+ */
+function my_add_custom_ajax_action() {
+    FLBuilderAJAX::add_action(
+        'my_custom_action',
+        'MyClass::handle_custom_action',
+        array( 'custom_param' )
+    );
+}
+add_action( 'fl_ajax_before_call_action', 'my_add_custom_ajax_action' );
+
+/**
+ * Handle custom AJAX action
+ */
+class MyClass {
+    
+    public static function handle_custom_action( $custom_param ) {
+        
+        // Your logic here
+        $result = array(
+            'success' => true,
+            'data'    => $custom_param
+        );
+        
+        return $result;
+    }
+}
+```
+
+### Making AJAX Requests
+
+From the builder JavaScript:
+
+```javascript
+// Make AJAX request
+FLBuilder.ajax({
+    action: 'my_custom_action',
+    custom_param: 'value'
+}, function( response ) {
+    // Handle response
+    if ( response.success ) {
+        console.log( response.data );
+    }
+});
+```
+
+## AJAX Security
+
+The `call_action()` method (class-fl-builder-ajax.php:166-265) implements multiple security layers:
+
+### 1. User Authentication
+
+From class-fl-builder-ajax.php:167-170:
+
+```php
+// Only run for logged in users.
+if ( ! is_user_logged_in() ) {
+    return;
+}
+```
+
+### 2. Nonce Verification
+
+From class-fl-builder-ajax.php:172-175:
+
+```php
+// Verify the AJAX nonce.
+if ( ! self::verify_nonce() ) {
+    return;
+}
+```
+
+The nonce verification (class-fl-builder-ajax.php:274-289):
+
+```php
+static private function verify_nonce() {
+    $post_data = FLBuilderModel::get_post_data();
+    $nonce     = false;
+    
+    if ( isset( $post_data['_wpnonce'] ) ) {
+        $nonce = $post_data['_wpnonce'];
+    } elseif ( isset( $_REQUEST['_wpnonce'] ) ) {
+        $nonce = $_REQUEST['_wpnonce'];
+    }
+    
+    if ( ! $nonce || ! wp_verify_nonce( $nonce, 'fl_ajax_update' ) ) {
+        return false;
+    }
+    
+    return true;
+}
+```
+
+### 3. Capability Check
+
+From class-fl-builder-ajax.php:189-191:
+
+```php
+// Make sure the user can edit this post.
+if ( ! current_user_can( 'edit_post', $post_id ) ) {
+    return;
+}
+```
+
+### Sending Nonces
+
+Include the nonce in your AJAX requests:
+
+```javascript
+FLBuilder.ajax({
+    action: 'my_action',
+    _wpnonce: FLBuilderConfig.ajaxNonce
+}, callback);
+```
+
+## AJAX Hooks
+
+The AJAX system provides several hooks for customization:
+
+### Before Action Hook
+
+From class-fl-builder-ajax.php:202-206:
+
+```php
+/**
+ * Allow developers to modify actions before they are called.
+ * @see fl_ajax_before_call_action
+ */
+do_action( 'fl_ajax_before_call_action', $action );
+```
+
+Example usage:
+
+```php
+function my_before_ajax_action( $action ) {
+    // Log AJAX actions
+    error_log( 'AJAX Action: ' . $action );
+}
+add_action( 'fl_ajax_before_call_action', 'my_before_ajax_action' );
+```
+
+### Before Specific Action
+
+From class-fl-builder-ajax.php:229-234:
+
+```php
+/**
+ * Allow developers to hook before the action runs.
+ * @see fl_ajax_before_{$action}
+ */
+do_action( 'fl_ajax_before_' . $action['action'], $keys_args );
+```
+
+Example:
+
+```php
+function my_before_save_settings( $args ) {
+    // Validate settings before saving
+    $node_id = $args['node_id'];
+    $settings = $args['settings'];
+    
+    // Your validation logic
+}
+add_action( 'fl_ajax_before_save_settings', 'my_before_save_settings' );
+```
+
+### Filter Action Result
+
+From class-fl-builder-ajax.php:236-240:
+
+```php
+/**
+ * Call the action and allow developers to filter the result.
+ * @see fl_ajax_{$action}
+ */
+$result = apply_filters(
+    'fl_ajax_' . $action['action'],
+    call_user_func_array( $action['method'], $args ),
+    $keys_args
+);
+```
+
+Example:
+
+```php
+function my_filter_save_settings( $result, $args ) {
+    // Modify the result
+    $result['custom_data'] = 'value';
+    return $result;
+}
+add_filter( 'fl_ajax_save_settings', 'my_filter_save_settings', 10, 2 );
+```
+
+### After Action Hook
+
+From class-fl-builder-ajax.php:242-246:
+
+```php
+/**
+ * Allow developers to hook after the action runs.
+ * @see fl_ajax_after_{$action}
+ */
+do_action( 'fl_ajax_after_' . $action['action'], $keys_args );
+```
+
+## FLBuilderAJAXLayout Class
+
+The `FLBuilderAJAXLayout` class handles rendering of layout components for AJAX refreshes.
+
+### Rendering Methods
+
+From class-fl-builder-ajax-layout.php:
+
+<AccordionGroup>
+  <Accordion title="render() - Main Render Method">
+    Renders layout or node HTML, scripts, and styles (class-fl-builder-ajax-layout.php:27-78):
+
+    ```php
+    /**
+     * Renders the layout data to be passed back to the builder.
+     *
+     * @param string $node_id The ID of a node to render
+     * @param string $old_node_id The ID of a node that has been replaced
+     * @return array
+     */
+    static public function render( $node_id = null, $old_node_id = null ) {
+        // Register scripts for shortcodes/widgets
+        self::register_scripts();
+        
+        // Dequeue to capture only needed scripts
+        self::dequeue_scripts_and_styles();
+        
+        // Get partial refresh data
+        $partial_refresh_data = self::get_partial_refresh_data();
+        
+        // Render HTML
+        $html = self::render_html();
+        
+        // Render scripts and styles
+        $scripts_styles = self::render_scripts_and_styles();
+        
+        // Render assets (CSS/JS)
+        $assets = self::render_assets();
+        
+        return array(
+            'partial'       => $partial_refresh_data['is_partial_refresh'],
+            'nodeId'        => $partial_refresh_data['node_id'],
+            'nodeType'      => $partial_refresh_data['node_type'],
+            'moduleType'    => $partial_refresh_data['module_type'],
+            'oldNodeId'     => $old_node_id,
+            'html'          => $html,
+            'scriptsStyles' => $scripts_styles,
+            'css'           => $assets['css'],
+            'js'            => $assets['js'],
+        );
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="render_new_row() - Create New Row">
+    From class-fl-builder-ajax-layout.php:89-140:
+
+    ```php
+    static public function render_new_row(
+        $cols = '1-col',
+        $position = false,
+        $module = null
+    ) {
+        // Add the row
+        $row = FLBuilderModel::add_row( $cols, $position, $module );
+        
+        // Render HTML
+        ob_start();
+        FLBuilder::render_row( $row );
+        $html = ob_get_clean();
+        
+        // Get new nodes
+        $new_nodes = FLBuilderModel::get_nested_nodes( $row->node );
+        $new_nodes[ $row->node ] = $row;
+        
+        // Get updated sibling positions
+        $siblings = FLBuilderModel::get_nodes( 'row' );
+        $updated_nodes = array();
+        foreach ( $siblings as $sibling ) {
+            if ( $sibling->node !== $row->node ) {
+                $updated_nodes[ $sibling->node ] = new StdClass();
+                $updated_nodes[ $sibling->node ]->position = $sibling->position;
+            }
+        }
+        
+        return array(
+            'partial'      => true,
+            'nodeType'     => $row->type,
+            'html'         => $html,
+            'js'           => 'FLBuilder._renderLayoutComplete();',
+            'newNodes'     => $new_nodes,
+            'updatedNodes' => $updated_nodes,
+        );
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="render_new_module() - Create New Module">
+    From class-fl-builder-ajax-layout.php:460-557:
+
+    ```php
+    static public function render_new_module(
+        $parent_id,
+        $position = false,
+        $type = null,
+        $alias = null,
+        $template_id = null,
+        $template_type = 'user'
+    ) {
+        // Add module from template or default
+        if ( null !== $template_id ) {
+            $module = FLBuilderModel::apply_node_template(
+                $template_id,
+                $parent_id,
+                $position
+            );
+        } else {
+            $alias = FLBuilderModel::get_module_alias( $alias );
+            if ( $alias ) {
+                $module = FLBuilderModel::add_default_module(
+                    $parent_id,
+                    $type,
+                    $position,
+                    $alias->settings,
+                    $alias->template
+                );
+            } else {
+                $module = FLBuilderModel::add_default_module(
+                    $parent_id,
+                    $type,
+                    $position
+                );
+            }
+        }
+        
+        // Determine render strategy (partial or full refresh)
+        if ( $module->partial_refresh ) {
+            // Partial refresh logic...
+        }
+        
+        return array(
+            'type'      => $module->settings->type,
+            'nodeId'    => $module->node,
+            'parentId'  => $module->parent,
+            'dynamic'   => FLBuilderModel::is_node_dynamic( $module ),
+            'global'    => FLBuilderModel::is_node_global( $module ),
+            'layout'    => self::render( $render_id ),
+            'settings'  => $module->settings,
+            'newNodes'  => $new_nodes,
+            'updatedNodes' => $updated_nodes,
+        );
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="copy_module() - Duplicate Module">
+    From class-fl-builder-ajax-layout.php:567-613:
+
+    ```php
+    static public function copy_module( $node_id, $settings = null ) {
+        // Copy the module
+        $module = FLBuilderModel::copy_module( $node_id, $settings );
+        
+        // Render the copied module
+        $response = self::render( $module->node );
+        
+        // Get new nodes
+        $children = FLBuilderModel::get_nested_nodes( $module->node );
+        $new_nodes = FLBuilderModel::clean_layout_data(
+            array_merge( array( $module->node => $module ), $children )
+        );
+        
+        // Get updated sibling positions
+        $siblings = FLBuilderModel::get_nodes( null, $module->parent );
+        $updated_nodes = array();
+        foreach ( $siblings as $sibling ) {
+            if ( $sibling->node !== $module->node ) {
+                $updated_nodes[ $sibling->node ] = new StdClass();
+                $updated_nodes[ $sibling->node ]->position = $sibling->position;
+            }
+        }
+        
+        return array_merge( $response, array(
+            'newNodes'     => $new_nodes,
+            'updatedNodes' => $updated_nodes,
+        ));
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Partial Refresh System
+
+The partial refresh system (class-fl-builder-ajax-layout.php:648-695) determines if only a specific node needs re-rendering:
+
+```php
+static private function get_partial_refresh_data() {
+    $post_data = FLBuilderModel::get_post_data();
+    $partial_refresh = false;
+    
+    if ( isset( $post_data['node_id'] ) ) {
+        $node = FLBuilderModel::get_node( $post_data['node_id'] );
+        
+        if ( $node && 'module' == $node->type ) {
+            $node = FLBuilderModel::get_module( $node_id );
+            if ( is_object( $node ) ) {
+                $partial_refresh = $node->partial_refresh;
+            }
+        }
+    }
+    
+    return array(
+        'is_partial_refresh' => $partial_refresh,
+        'node_id'            => $node_id,
+        'node'               => $node,
+        'node_type'          => $node_type,
+        'module_type'        => $module_type,
+    );
+}
+```
+
+## Custom Module AJAX
+
+For custom modules, use WordPress's standard `wp_ajax` hooks:
+
+```php
+/**
+ * Register AJAX actions for custom module
+ */
+function my_module_register_ajax() {
+    // For logged-in users
+    add_action( 'wp_ajax_my_module_action', 'my_module_ajax_handler' );
+    
+    // For non-logged-in users (if needed)
+    add_action( 'wp_ajax_nopriv_my_module_action', 'my_module_ajax_handler' );
+}
+add_action( 'init', 'my_module_register_ajax' );
+
+/**
+ * Handle AJAX request
+ */
+function my_module_ajax_handler() {
+    // Verify nonce
+    check_ajax_referer( 'my-module-nonce', 'nonce' );
+    
+    // Get parameters
+    $param = isset( $_POST['param'] ) ? sanitize_text_field( $_POST['param'] ) : '';
+    
+    // Process request
+    $result = array(
+        'success' => true,
+        'data'    => 'Result: ' . $param
+    );
+    
+    // Return JSON response
+    wp_send_json_success( $result );
+}
+```
+
+Making the request from your module:
+
+```javascript
+(function($) {
+    
+    var MyModule = {
+        
+        init: function() {
+            $('.my-button').on('click', this.handleClick);
+        },
+        
+        handleClick: function() {
+            $.ajax({
+                url: FLBuilderLayoutConfig.paths.wpAjaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'my_module_action',
+                    nonce: 'my-module-nonce-value',
+                    param: 'value'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        console.log(response.data);
+                    }
+                }
+            });
+        }
+    };
+    
+    $(document).ready(function() {
+        MyModule.init();
+    });
+    
+})(jQuery);
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Security First" icon="shield-check">
+    Always verify nonces and check user capabilities before processing AJAX requests.
+  </Card>
+  
+  <Card title="Use wp_ajax for Modules" icon="puzzle-piece">
+    Use standard WordPress AJAX for custom modules, not FLBuilderAJAX.
+  </Card>
+  
+  <Card title="Return Structured Data" icon="table">
+    Return consistent array structures with success/error states.
+  </Card>
+  
+  <Card title="Handle Errors" icon="triangle-exclamation">
+    Implement proper error handling and return meaningful error messages.
+  </Card>
+</CardGroup>
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="Data Model" icon="database" href="/developer/advanced/data-model">
+    Learn about layout data structure
+  </Card>
+  
+  <Card title="CSS & JS Assets" icon="file-code" href="/developer/advanced/css-js-assets">
+    Asset generation and caching
+  </Card>
+  
+  <Card title="Custom Modules" icon="puzzle-piece" href="/developer/custom-modules/overview">
+    Creating custom modules
+  </Card>
+  
+  <Card title="Hooks Reference" icon="link" href="/developer/hooks-reference/actions">
+    Available hooks and filters
+  </Card>
+</CardGroup>

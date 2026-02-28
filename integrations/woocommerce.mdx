@@ -1,0 +1,400 @@
+---
+title: WooCommerce Integration
+description: Build custom WooCommerce product pages, shop layouts, and integrate WooCommerce functionality into your Beaver Builder designs.
+icon: shopping-cart
+---
+
+Beaver Builder provides deep integration with WooCommerce, allowing you to build custom product pages, display products in your layouts, and create stunning shop experiences.
+
+## WooCommerce Module
+
+The dedicated **WooCommerce** module (`FLWooCommerceModule`) lets you add WooCommerce functionality anywhere in your layouts.
+
+### Module Layouts
+
+The WooCommerce module supports multiple layout options:
+
+<CardGroup cols={2}>
+  <Card title="Single Product" icon="box">
+    Display a single product with all its details
+  </Card>
+  
+  <Card title="Product Page" icon="file">
+    Render the complete product page layout
+  </Card>
+  
+  <Card title="Multiple Products" icon="boxes">
+    Show a grid of products from various sources
+  </Card>
+  
+  <Card title="Add to Cart Button" icon="cart-plus">
+    Add standalone cart buttons for specific products
+  </Card>
+  
+  <Card title="Product Categories" icon="folder">
+    Display product category grids
+  </Card>
+  
+  <Card title="Cart" icon="shopping-cart">
+    Embed the shopping cart page
+  </Card>
+  
+  <Card title="Checkout" icon="credit-card">
+    Add the checkout page layout
+  </Card>
+  
+  <Card title="Order Tracking" icon="truck">
+    Include order tracking functionality
+  </Card>
+  
+  <Card title="My Account" icon="user">
+    Add the customer account page
+  </Card>
+</CardGroup>
+
+## Product Page Building
+
+Create completely custom product pages using Beaver Builder on any WooCommerce product.
+
+### Enabling Builder on Products
+
+<Steps>
+  <Step title="Enable Product Post Type">
+    Go to **Settings → Page Builder → Post Types** and enable the **Product** post type
+  </Step>
+  
+  <Step title="Edit a Product">
+    Navigate to **Products** and open any product for editing
+  </Step>
+  
+  <Step title="Launch Builder">
+    Click the **Page Builder** tab or **Launch Beaver Builder** to start designing
+  </Step>
+</Steps>
+
+### Product Page Layouts
+
+Use these strategies for building product pages:
+
+<Tabs>
+  <Tab title="Default + Custom">
+    Keep the default WooCommerce product layout and add custom sections above or below:
+    
+    - Hero sections
+    - Additional product information
+    - Related content
+    - Custom calls-to-action
+  </Tab>
+  
+  <Tab title="Fully Custom">
+    Build a completely custom product page from scratch using:
+    
+    - HTML modules with WooCommerce shortcodes
+    - Custom field modules for product data
+    - WooCommerce module set to "Product Page"
+  </Tab>
+</Tabs>
+
+### Short Description Fix
+
+Beaver Builder includes an automatic fix for products with empty short descriptions:
+
+```php class-fl-builder-compatibility.php
+public static function fix_woo_short_description( $content ) {
+    if ( '' !== $content ) {
+        return $content;
+    }
+    
+    // Extract CSS from builder layouts in product content
+    if ( isset( $post->post_content ) 
+         && false !== strpos( $post->post_content, '[fl_builder_insert_layout' ) ) {
+        // Ensure CSS is loaded for structured data
+        // Use content as short description
+        $content = strip_shortcodes( wp_strip_all_tags( $post->post_content ) );
+    }
+    return $content;
+}
+```
+
+<Note>
+  This ensures that products with builder layouts but no short description still have content for structured data and SEO.
+</Note>
+
+## Multiple Products Display
+
+The WooCommerce module offers several ways to display multiple products.
+
+### Product Sources
+
+Choose from various product sources:
+
+<AccordionGroup>
+  <Accordion title="Product IDs">
+    Display specific products by entering comma-separated product IDs:
+    
+    ```
+    123, 456, 789
+    ```
+    
+    **Best for**: Handpicked product showcases
+  </Accordion>
+  
+  <Accordion title="Product Category">
+    Show all products from a category using the category slug:
+    
+    ```
+    electronics, clothing, accessories
+    ```
+    
+    **Best for**: Category-specific pages
+  </Accordion>
+  
+  <Accordion title="Product Tags">
+    Display products with specific tags:
+    
+    ```
+    featured, new-arrival, bestseller
+    ```
+    
+    **Best for**: Tag-based collections
+  </Accordion>
+  
+  <Accordion title="Recent Products">
+    Show the most recently added products
+    
+    **Best for**: "New arrivals" sections
+  </Accordion>
+  
+  <Accordion title="Featured Products">
+    Display products marked as featured in WooCommerce
+    
+    **Best for**: Highlighting premium products
+  </Accordion>
+  
+  <Accordion title="Sale Products">
+    Show products currently on sale
+    
+    **Best for**: Sale and promotional pages
+  </Accordion>
+  
+  <Accordion title="Best Selling Products">
+    Display top-selling products based on sales data
+    
+    **Best for**: Social proof and popular items
+  </Accordion>
+  
+  <Accordion title="Top Rated Products">
+    Show products with the highest ratings
+    
+    **Best for**: Building trust with reviews
+  </Accordion>
+</AccordionGroup>
+
+### Product Grid Options
+
+Customize how products are displayed:
+
+- **Number of Products**: Control how many products to show (default: 12)
+- **Columns**: Choose from 1-6 columns for the product grid
+- **Sort By**: Order by default, popularity, rating, date, price, or product ID
+- **Sort Direction**: Ascending or descending order
+
+## Product Categories Display
+
+Create beautiful category grids to help customers browse your shop.
+
+### Category Options
+
+<ParamField path="product_category_ids" type="string">
+  Comma-separated list of category IDs to include. Leave blank for all categories.
+</ParamField>
+
+<ParamField path="autoparent" type="boolean" default="false">
+  Automatically select parent categories
+</ParamField>
+
+<ParamField path="parent_cat_id" type="number" default="0">
+  Specific parent category ID (when autoparent is disabled)
+</ParamField>
+
+<ParamField path="cat_columns" type="number" default="4">
+  Number of columns for the category grid (1-4)
+</ParamField>
+
+<ParamField path="category_orderby" type="string" default="name">
+  Sort categories by: name, id, slug, or menu_order
+</ParamField>
+
+<ParamField path="category_order" type="string" default="asc">
+  Sort direction: ascending or descending
+</ParamField>
+
+### Finding Category IDs
+
+To find a product category ID:
+
+<Steps>
+  <Step title="Navigate to Categories">
+    Go to **Products → Categories** in your WordPress admin
+  </Step>
+  
+  <Step title="Hover Over Category">
+    Hover your mouse over the category name
+  </Step>
+  
+  <Step title="Check the URL">
+    Look at the URL in your browser's status bar. The ID is the number value in the URL:
+    
+    ```
+    tag_ID=42
+    ```
+  </Step>
+</Steps>
+
+## Shop Customization
+
+Beaver Builder includes several features for customizing your WooCommerce shop.
+
+### Archive Loop Compatibility
+
+The builder properly integrates with WooCommerce's archive sorting:
+
+```php class-fl-builder-compatibility.php
+public static function fix_woo_archive_loop( $q ) {
+    if ( ! class_exists( 'WooCommerce' ) ) return;
+    
+    if ( is_admin() || ! $q->get( 'fl_builder_loop' ) 
+         || 'product_query' != $q->get( 'wc_query' ) ) {
+        return;
+    }
+    
+    // Add WooCommerce sorting to Posts module query
+    $ordering = WC()->query->get_catalog_ordering_args();
+    $q->set( 'orderby', $ordering['orderby'] );
+    $q->set( 'order', $ordering['order'] );
+}
+```
+
+<Check>
+  This ensures that WooCommerce sorting (by price, rating, etc.) works correctly with the Posts module when displaying products.
+</Check>
+
+### WooCommerce Memberships
+
+Beaver Builder respects WooCommerce Memberships restrictions:
+
+```php class-fl-builder-compatibility.php
+public static function wc_memberships_support() {
+    if ( function_exists( 'wc_memberships_is_post_content_restricted' ) ) {
+        add_filter( 'fl_builder_do_render_content', function ( $do_render, $post_id ) {
+            if ( wc_memberships_is_post_content_restricted() ) {
+                // Check if user has access to restricted content
+                if ( ! current_user_can( 'wc_memberships_view_restricted_post_content', $post_id ) ) {
+                    $do_render = false;
+                }
+            }
+            return $do_render;
+        }, 10, 2 );
+    }
+}
+```
+
+<Info>
+  Builder content is automatically hidden on products restricted by WooCommerce Memberships if the user doesn't have access.
+</Info>
+
+## WooCommerce Widgets
+
+Use WooCommerce widgets in the WordPress Widgets module:
+
+- Product Categories
+- Products
+- Recently Viewed Products
+- Top Rated Products
+- Product Search
+- Product Tag Cloud
+- Shopping Cart
+
+## Compatibility Fixes
+
+Beaver Builder includes automatic compatibility fixes for popular WooCommerce extensions:
+
+### WooCommerce Products Filter
+
+Prevents JavaScript conflicts in the builder:
+
+```php
+if ( FLBuilderModel::is_builder_active() ) {
+    wp_deregister_script( 'wcpf-plugin-polyfills-script' );
+}
+```
+
+### WooCommerce Tab Manager
+
+Ensures tab content displays correctly with builder layouts:
+
+```php
+public static function fix_woo_tab_manager_missing_content( $content, $tab, $product ) {
+    if ( FLBuilderModel::is_builder_enabled( $product->get_id() ) ) {
+        $wtm_tab_post = get_post( $tab['id'] );
+        return $wtm_tab_post ? $wtm_tab_post->post_content : $content;
+    }
+    return $content;
+}
+```
+
+### YITH WooCommerce Affiliates
+
+Automatically dequeues conflicting scripts when the builder is active.
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Performance" icon="gauge-high">
+    - Limit the number of products per page
+    - Use pagination for large catalogs
+    - Optimize product images
+    - Enable WooCommerce caching
+  </Card>
+  
+  <Card title="Mobile Design" icon="mobile">
+    - Test product grids on mobile devices
+    - Use responsive column settings
+    - Ensure buttons are touch-friendly
+    - Optimize for mobile checkout
+  </Card>
+  
+  <Card title="SEO" icon="search">
+    - Keep product titles descriptive
+    - Use proper heading hierarchy
+    - Include product schema markup
+    - Optimize short descriptions
+  </Card>
+  
+  <Card title="Conversion" icon="chart-line">
+    - Highlight sale prices
+    - Add trust badges and reviews
+    - Create urgency with limited offers
+    - Use clear calls-to-action
+  </Card>
+</CardGroup>
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="WordPress Integration" icon="wordpress" href="/integrations/wordpress">
+    Core WordPress features and compatibility
+  </Card>
+  
+  <Card title="Posts Module" icon="newspaper" href="/modules/posts">
+    Display posts with advanced queries
+  </Card>
+  
+  <Card title="Third-Party Plugins" icon="plug" href="/integrations/third-party">
+    Other plugin integrations
+  </Card>
+  
+  <Card title="Theme Builder" icon="paintbrush" href="/theme-builder/overview">
+    Create custom WooCommerce templates
+  </Card>
+</CardGroup>

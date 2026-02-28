@@ -1,0 +1,618 @@
+---
+title: Responsive Design
+description: Building layouts that adapt to all screen sizes with Beaver Builder
+---
+
+Beaver Builder includes a comprehensive responsive design system that allows you to create layouts that look great on desktops, tablets, and mobile devices. The system provides granular control over how elements appear at different breakpoints.
+
+## Responsive Breakpoints
+
+Beaver Builder uses four responsive breakpoints to control layout behavior:
+
+<Tabs>
+  <Tab title="Desktop (Default)">
+    **> 992px**
+    
+    - Primary design view
+    - Full desktop layouts
+    - Default settings apply
+    - All features available
+  </Tab>
+  
+  <Tab title="Large">
+    **768px - 992px**
+    
+    - Laptop and small desktop screens
+    - Large tablet landscape
+    - Optional responsive overrides
+    - Columns may begin stacking
+  </Tab>
+  
+  <Tab title="Medium">
+    **601px - 768px**
+    
+    - Tablet portrait orientation
+    - Small laptops
+    - Reduced spacing typically
+    - Most columns stack
+  </Tab>
+  
+  <Tab title="Mobile (Responsive)">
+    **< 601px**
+    
+    - Phone screens
+    - Small devices
+    - All columns stack
+    - Minimal spacing
+  </Tab>
+</Tabs>
+
+<Info>
+These breakpoints match the most common device sizes and ensure your layouts work across the vast majority of screens.
+</Info>
+
+## Responsive Settings
+
+Most layout settings in Beaver Builder support responsive values:
+
+### Spacing Controls
+
+Margins and padding can be set independently for each breakpoint:
+
+<CodeGroup>
+```php Responsive Dimension Field
+array(
+    'padding' => array(
+        'type'       => 'dimension',
+        'label'      => __('Padding', 'fl-builder'),
+        'responsive' => array(
+            'default' => array(
+                'default'    => array('top' => '20', 'right' => '20', 'bottom' => '20', 'left' => '20'),
+                'large'      => array('top' => '15', 'right' => '15', 'bottom' => '15', 'left' => '15'),
+                'medium'     => array('top' => '10', 'right' => '10', 'bottom' => '10', 'left' => '10'),
+                'responsive' => array('top' => '5', 'right' => '5', 'bottom' => '5', 'left' => '5'),
+            ),
+            'default_unit' => array(
+                'default'    => 'px',
+                'large'      => 'px',
+                'medium'     => 'px',
+                'responsive' => 'px',
+            ),
+        ),
+    ),
+)
+```
+</CodeGroup>
+
+### Responsive Typography
+
+Font sizes, line heights, and other text properties:
+
+```php Responsive Typography
+array(
+    'typography' => array(
+        'type'       => 'typography',
+        'label'      => __('Typography', 'fl-builder'),
+        'responsive' => array(
+            'default' => array(
+                'default'    => array('font_size' => array('length' => 24, 'unit' => 'px')),
+                'large'      => array('font_size' => array('length' => 20, 'unit' => 'px')),
+                'medium'     => array('font_size' => array('length' => 18, 'unit' => 'px')),
+                'responsive' => array('font_size' => array('length' => 16, 'unit' => 'px')),
+            ),
+        ),
+    ),
+)
+```
+
+### Column Widths
+
+Column widths automatically adapt but can be customized:
+
+```php column-settings.php:12
+array(
+    'size' => array(
+        'type'       => 'unit',
+        'label'      => __('Width', 'fl-builder'),
+        'responsive' => true,
+        'units'      => array('%'),
+        'responsive' => array(
+            'default' => array(
+                'default'    => '50',  // 50% on desktop
+                'large'      => '50',  // 50% on large
+                'medium'     => '100', // 100% on medium
+                'responsive' => '100', // 100% on mobile
+            ),
+        ),
+    ),
+)
+```
+
+### Row Heights
+
+Minimum heights adjust for different screens:
+
+```php row-settings.php:121
+array(
+    'min_height' => array(
+        'type'       => 'unit',
+        'label'      => __('Minimum Height', 'fl-builder'),
+        'responsive' => true,
+        'units'      => array('px', 'vh'),
+        'slider'     => array(
+            'px' => array('min' => 0, 'max' => 1000, 'step' => 10),
+        ),
+    ),
+)
+```
+
+## Visibility Controls
+
+Control which elements appear on different devices:
+
+### Breakpoint Visibility
+
+<CodeGroup>
+```php Responsive Display Setting
+array(
+    'responsive_display' => array(
+        'type'         => 'button-group',
+        'label'        => __('Breakpoint', 'fl-builder'),
+        'default'      => 'desktop,large,medium,mobile',
+        'options'      => array(
+            'desktop' => __('Desktop', 'fl-builder'),
+            'large'   => __('Large', 'fl-builder'),
+            'medium'  => __('Medium', 'fl-builder'),
+            'mobile'  => __('Mobile', 'fl-builder'),
+        ),
+        'multi-select' => array('min' => 1),
+    ),
+)
+```
+</CodeGroup>
+
+<Note>
+Visibility settings allow you to show/hide entire rows, columns, or modules based on screen size. This is useful for creating mobile-specific content or hiding complex elements on small screens.
+</Note>
+
+### Common Visibility Patterns
+
+<Tabs>
+  <Tab title="Desktop Only">
+    ```
+    Show on: Desktop, Large
+    Hide on: Medium, Mobile
+    ```
+    
+    Use for:
+    - Large hero images
+    - Complex navigation
+    - Multi-column layouts
+    - Desktop-specific features
+  </Tab>
+  
+  <Tab title="Mobile Only">
+    ```
+    Show on: Mobile
+    Hide on: Desktop, Large, Medium
+    ```
+    
+    Use for:
+    - Simplified mobile menus
+    - Touch-optimized buttons
+    - Mobile-specific CTAs
+    - Stacked content
+  </Tab>
+  
+  <Tab title="Tablet & Up">
+    ```
+    Show on: Desktop, Large, Medium
+    Hide on: Mobile
+    ```
+    
+    Use for:
+    - Two-column layouts
+    - Medium-complexity elements
+    - Tablet-optimized content
+  </Tab>
+  
+  <Tab title="Mobile & Tablet">
+    ```
+    Show on: Medium, Mobile
+    Hide on: Desktop, Large
+    ```
+    
+    Use for:
+    - Simplified navigation
+    - Single-column content
+    - Touch-friendly interfaces
+  </Tab>
+</Tabs>
+
+## Responsive Editing Mode
+
+Beaver Builder includes a responsive editing mode for previewing designs:
+
+### Accessing Responsive Mode
+
+<Steps>
+  <Step title="Open Builder">
+    Launch the Beaver Builder editor
+  </Step>
+  
+  <Step title="Toggle Responsive">
+    Click the **Responsive Editing** button in the toolbar
+    
+    Or use keyboard shortcut: **Ctrl+Shift+R** (Windows) / **Cmd+Shift+R** (Mac)
+  </Step>
+  
+  <Step title="Select Breakpoint">
+    Choose which breakpoint to preview:
+    - Desktop (default)
+    - Large
+    - Medium  
+    - Mobile
+  </Step>
+  
+  <Step title="Edit Settings">
+    Modify responsive-specific settings while previewing
+  </Step>
+</Steps>
+
+### Responsive Preview Features
+
+<CardGroup cols={2}>
+  <Card title="Live Preview" icon="eye">
+    See exactly how your design looks at each breakpoint
+  </Card>
+  <Card title="Device Frames" icon="mobile">
+    Optional device frame overlays for realistic preview
+  </Card>
+  <Card title="Orientation" icon="rotate">
+    Toggle between portrait and landscape
+  </Card>
+  <Card title="Quick Toggle" icon="arrows-left-right">
+    Rapidly switch between breakpoints
+  </Card>
+</CardGroup>
+
+## Responsive Behaviors
+
+### Column Stacking
+
+Columns automatically stack on smaller screens:
+
+<Tabs>
+  <Tab title="Desktop (3 Columns)">
+    ```
+    ┌─────┬─────┬─────┐
+    │  A  │  B  │  C  │
+    │     │     │     │
+    └─────┴─────┴─────┘
+    ```
+  </Tab>
+  
+  <Tab title="Medium (2 Columns)">
+    ```
+    ┌─────┬─────┐
+    │  A  │  B  │
+    │     │     │
+    ├─────┴─────┤
+    │     C     │
+    │           │
+    └───────────┘
+    ```
+  </Tab>
+  
+  <Tab title="Mobile (Stacked)">
+    ```
+    ┌───────────┐
+    │     A     │
+    │           │
+    ├───────────┤
+    │     B     │
+    │           │
+    ├───────────┤
+    │     C     │
+    │           │
+    └───────────┘
+    ```
+  </Tab>
+</Tabs>
+
+### Reverse Column Order
+
+Change the stacking order on mobile:
+
+<CodeGroup>
+```php Column Order Setting
+array(
+    'responsive_order' => array(
+        'type'    => 'select',
+        'label'   => __('Reverse Column Order', 'fl-builder'),
+        'default' => '',
+        'options' => array(
+            ''              => __('Disabled', 'fl-builder'),
+            'mobile'        => __('Small', 'fl-builder'),
+            'medium'        => __('Medium', 'fl-builder'),
+            'mobile,medium' => __('Small and Medium', 'fl-builder'),
+        ),
+    ),
+)
+```
+</CodeGroup>
+
+**Normal Order:**
+```
+[ Image ][ Text ]
+
+Mobile:
+[ Image ]
+[ Text  ]
+```
+
+**Reversed Order:**
+```
+[ Image ][ Text ]
+
+Mobile:
+[ Text  ]
+[ Image ]
+```
+
+### Background Images
+
+Responsive background images for different screens:
+
+```php Responsive Background
+array(
+    'bg_image' => array(
+        'type'       => 'photo',
+        'label'      => __('Photo', 'fl-builder'),
+        'responsive' => array(
+            'default' => array(
+                'default'    => '123', // Full-size image ID
+                'large'      => '124', // Large tablet image
+                'medium'     => '125', // Medium image
+                'responsive' => '126', // Mobile-optimized image
+            ),
+        ),
+    ),
+)
+```
+
+## CSS Media Queries
+
+Beaver Builder generates responsive CSS automatically:
+
+<CodeGroup>
+```css Generated Responsive CSS
+/* Desktop (default) */
+.fl-node-abc123 {
+    padding: 20px;
+}
+
+/* Large devices */
+@media (max-width: 992px) {
+    .fl-node-abc123 {
+        padding: 15px;
+    }
+}
+
+/* Medium devices */
+@media (max-width: 768px) {
+    .fl-node-abc123 {
+        padding: 10px;
+    }
+}
+
+/* Mobile devices */
+@media (max-width: 601px) {
+    .fl-node-abc123 {
+        padding: 5px;
+    }
+}
+```
+</CodeGroup>
+
+### Custom Media Queries
+
+You can add custom responsive CSS:
+
+<CodeGroup>
+```css Custom Responsive CSS
+/* In Global Settings > CSS */
+
+/* Custom breakpoint */
+@media (max-width: 480px) {
+    .fl-node-abc123 {
+        font-size: 14px;
+    }
+}
+
+/* Landscape tablets */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+    .fl-row-content-wrap {
+        padding: 10px;
+    }
+}
+```
+</CodeGroup>
+
+## Global Responsive Settings
+
+Set default responsive behaviors globally:
+
+### Default Breakpoint Values
+
+```php Global Settings
+$global_settings = FLBuilderModel::get_global_settings();
+
+// Row widths
+$row_width = $global_settings->row_width; // Desktop
+$row_width_medium = $global_settings->row_width_medium; // Medium
+$row_width_responsive = $global_settings->row_width_responsive; // Mobile
+
+// Row padding
+$row_padding = $global_settings->row_padding_top; // Desktop
+$row_padding_medium = $global_settings->row_padding_top_medium; // Medium
+$row_padding_responsive = $global_settings->row_padding_top_responsive; // Mobile
+```
+
+### Default Spacing Units
+
+```php Responsive Units
+// Margin units
+$margin_unit = $global_settings->row_margins_unit; // Desktop: px
+$margin_unit_medium = $global_settings->row_margins_medium_unit; // Medium
+$margin_unit_responsive = $global_settings->row_margins_responsive_unit; // Mobile
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Mobile-First Approach">
+    Start with mobile design and add complexity for larger screens:
+    
+    1. Design for smallest screen first
+    2. Add responsive overrides for tablets
+    3. Enhance for desktop last
+    4. Test all breakpoints thoroughly
+  </Accordion>
+  
+  <Accordion title="Optimize Images">
+    Use different image sizes for different breakpoints:
+    
+    - Desktop: Full resolution
+    - Large: 80% size
+    - Medium: 60% size  
+    - Mobile: 40% size or cropped
+  </Accordion>
+  
+  <Accordion title="Touch-Friendly Targets">
+    Ensure interactive elements are appropriately sized:
+    
+    - Buttons: Minimum 44px × 44px on mobile
+    - Links: Adequate spacing between
+    - Forms: Large input fields
+    - Menus: Touch-optimized navigation
+  </Accordion>
+  
+  <Accordion title="Content Priority">
+    Hide non-essential content on mobile:
+    
+    - Remove decorative elements
+    - Simplify complex features
+    - Focus on primary content
+    - Use progressive disclosure
+  </Accordion>
+  
+  <Accordion title="Performance">
+    Optimize for mobile performance:
+    
+    - Lazy load images
+    - Minimize animations
+    - Reduce HTTP requests
+    - Test on real devices
+  </Accordion>
+</AccordionGroup>
+
+## Testing Responsive Designs
+
+### In-Builder Testing
+
+<Steps>
+  <Step title="Responsive Mode">
+    Use Beaver Builder's responsive editing mode
+  </Step>
+  
+  <Step title="Multiple Breakpoints">
+    Check all four breakpoints systematically
+  </Step>
+  
+  <Step title="Orientation Testing">
+    Test both portrait and landscape orientations
+  </Step>
+</Steps>
+
+### Browser Testing
+
+<Tabs>
+  <Tab title="Chrome DevTools">
+    1. Open DevTools (F12)
+    2. Click device toolbar icon
+    3. Select device presets
+    4. Test various screen sizes
+  </Tab>
+  
+  <Tab title="Firefox DevTools">
+    1. Open DevTools (F12)
+    2. Click responsive design mode
+    3. Select device dimensions
+    4. Rotate device orientation
+  </Tab>
+  
+  <Tab title="Safari DevTools">
+    1. Enable Developer menu
+    2. Enter Responsive Design Mode
+    3. Choose device profiles
+    4. Test various viewports
+  </Tab>
+</Tabs>
+
+### Real Device Testing
+
+<Warning>
+Always test on real devices when possible. Emulators don't perfectly replicate:
+- Touch interactions
+- Performance characteristics
+- Font rendering
+- Network conditions
+</Warning>
+
+## Common Responsive Patterns
+
+### Responsive Navigation
+
+```
+Desktop: [ Logo ]  [ Nav Links ]  [ Button ]
+Mobile:  [ Logo ]  [ Menu Icon ]
+         [ Drawer Menu ]
+```
+
+### Responsive Hero Section
+
+```
+Desktop: [ Large Image ][ Text Content ]
+Mobile:  [  Small Image  ]
+         [ Text Content  ]
+```
+
+### Responsive Grid
+
+```
+Desktop: [ Item ][ Item ][ Item ][ Item ]
+Tablet:  [ Item ][ Item ]
+         [ Item ][ Item ]
+Mobile:  [ Item ]
+         [ Item ]
+         [ Item ]
+         [ Item ]
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Global Settings" icon="globe" href="/settings/global-settings">
+    Configure default responsive settings
+  </Card>
+  <Card title="CSS Customization" icon="code" href="/developer/custom-css">
+    Add custom responsive styles
+  </Card>
+  <Card title="Performance" icon="gauge-high" href="/guides/performance">
+    Optimize mobile performance
+  </Card>
+  <Card title="Mobile Testing" icon="mobile" href="/guides/testing">
+    Test across devices
+  </Card>
+</CardGroup>

@@ -1,0 +1,460 @@
+---
+title: Frontend Rendering
+description: Learn how to render module output with templates, dynamic CSS, and JavaScript
+---
+
+Frontend rendering is how your module outputs HTML, CSS, and JavaScript to the page. Beaver Builder provides a flexible template system with access to module settings and helper functions.
+
+## Frontend Template File
+
+The `includes/frontend.php` file is required for all modules and renders the module's HTML output.
+
+### Available Variables
+
+These variables are automatically available in your template:
+
+| Variable | Type | Description |
+|----------|------|-------------|
+| `$module` | object | The module instance with all methods and properties |
+| `$id` | string | The module's unique node ID (e.g., "5f8a9b2c3d4e") |
+| `$settings` | object | Module settings as an object |
+
+### Basic Template Example
+
+```php includes/frontend.php
+<?php
+/**
+ * Frontend template for custom module
+ * 
+ * $module - Module object
+ * $id - Module node ID
+ * $settings - Module settings
+ */
+?>
+<div class="my-module-content">
+    <h3><?php echo esc_html( $settings->title ); ?></h3>
+    <p><?php echo wp_kses_post( $settings->text ); ?></p>
+</div>
+```
+
+<Warning>
+  Always sanitize and escape output appropriately:
+  - Use `esc_html()` for plain text
+  - Use `esc_url()` for URLs
+  - Use `esc_attr()` for HTML attributes
+  - Use `wp_kses_post()` for HTML content
+</Warning>
+
+## Accessing Module Settings
+
+Settings are accessed as object properties through the `$settings` variable:
+
+```php
+// Text field
+$settings->title
+
+// Select field
+$settings->alignment
+
+// Color field
+$settings->bg_color
+
+// Photo field (returns an object)
+$settings->photo->url
+$settings->photo->id
+```
+
+### Checking for Empty Settings
+
+```php
+<?php if ( ! empty( $settings->title ) ) : ?>
+    <h3><?php echo esc_html( $settings->title ); ?></h3>
+<?php endif; ?>
+
+<?php if ( ! empty( $settings->photo ) ) : ?>
+    <img src="<?php echo esc_url( $settings->photo->url ); ?>" 
+         alt="<?php echo esc_attr( $settings->photo->alt ); ?>" />
+<?php endif; ?>
+```
+
+## Real-World Examples
+
+<Tabs>
+  <Tab title="Button Module">
+    From the Beaver Builder Button module:
+
+    ```php button/includes/frontend.php
+    <?php
+    $attrs = [
+        'class' => explode( ' ', $module->get_classname() ),
+    ];
+
+    $button_node_id = "fl-node-$id";
+
+    if ( isset( $settings->id ) && ! empty( $settings->id ) ) {
+        $button_node_id = esc_attr( $settings->id );
+    }
+
+    $element_attributes = join( ' ', [
+        $module->get_tag(),
+        $module->get_link(),
+        $module->get_label(),
+        $module->get_target()
+    ]);
+    ?>
+    <div <?php $module->render_attributes( $attrs ); ?>>
+        <<?php echo $element_attributes; ?> class="fl-button<?php echo ( 'enable' == $settings->icon_animation ) ? ' fl-button-icon-animation' : ''; ?>">
+            <?php if ( ! empty( $settings->icon ) && 'before' == $settings->icon_position ) : ?>
+                <i class="fl-button-icon fl-button-icon-before <?php echo esc_attr( $settings->icon ); ?>" aria-hidden="true"></i>
+            <?php endif; ?>
+            
+            <?php if ( ! empty( $settings->text ) ) : ?>
+                <span class="fl-button-text"><?php echo $settings->text; ?></span>
+            <?php endif; ?>
+            
+            <?php if ( ! empty( $settings->icon ) && 'after' == $settings->icon_position ) : ?>
+                <i class="fl-button-icon fl-button-icon-after <?php echo esc_attr( $settings->icon ); ?>" aria-hidden="true"></i>
+            <?php endif; ?>
+        </<?php echo esc_attr( $module->get_tag() ); ?>>
+    </div>
+    ```
+
+    Key techniques:
+    - Custom module methods (`get_classname()`, `get_tag()`)
+    - Conditional icon rendering
+    - Dynamic class names
+    - Proper attribute rendering
+  </Tab>
+
+  <Tab title="Heading Module">
+    From the Beaver Builder Heading module:
+
+    ```php heading/includes/frontend.php
+    <?php
+    $attrs = [
+        'class' => [
+            'fl-heading',
+            'fl-heading-text',
+        ],
+    ];
+    ?>
+    <<?php echo esc_attr( $settings->tag ); ?> <?php $module->render_attributes( $attrs ); ?>>
+        <?php if ( ! empty( $settings->link ) ) : ?>
+            <a href="<?php echo esc_url( do_shortcode( $settings->link ) ); ?>" 
+               title="<?php echo esc_attr( wp_strip_all_tags( $settings->heading ) ); ?>" 
+               target="<?php echo esc_attr( $settings->link_target ); ?>"
+               <?php echo $module->get_rel(); ?>>
+        <?php endif; ?>
+        
+        <?php echo $settings->heading; ?>
+        
+        <?php if ( ! empty( $settings->link ) ) : ?>
+            </a>
+        <?php endif; ?>
+    </<?php echo esc_attr( $settings->tag ); ?>>
+    ```
+
+    Key techniques:
+    - Dynamic HTML tag from settings
+    - Conditional link wrapper
+    - Shortcode support with `do_shortcode()`
+    - Custom module methods
+  </Tab>
+</Tabs>
+
+## Custom Module Wrapper
+
+By default, Beaver Builder wraps your output in a module container. You can control this:
+
+### Using Default Wrapper
+
+```php
+parent::__construct(array(
+    'include_wrapper' => true,  // Default
+));
+```
+
+Output:
+```html
+<div class="fl-module fl-module-my-module">
+    <div class="fl-module-content">
+        <!-- Your frontend.php output -->
+    </div>
+</div>
+```
+
+### Custom Wrapper Control
+
+```php
+parent::__construct(array(
+    'include_wrapper' => false,
+));
+```
+
+When disabled, you must render the module attributes yourself:
+
+```php includes/frontend.php
+<?php
+$attrs = [
+    'class' => ['my-custom-module'],
+];
+?>
+<div <?php $module->render_attributes( $attrs ); ?>>
+    <!-- Your content -->
+</div>
+```
+
+<Note>
+  The `render_attributes()` method outputs required data attributes for Beaver Builder's editor functionality.
+</Note>
+
+## Dynamic CSS Generation
+
+The `includes/frontend.css.php` file generates CSS based on module settings.
+
+### Basic CSS Template
+
+```php includes/frontend.css.php
+<?php
+/**
+ * Dynamic CSS for module
+ * 
+ * Variables:
+ * $id - Module node ID
+ * $module - Module object
+ * $settings - Module settings
+ */
+?>
+
+.fl-node-<?php echo $id; ?> .my-module-content {
+    background-color: <?php echo $settings->bg_color; ?>;
+    padding: <?php echo $settings->padding; ?>px;
+}
+
+.fl-node-<?php echo $id; ?> .my-module-content:hover {
+    background-color: <?php echo $settings->bg_hover_color; ?>;
+}
+```
+
+<Tip>
+  Always scope your CSS with `.fl-node-<?php echo $id; ?>` to ensure styles only apply to this specific module instance.
+</Tip>
+
+### Using CSS Helper Functions
+
+Beaver Builder provides helper functions for common CSS patterns:
+
+<CodeGroup>
+```php Responsive Rules
+FLBuilderCSS::responsive_rule( array(
+    'settings'     => $settings,
+    'setting_name' => 'padding',
+    'selector'     => ".fl-node-$id .my-module-content",
+    'prop'         => 'padding',
+) );
+```
+
+```php Typography Rules
+FLBuilderCSS::typography_field_rule( array(
+    'settings'     => $settings,
+    'setting_name' => 'typography',
+    'selector'     => ".fl-node-$id h3",
+) );
+```
+
+```php Border Rules
+FLBuilderCSS::border_field_rule( array(
+    'settings'     => $settings,
+    'setting_name' => 'border',
+    'selector'     => ".fl-node-$id .my-module-content",
+) );
+```
+
+```php Dimension Rules
+FLBuilderCSS::dimension_field_rule( array(
+    'settings'     => $settings,
+    'setting_name' => 'margin',
+    'selector'     => ".fl-node-$id .my-module-content",
+    'unit'         => 'px',
+    'props'        => array(
+        'margin-top'    => 'margin_top',
+        'margin-right'  => 'margin_right',
+        'margin-bottom' => 'margin_bottom',
+        'margin-left'   => 'margin_left',
+    ),
+) );
+```
+</CodeGroup>
+
+### Complex CSS Example
+
+From the Button module:
+
+```php button/includes/frontend.css.php
+<?php
+$breakpoints = array( '', 'large', 'medium', 'responsive' );
+
+// Responsive padding
+FLBuilderCSS::dimension_field_rule( array(
+    'settings'     => $settings,
+    'setting_name' => 'padding',
+    'selector'     => ".fl-builder-content .fl-node-$id .fl-button:is(a, button)",
+    'unit'         => 'px',
+    'props'        => array(
+        'padding-top'    => 'padding_top',
+        'padding-right'  => 'padding_right',
+        'padding-bottom' => 'padding_bottom',
+        'padding-left'   => 'padding_left',
+    ),
+) );
+
+// Typography
+FLBuilderCSS::typography_field_rule( array(
+    'settings'     => $settings,
+    'setting_name' => 'typography',
+    'selector'     => ".fl-builder-content .fl-node-$id .fl-button:is(a, button)",
+) );
+
+foreach ( $breakpoints as $device ) {
+    $setting_name = empty( $device ) ? 'bg_color' : "bg_color_{$device}";
+    
+    FLBuilderCSS::rule( array(
+        'enabled'  => 'flat' === $settings->style && ! empty( $settings->{$setting_name} ),
+        'media'    => $device,
+        'selector' => ".fl-builder-content .fl-node-$id .fl-button:is(a, button)",
+        'props'    => array(
+            'background-color' => FLBuilderColor::hex_or_rgb( $settings->{$setting_name} ),
+        ),
+    ) );
+}
+?>
+
+/* Gradient background */
+<?php if ( 'gradient' === $settings->style ) : ?>
+.fl-builder-content .fl-node-<?php echo $id; ?> .fl-button:is(a, button) {
+    background: linear-gradient(to bottom, 
+        <?php echo FLBuilderColor::hex_or_rgb( $bg_gradient_start ); ?> 0%, 
+        <?php echo FLBuilderColor::hex_or_rgb( $settings->bg_color ); ?> 100%);
+}
+<?php endif; ?>
+```
+
+## JavaScript Integration
+
+The `includes/frontend.js.php` file adds dynamic JavaScript to your module.
+
+### Basic JavaScript Template
+
+```php includes/frontend.js.php
+<?php
+/**
+ * Dynamic JavaScript for module
+ */
+?>
+(function($) {
+    $(document).ready(function() {
+        var $module = $('.fl-node-<?php echo $id; ?>');
+        var settings = <?php echo json_encode( $settings ); ?>;
+        
+        $module.find('.my-button').on('click', function(e) {
+            if ( settings.click_action === 'lightbox' ) {
+                e.preventDefault();
+                // Lightbox logic
+            }
+        });
+    });
+})(jQuery);
+```
+
+### Enqueuing Additional Scripts
+
+For external libraries or dependencies:
+
+```php
+class MyModule extends FLBuilderModule {
+    
+    public function enqueue_scripts() {
+        if ( $this->settings && 'lightbox' == $this->settings->click_action ) {
+            $this->add_js( 'jquery-magnificpopup' );
+            $this->add_css( 'jquery-magnificpopup' );
+        }
+    }
+}
+```
+
+## Module Methods
+
+Create custom methods in your module class to keep templates clean:
+
+```php
+class MyModule extends FLBuilderModule {
+    
+    /**
+     * Get CSS class names for wrapper
+     */
+    public function get_classname() {
+        $classname = 'my-module-wrap';
+        
+        if ( ! empty( $this->settings->alignment ) ) {
+            $classname .= ' my-module-' . $this->settings->alignment;
+        }
+        
+        return $classname;
+    }
+    
+    /**
+     * Get the appropriate HTML tag
+     */
+    public function get_tag() {
+        return isset( $this->settings->tag ) ? $this->settings->tag : 'div';
+    }
+}
+```
+
+Use in template:
+
+```php includes/frontend.php
+<div class="<?php echo $module->get_classname(); ?>">
+    <<?php echo $module->get_tag(); ?>>
+        <?php echo $settings->content; ?>
+    </<?php echo $module->get_tag(); ?>>
+</div>
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Security" icon="shield">
+    - Always sanitize/escape output
+    - Validate user input
+    - Use WordPress functions
+    - Never trust settings data
+  </Card>
+
+  <Card title="Performance" icon="gauge-high">
+    - Minimize database queries
+    - Cache expensive operations
+    - Use CSS helpers for responsive styles
+    - Load scripts conditionally
+  </Card>
+
+  <Card title="Maintainability" icon="wrench">
+    - Keep templates simple
+    - Use module methods for logic
+    - Comment complex code
+    - Follow WordPress standards
+  </Card>
+
+  <Card title="Accessibility" icon="universal-access">
+    - Use semantic HTML
+    - Include ARIA attributes
+    - Ensure keyboard navigation
+    - Provide alt text for images
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<Card title="Module Settings Forms" icon="sliders" href="/developer/modules/module-settings-forms">
+  Learn how to create powerful settings forms with various field types
+</Card>

@@ -1,0 +1,170 @@
+---
+title: Extensions Overview
+description: Understanding Beaver Builder's extension architecture and available extensions
+---
+
+## What Are Extensions?
+
+Beaver Builder extensions are modular components that add specialized functionality to the core plugin. They are loaded automatically when Beaver Builder is active and provide features like theme building, cloud templates, white labeling, and more.
+
+<Info>
+  Extensions are located in the `extensions/` directory and are initialized during plugin load.
+</Info>
+
+## Extension Architecture
+
+Extensions follow a consistent structure:
+
+1. **Main File**: Each extension has an entry file (e.g., `fl-theme-builder-core.php`)
+2. **Classes Directory**: Contains the core logic classes
+3. **Includes Directory**: Additional files like templates and settings
+4. **Assets**: CSS and JavaScript files for frontend and admin interfaces
+
+### Extension Loading
+
+Extensions are loaded conditionally based on:
+- Available features
+- License level
+- Theme support
+- Multisite settings
+
+```php
+// Example: Theme Builder Core loading
+define( 'FL_THEME_BUILDER_CORE_DIR', FL_BUILDER_DIR . 'extensions/fl-theme-builder-core/' );
+define( 'FL_THEME_BUILDER_CORE_URL', FL_BUILDER_URL . 'extensions/fl-theme-builder-core/' );
+
+add_action( 'plugins_loaded', function () {
+    if ( defined( 'FL_THEME_BUILDER_VERSION' ) && class_exists( 'FLThemeBuilderFieldConnections' ) ) {
+        return;
+    }
+    
+    require_once FL_THEME_BUILDER_CORE_DIR . 'classes/class-fl-theme-builder-field-connections.php';
+    require_once FL_THEME_BUILDER_CORE_DIR . 'classes/class-fl-theme-builder-layout-data.php';
+    // ... load other classes
+}, 11 );
+```
+
+## Available Extensions
+
+<CardGroup cols={2}>
+  <Card title="Theme Builder" icon="paintbrush" href="/extensions/theme-builder">
+    Create custom headers, footers, and post layouts with dynamic field connections
+  </Card>
+  
+  <Card title="Cloud Templates" icon="cloud" href="/extensions/cloud-templates">
+    Access and manage templates from Beaver Builder's cloud library
+  </Card>
+  
+  <Card title="White Label" icon="tag" href="/extensions/white-label">
+    Customize branding for client sites and agency workflows
+  </Card>
+  
+  <Card title="User Templates" icon="users">
+    Manage user-created templates and enable template export/import
+  </Card>
+  
+  <Card title="Global Styles" icon="palette">
+    Define and apply consistent styling across all modules and layouts
+  </Card>
+  
+  <Card title="Cache Helper" icon="bolt">
+    Integration with popular caching plugins for automatic cache clearing
+  </Card>
+  
+  <Card title="Version Control" icon="code-branch">
+    Track and manage layout revisions with rollback capabilities
+  </Card>
+  
+  <Card title="Multisite Support" icon="network-wired">
+    Network-level settings and configuration for WordPress multisite
+  </Card>
+</CardGroup>
+
+## Extension Constants
+
+Each extension defines constants for directory and URL paths:
+
+| Extension | Directory Constant | URL Constant |
+|-----------|-------------------|-------------|
+| Theme Builder | `FL_THEME_BUILDER_CORE_DIR` | `FL_THEME_BUILDER_CORE_URL` |
+| Cloud | `FL_BUILDER_CLOUD_DIR` | `FL_BUILDER_CLOUD_URL` |
+| White Label | `FL_BUILDER_WHITE_LABEL_DIR` | `FL_BUILDER_WHITE_LABEL_URL` |
+
+<CodeGroup>
+
+```php Theme Builder
+define( 'FL_THEME_BUILDER_CORE_DIR', FL_BUILDER_DIR . 'extensions/fl-theme-builder-core/' );
+define( 'FL_THEME_BUILDER_CORE_URL', FL_BUILDER_URL . 'extensions/fl-theme-builder-core/' );
+```
+
+```php Cloud Templates
+define( 'FL_BUILDER_CLOUD_DIR', FL_BUILDER_DIR . 'extensions/fl-builder-cloud/' );
+define( 'FL_BUILDER_CLOUD_URL', FLBuilder::plugin_url() . 'extensions/fl-builder-cloud/' );
+```
+
+```php White Label
+define( 'FL_BUILDER_WHITE_LABEL_DIR', FL_BUILDER_DIR . 'extensions/fl-builder-white-label/' );
+define( 'FL_BUILDER_WHITE_LABEL_URL', FLBuilder::plugin_url() . 'extensions/fl-builder-white-label/' );
+```
+
+</CodeGroup>
+
+## Creating Custom Extensions
+
+While most users won't need to create custom extensions, developers can extend Beaver Builder by:
+
+1. Creating a custom plugin that hooks into Beaver Builder
+2. Using the extensive filter and action hooks provided
+3. Registering custom modules, templates, or field types
+
+<Warning>
+  Modifying core extension files is not recommended as changes will be overwritten during updates. Always use hooks and filters or create separate plugins.
+</Warning>
+
+## Extension Dependencies
+
+Some extensions depend on others:
+
+- **Theme Builder** requires core classes like `FLPageData` and `FLThemeBuilderFieldConnections`
+- **Cloud Templates** integrates with the Assistant interface when available
+- **White Label** works with both the plugin and theme
+
+```php
+// Example: Checking for dependencies
+if ( defined( 'FL_THEME_BUILDER_VERSION' ) && class_exists( 'FLThemeBuilderFieldConnections' ) ) {
+    // Extension already loaded by full version
+    return;
+}
+```
+
+## Performance Considerations
+
+<Tip>
+  Extensions are optimized to load only when needed:
+  - Scripts and styles are enqueued conditionally
+  - Database queries are cached
+  - Heavy operations are deferred until necessary
+</Tip>
+
+### Query Caching
+
+Extensions implement caching to prevent expensive database queries:
+
+```php
+// From FLThemeBuilderRulesLocation
+static private $query_cache = array();
+static private $current_page_posts = null;
+static private $current_page_location = null;
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Theme Builder" icon="arrow-right" href="/extensions/theme-builder">
+    Learn about creating custom theme layouts
+  </Card>
+  
+  <Card title="Field Connections" icon="link" href="/extensions/theme-builder#field-connections">
+    Connect dynamic data to module fields
+  </Card>
+</CardGroup>

@@ -1,0 +1,635 @@
+---
+title: 'Action Hooks'
+description: 'Complete reference of action hooks available in Beaver Builder for customizing builder behavior and extending functionality.'
+---
+
+Action hooks in Beaver Builder allow you to execute custom code at specific points during the builder's lifecycle. Use these hooks to extend functionality, integrate third-party services, or modify the builder's behavior.
+
+## Core Initialization Hooks
+
+### plugins_loaded
+
+Fires when WordPress plugins are loaded. Beaver Builder uses this to load its text domain for translations.
+
+**Location:** `class-fl-builder.php:81`
+
+```php
+add_action('plugins_loaded', 'my_custom_function');
+
+function my_custom_function() {
+    // Your code here
+    // Runs after all plugins are loaded
+}
+```
+
+### fl_builder_init_ui
+
+Fires when the builder UI is initialized. Use this to add custom functionality to the builder interface.
+
+**Location:** `class-fl-builder.php:1224`
+
+```php
+add_action('fl_builder_init_ui', 'my_builder_ui_init');
+
+function my_builder_ui_init() {
+    // Add custom UI elements
+    // Enqueue custom scripts/styles for the builder
+}
+```
+
+## Asset Enqueuing Hooks
+
+### fl_builder_ui_enqueue_scripts
+
+Fires when builder UI scripts and styles are being enqueued in the parent iframe.
+
+**Location:** `class-fl-builder.php:85`
+
+```php
+add_action('fl_builder_ui_enqueue_scripts', 'my_custom_ui_assets');
+
+function my_custom_ui_assets() {
+    wp_enqueue_script(
+        'my-builder-script',
+        plugin_dir_url(__FILE__) . 'js/builder-custom.js',
+        array('jquery'),
+        '1.0.0',
+        true
+    );
+}
+```
+
+### wp_enqueue_scripts
+
+Standard WordPress hook used by Beaver Builder to enqueue layout styles and scripts.
+
+**Location:** `class-fl-builder.php:86-87`
+
+```php
+add_action('wp_enqueue_scripts', 'my_layout_assets', 12);
+
+function my_layout_assets() {
+    // Enqueue after builder's assets (priority 11)
+    if (FLBuilderModel::is_builder_enabled()) {
+        wp_enqueue_style('my-layout-styles', ...);
+    }
+}
+```
+
+### fl_before_sortable_enqueue
+
+Fires before the jQuery UI Sortable script is enqueued in the builder.
+
+**Location:** `class-fl-builder.php:856`
+
+```php
+add_action('fl_before_sortable_enqueue', 'my_before_sortable');
+
+function my_before_sortable() {
+    // Customize sortable behavior
+    // Deregister conflicting scripts
+}
+```
+
+## Layout Saving Hooks
+
+### fl_builder_before_save_layout
+
+Fires before a layout is saved. Use this to validate or modify layout data before it's saved.
+
+```php
+add_action('fl_builder_before_save_layout', 'validate_layout_before_save', 10, 2);
+
+function validate_layout_before_save($post_id, $publish) {
+    // Validate layout data
+    // Log saving activity
+    // Trigger external integrations
+}
+```
+
+### fl_builder_after_save_layout
+
+Fires after a layout has been saved successfully.
+
+```php
+add_action('fl_builder_after_save_layout', 'after_layout_save', 10, 2);
+
+function after_layout_save($post_id, $publish) {
+    if ($publish) {
+        // Clear custom caches
+        // Send notifications
+        // Sync with external systems
+    }
+}
+```
+
+## Content Rendering Hooks
+
+### fl_builder_render_content_start
+
+Fires at the very beginning of content rendering.
+
+**Location:** `class-fl-builder.php:1991`
+
+```php
+add_action('fl_builder_render_content_start', 'before_render_content');
+
+function before_render_content() {
+    // Set up rendering context
+    // Initialize custom data
+}
+```
+
+### fl_builder_before_render_content
+
+Fires before the main content wrapper is rendered.
+
+**Location:** `class-fl-builder.php:1999`
+
+```php
+add_action('fl_builder_before_render_content', 'add_before_content');
+
+function add_before_content() {
+    echo '<div class="my-custom-wrapper">';
+}
+```
+
+### fl_builder_after_render_content
+
+Fires after the main content wrapper is rendered.
+
+**Location:** `class-fl-builder.php:2007`
+
+```php
+add_action('fl_builder_after_render_content', 'add_after_content');
+
+function add_after_content() {
+    echo '</div><!-- .my-custom-wrapper -->';
+}
+```
+
+### fl_builder_render_content_complete
+
+Fires after all content rendering is complete.
+
+**Location:** `class-fl-builder.php:2040`
+
+```php
+add_action('fl_builder_render_content_complete', 'after_content_complete');
+
+function after_content_complete() {
+    // Clean up rendering context
+    // Output analytics code
+}
+```
+
+### fl_did_render_content_filter
+
+Fires after the content filter has been applied.
+
+**Location:** `class-fl-builder.php:2082`
+
+```php
+add_action('fl_did_render_content_filter', 'post_render_actions');
+
+function post_render_actions() {
+    // Actions after content is filtered
+}
+```
+
+## Node Rendering Hooks
+
+### fl_builder_before_render_nodes
+
+Fires before any nodes (rows, columns, modules) are rendered.
+
+**Location:** `class-fl-builder.php:2145`
+
+```php
+add_action('fl_builder_before_render_nodes', 'setup_nodes');
+
+function setup_nodes() {
+    // Initialize node-specific data
+}
+```
+
+### fl_builder_after_render_nodes
+
+Fires after all nodes have been rendered.
+
+**Location:** `class-fl-builder.php:2155`
+
+```php
+add_action('fl_builder_after_render_nodes', 'cleanup_nodes');
+
+function cleanup_nodes() {
+    // Clean up node-specific data
+}
+```
+
+## Row Rendering Hooks
+
+### fl_builder_before_render_rows
+
+Fires before rows are rendered, receives array of row objects.
+
+**Location:** `class-fl-builder.php:2378`
+
+```php
+add_action('fl_builder_before_render_rows', 'before_rows', 10, 1);
+
+function before_rows($rows) {
+    // $rows is an array of row objects
+    // Prepare row data
+}
+```
+
+### fl_builder_after_render_rows
+
+Fires after all rows have been rendered.
+
+**Location:** `class-fl-builder.php:2393`
+
+```php
+add_action('fl_builder_after_render_rows', 'after_rows', 10, 1);
+
+function after_rows($rows) {
+    // Clean up after rows
+}
+```
+
+### fl_builder_before_render_row
+
+Fires before each individual row is rendered.
+
+**Location:** `class-fl-builder.php:2417`
+
+```php
+add_action('fl_builder_before_render_row', 'before_row', 10, 2);
+
+function before_row($row, $groups) {
+    // $row: row object
+    // $groups: column groups in this row
+    echo '<div class="custom-row-wrapper" data-row-id="' . $row->node . '">';
+}
+```
+
+### fl_builder_after_render_row
+
+Fires after each individual row is rendered.
+
+**Location:** `class-fl-builder.php:2432`
+
+```php
+add_action('fl_builder_after_render_row', 'after_row', 10, 2);
+
+function after_row($row, $groups) {
+    echo '</div><!-- .custom-row-wrapper -->';
+}
+```
+
+### fl_builder_before_render_row_bg
+
+Fires before rendering the row background.
+
+**Location:** `class-fl-builder.php:2592`
+
+```php
+add_action('fl_builder_before_render_row_bg', 'before_row_bg', 10, 1);
+
+function before_row_bg($row) {
+    // Add custom background elements
+}
+```
+
+### fl_builder_after_render_row_bg
+
+Fires after the row background is rendered.
+
+**Location:** `class-fl-builder.php:2618`
+
+```php
+add_action('fl_builder_after_render_row_bg', 'after_row_bg', 10, 1);
+
+function after_row_bg($row) {
+    // Add overlays or effects
+}
+```
+
+## Column Rendering Hooks
+
+### fl_builder_before_render_column_group
+
+Fires before a column group is rendered.
+
+**Location:** `class-fl-builder.php:2648`
+
+```php
+add_action('fl_builder_before_render_column_group', 'before_col_group', 10, 2);
+
+function before_col_group($group, $cols) {
+    // $group: column group object
+    // $cols: array of column objects
+}
+```
+
+### fl_builder_after_render_column_group
+
+Fires after a column group is rendered.
+
+**Location:** `class-fl-builder.php:2662`
+
+```php
+add_action('fl_builder_after_render_column_group', 'after_col_group', 10, 2);
+
+function after_col_group($group, $cols) {
+    // Clean up column group
+}
+```
+
+### fl_builder_before_render_column
+
+Fires before each column is rendered.
+
+**Location:** `class-fl-builder.php:2743`
+
+```php
+add_action('fl_builder_before_render_column', 'before_column', 10, 1);
+
+function before_column($col) {
+    // Add custom column wrappers
+}
+```
+
+### fl_builder_after_render_column
+
+Fires after each column is rendered.
+
+**Location:** `class-fl-builder.php:2751`
+
+```php
+add_action('fl_builder_after_render_column', 'after_column', 10, 1);
+
+function after_column($col) {
+    // Close custom column wrappers
+}
+```
+
+## Module Rendering Hooks
+
+### fl_builder_before_render_modules
+
+Fires before modules in a column are rendered.
+
+**Location:** `class-fl-builder.php:2881`
+
+```php
+add_action('fl_builder_before_render_modules', 'before_modules', 10, 2);
+
+function before_modules($nodes, $col_id) {
+    // $nodes: array of module objects
+    // $col_id: parent column ID
+}
+```
+
+### fl_builder_after_render_modules
+
+Fires after modules in a column are rendered.
+
+**Location:** `class-fl-builder.php:2895`
+
+```php
+add_action('fl_builder_after_render_modules', 'after_modules', 10, 2);
+
+function after_modules($nodes, $col_id) {
+    // Clean up module rendering
+}
+```
+
+### fl_builder_before_render_module
+
+Fires before each individual module is rendered.
+
+**Location:** `class-fl-builder.php:2924`
+
+```php
+add_action('fl_builder_before_render_module', 'before_module', 10, 1);
+
+function before_module($module) {
+    // Add custom module wrappers
+    echo '<div class="custom-module-wrapper">';
+}
+```
+
+### fl_builder_after_render_module
+
+Fires after each individual module is rendered.
+
+**Location:** `class-fl-builder.php:2932`
+
+```php
+add_action('fl_builder_after_render_module', 'after_module', 10, 1);
+
+function after_module($module) {
+    echo '</div><!-- .custom-module-wrapper -->';
+}
+```
+
+### fl_builder_render_module_html_before
+
+Fires immediately before the module HTML is included.
+
+**Location:** `class-fl-builder.php:2997`
+
+```php
+add_action('fl_builder_render_module_html_before', 'before_module_html', 10, 3);
+
+function before_module_html($type, $settings, $module) {
+    // Modify context before module template
+}
+```
+
+### fl_builder_render_module_html_after
+
+Fires immediately after the module HTML is included.
+
+**Location:** `class-fl-builder.php:3016`
+
+```php
+add_action('fl_builder_render_module_html_after', 'after_module_html', 10, 3);
+
+function after_module_html($type, $settings, $module) {
+    // Clean up after module template
+}
+```
+
+## Hidden Node Hook
+
+### fl_builder_hidden_node
+
+Fires when a node is hidden (row, column, or module).
+
+**Location:** Multiple locations (2438, 2757, 2938)
+
+```php
+add_action('fl_builder_hidden_node', 'handle_hidden_node', 10, 1);
+
+function handle_hidden_node($node) {
+    // Handle hidden nodes
+    // Log hidden elements
+}
+```
+
+## CSS Rendering Hooks
+
+### fl_builder_render_custom_css_for_editing
+
+Fires when rendering custom CSS for the editing interface.
+
+**Location:** `class-fl-builder.php:3278`
+
+```php
+add_action('fl_builder_render_custom_css_for_editing', 'custom_editor_css');
+
+function custom_editor_css() {
+    echo '<style>.fl-builder-custom { color: red; }</style>';
+}
+```
+
+### fl_builder_after_render_css
+
+Fires after all CSS has been rendered.
+
+**Location:** `class-fl-builder.php:3491`
+
+```php
+add_action('fl_builder_after_render_css', 'after_css_render');
+
+function after_css_render() {
+    // Minify CSS
+    // Add critical CSS
+}
+```
+
+### fl_builder_pre_render_global_css
+
+Fires before global CSS is rendered.
+
+**Location:** `class-fl-builder.php:3524`
+
+```php
+add_action('fl_builder_pre_render_global_css', 'before_global_css');
+
+function before_global_css() {
+    // Modify global CSS context
+}
+```
+
+## AJAX Action Hooks
+
+### fl_ajax_before_call_action
+
+Fires before any AJAX action is called.
+
+**Location:** `class-fl-builder-ajax.php:206`
+
+```php
+add_action('fl_ajax_before_call_action', 'before_ajax', 10, 1);
+
+function before_ajax($action) {
+    // Log AJAX requests
+    error_log('BB AJAX Action: ' . $action);
+}
+```
+
+### fl_ajax_before_{action}
+
+Fires before a specific AJAX action is executed.
+
+**Location:** `class-fl-builder-ajax.php:234`
+
+```php
+add_action('fl_ajax_before_save_settings', 'before_save', 10, 1);
+
+function before_save($args) {
+    // Validate settings before save
+}
+```
+
+### fl_ajax_after_{action}
+
+Fires after a specific AJAX action is executed.
+
+**Location:** `class-fl-builder-ajax.php:247`
+
+```php
+add_action('fl_ajax_after_save_layout', 'after_save_layout', 10, 1);
+
+function after_save_layout($args) {
+    // Clear caches
+    // Trigger webhooks
+}
+```
+
+## Common Use Cases
+
+### Add Custom Analytics Tracking
+
+```php
+add_action('fl_builder_render_content_complete', 'add_analytics_tracking');
+
+function add_analytics_tracking() {
+    if (FLBuilderModel::is_builder_active()) {
+        return; // Don't track in builder
+    }
+    
+    ?>
+    <script>
+        // Track page view with builder content
+        gtag('event', 'builder_page_view', {
+            'post_id': <?php echo get_the_ID(); ?>
+        });
+    </script>
+    <?php
+}
+```
+
+### Log Layout Changes
+
+```php
+add_action('fl_builder_after_save_layout', 'log_layout_changes', 10, 2);
+
+function log_layout_changes($post_id, $publish) {
+    $user = wp_get_current_user();
+    $log_entry = sprintf(
+        '[%s] User %s %s layout for post %d',
+        current_time('mysql'),
+        $user->display_name,
+        $publish ? 'published' : 'saved draft of',
+        $post_id
+    );
+    
+    error_log($log_entry);
+}
+```
+
+### Add Custom Module Wrapper
+
+```php
+add_action('fl_builder_before_render_module', 'add_module_analytics_wrapper');
+add_action('fl_builder_after_render_module', 'close_module_analytics_wrapper');
+
+function add_module_analytics_wrapper($module) {
+    echo '<div class="module-track" data-module-type="' . $module->slug . '">';
+}
+
+function close_module_analytics_wrapper($module) {
+    echo '</div>';
+}
+```
+
+## Related Documentation
+
+- [Filter Hooks](/api/hooks/filters)
+- [Custom Module Development](/developer/custom-modules/overview)
+- [Services API](/api/services/email-integrations)

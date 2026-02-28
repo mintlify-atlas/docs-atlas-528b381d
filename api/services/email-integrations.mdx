@@ -1,0 +1,467 @@
+---
+title: 'Email Service Integrations'
+description: 'Complete guide to email marketing service integrations in Beaver Builder, including available services and the FLBuilderService base class.'
+---
+
+Beaver Builder includes built-in integrations with popular email marketing services. These integrations allow you to connect forms and subscribe modules directly to your email marketing platform.
+
+## Available Email Services
+
+Beaver Builder supports the following email marketing services out of the box:
+
+### ActiveCampaign
+**Class:** `FLBuilderServiceActiveCampaign`  
+**File:** `class-fl-builder-service-activecampaign.php`
+
+ActiveCampaign integration with support for lists, forms, and tags.
+
+```php
+// Access ActiveCampaign service
+$service = new FLBuilderServiceActiveCampaign();
+```
+
+### AWeber
+**Class:** `FLBuilderServiceAWeber`  
+**File:** `class-fl-builder-service-aweber.php`
+
+AWeber integration with OAuth authentication and tag support.
+
+### Campaign Monitor
+**Class:** `FLBuilderServiceCampaignMonitor`  
+**File:** `class-fl-builder-service-campaign-monitor.php`
+
+Campaign Monitor integration for list subscriptions.
+
+### Campayn
+**Class:** `FLBuilderServiceCampayn`  
+**File:** `class-fl-builder-service-campayn.php`
+
+Campayn email marketing integration.
+
+### Constant Contact (v3)
+**Class:** `FLBuilderServiceConstantContact3`  
+**File:** `class-fl-builder-service-constant-contact-3.php`
+
+Latest Constant Contact API v3 integration.
+
+### Constant Contact (Legacy)
+**Class:** `FLBuilderServiceConstantContact`  
+**File:** `class-fl-builder-service-constant-contact.php`
+
+Legacy Constant Contact API integration.
+
+### ConvertKit
+**Class:** `FLBuilderServiceConvertKit`  
+**File:** `class-fl-builder-service-convertkit.php`
+
+ConvertKit integration with form and tag support.
+
+### Drip
+**Class:** `FLBuilderServiceDrip`  
+**File:** `class-fl-builder-service-drip.php`
+
+Drip email marketing automation integration.
+
+### Email Address
+**Class:** `FLBuilderServiceEmailAddress`  
+**File:** `class-fl-builder-service-email-address.php`
+
+Simple email notification service (no third-party integration).
+
+### Enormail
+**Class:** `FLBuilderServiceEnormail`  
+**File:** `class-fl-builder-service-enormail.php`
+
+Enormail service integration.
+
+### GetResponse
+**Class:** `FLBuilderServiceGetResponse`  
+**File:** `class-fl-builder-service-getresponse.php`
+
+GetResponse marketing automation integration.
+
+### GoDaddy Email Marketing
+**Class:** `FLBuilderServiceGoDaddyEmailMarketing`  
+**File:** `class-fl-builder-service-godaddy-email-marketing.php`
+
+GoDaddy Email Marketing (formerly Mad Mimi) integration.
+
+### Groundhogg
+**Class:** `FLBuilderServiceGroundhogg`  
+**File:** `class-fl-builder-service-groundhogg.php`
+
+Groundhogg CRM integration.
+
+### Hatchbuck
+**Class:** `FLBuilderServiceHatchbuck`  
+**File:** `class-fl-builder-service-hatchbuck.php`
+
+Hatchbuck marketing automation integration.
+
+### iContact
+**Class:** `FLBuilderServiceIContact`  
+**File:** `class-fl-builder-service-icontact.php`
+
+Standard iContact integration.
+
+### iContact Pro
+**Class:** `FLBuilderServiceIContactPro`  
+**File:** `class-fl-builder-service-icontact-pro.php`
+
+iContact Pro version integration.
+
+### Infusionsoft
+**Class:** `FLBuilderServiceInfusionsoft`  
+**File:** `class-fl-builder-service-infusionsoft.php`
+
+Infusionsoft (Keap) CRM integration.
+
+### Mad Mimi
+**Class:** `FLBuilderServiceMadMimi`  
+**File:** `class-fl-builder-service-madmimi.php`
+
+Mad Mimi email service integration.
+
+### MailChimp
+**Class:** `FLBuilderServiceMailChimp`  
+**File:** `class-fl-builder-service-mailchimp.php`
+
+MailChimp integration with support for lists, groups, and tags.
+
+```php
+// MailChimp double opt-in filter
+add_filter('fl_builder_mailchimp_double_option', '__return_true');
+```
+
+### MailerLite
+**Class:** `FLBuilderServiceMailerLite`  
+**File:** `class-fl-builder-service-mailerlite.php`
+
+MailerLite email marketing integration.
+
+### Mailjet
+**Class:** `FLBuilderServiceMailjet`  
+**File:** `class-fl-builder-service-mailjet.php`
+
+Mailjet email service integration.
+
+### MailPoet
+**Class:** `FLBuilderServiceMailPoet`  
+**File:** `class-fl-builder-service-mailpoet.php`
+
+MailPoet (WordPress newsletter plugin) integration.
+
+### MailRelay
+**Class:** `FLBuilderServiceMailRelay`  
+**File:** `class-fl-builder-service-mailrelay.php`
+
+MailRelay service integration.
+
+### Mautic
+**Class:** `FLBuilderServiceMautic`  
+**File:** `class-fl-builder-service-mautic.php`
+
+Mautic marketing automation integration.
+
+### Ontraport
+**Class:** `FLBuilderServiceOntraport`  
+**File:** `class-fl-builder-service-ontraport.php`
+
+Ontraport CRM and marketing automation integration.
+
+### Sendinblue
+**Class:** `FLBuilderServiceSendinblue`  
+**File:** `class-fl-builder-service-sendinblue.php`
+
+Sendinblue (Brevo) email marketing integration.
+
+### Sendy
+**Class:** `FLBuilderServiceSendy`  
+**File:** `class-fl-builder-service-sendy.php`
+
+Sendy self-hosted email newsletter integration.
+
+## FLBuilderService Base Class
+
+All email service integrations extend the `FLBuilderService` abstract base class.
+
+**File:** `class-fl-builder-service.php`
+
+### Base Class Structure
+
+```php
+abstract class FLBuilderService {
+    /**
+     * Service ID (e.g., 'mailchimp', 'aweber')
+     */
+    public $id = '';
+
+    /**
+     * Test API connection
+     * @param array $fields Connection fields
+     * @return array {
+     *     @type bool|string $error Error message or false
+     *     @type array $data Connection data to save
+     * }
+     */
+    abstract public function connect($fields = array());
+
+    /**
+     * Render connection settings form
+     * @return string HTML markup
+     */
+    abstract public function render_connect_settings();
+
+    /**
+     * Render service-specific fields
+     * @param string $account Account name
+     * @param object $settings Module settings
+     * @return array {
+     *     @type bool|string $error Error message or false
+     *     @type string $html Field markup
+     * }
+     */
+    abstract public function render_fields($account, $settings);
+
+    /**
+     * Get saved account data
+     * @param string $account Account name
+     * @return array|bool Account data or false
+     */
+    public function get_account_data($account);
+}
+```
+
+## Using Email Service Integrations
+
+### Getting Saved Account Data
+
+```php
+$mailchimp = new FLBuilderServiceMailChimp();
+$account_data = $mailchimp->get_account_data('my-account');
+
+if ($account_data) {
+    $api_key = $account_data['api_key'];
+    // Use account data
+}
+```
+
+### Subscribe a User
+
+Most service classes include a `subscribe()` method:
+
+```php
+$mailchimp = new FLBuilderServiceMailChimp();
+
+// Settings object from module
+$settings = new stdClass();
+$settings->service_account = 'my-account';
+$settings->list_id = '1234567890';
+$settings->tags = 'website,subscriber';
+
+$result = $mailchimp->subscribe(
+    $settings,
+    'user@example.com',
+    'John Doe'
+);
+
+if ($result['error']) {
+    // Handle error
+    echo $result['error'];
+} else {
+    // Success
+    echo 'Subscribed successfully!';
+}
+```
+
+### Testing a Connection
+
+```php
+$service = new FLBuilderServiceActiveCampaign();
+
+$connection = $service->connect(array(
+    'api_url' => 'https://account.api-us1.com',
+    'api_key' => 'your-api-key'
+));
+
+if ($connection['error']) {
+    echo 'Connection failed: ' . $connection['error'];
+} else {
+    // Save connection data
+    $api_url = $connection['data']['api_url'];
+    $api_key = $connection['data']['api_key'];
+}
+```
+
+## Service-Specific Features
+
+### MailChimp
+
+**Lists & Groups:** Supports MailChimp lists and interest groups.
+
+**Tags:** Add tags to subscribers.
+
+**Double Opt-in:** Control via filter.
+
+```php
+// Enable double opt-in
+add_filter('fl_builder_mailchimp_double_option', '__return_true');
+
+// Access groups
+if (isset($settings->groups) && is_array($settings->groups)) {
+    // Groups are saved as list_id_group_id_subgroup_id
+}
+```
+
+### ActiveCampaign
+
+**Lists or Forms:** Subscribe to lists or trigger forms.
+
+**Tags:** Support for ActiveCampaign tags.
+
+```php
+// Use form instead of list
+$settings->list_type = 'form';
+$settings->form_id = '123';
+
+// Add tags
+$settings->tags = array('tag1', 'tag2');
+```
+
+### AWeber
+
+**OAuth Authentication:** Uses authorization codes.
+
+**Tags:** Support for subscriber tags.
+
+```php
+// Tags as comma-separated string
+$settings->tags = 'tag1, tag2, tag3';
+```
+
+## Getting Service Instances
+
+### From Module Settings
+
+```php
+// In a custom module
+if (isset($settings->service)) {
+    $service_class = 'FLBuilderService' . ucfirst($settings->service);
+    
+    if (class_exists($service_class)) {
+        $service = new $service_class();
+        // Use service
+    }
+}
+```
+
+### Direct Instantiation
+
+```php
+// Load a specific service
+if (class_exists('FLBuilderServiceMailChimp')) {
+    $mailchimp = new FLBuilderServiceMailChimp();
+} else {
+    // Service not available
+}
+```
+
+## Common Integration Patterns
+
+### Form Submission Handler
+
+```php
+function handle_form_submission($email, $name, $settings) {
+    // Get service class
+    $service_name = $settings->service;
+    $service_class = 'FLBuilderService' . ucfirst($service_name);
+    
+    if (!class_exists($service_class)) {
+        return array('error' => 'Service not found');
+    }
+    
+    // Create service instance
+    $service = new $service_class();
+    
+    // Subscribe
+    $result = $service->subscribe($settings, $email, $name);
+    
+    return $result;
+}
+```
+
+### Custom Field Mapping
+
+```php
+function map_custom_fields($settings, $form_data) {
+    // Get service
+    $service = new FLBuilderServiceMailChimp();
+    
+    // Get account
+    $account_data = $service->get_account_data($settings->service_account);
+    
+    if ($account_data) {
+        $api = $service->get_api($account_data['api_key']);
+        
+        // Map custom fields
+        $merge_fields = array(
+            'FNAME' => $form_data['first_name'],
+            'LNAME' => $form_data['last_name'],
+            'PHONE' => $form_data['phone'],
+        );
+        
+        // Subscribe with custom fields
+    }
+}
+```
+
+## Service API Access
+
+Most services provide a `get_api()` method to access the underlying API:
+
+```php
+$mailchimp = new FLBuilderServiceMailChimp();
+$api = $mailchimp->get_api($api_key);
+
+// Use MailChimp API directly
+$lists = $api->getLists();
+```
+
+## Error Handling
+
+All service methods return consistent error structures:
+
+```php
+$result = $service->subscribe($settings, $email, $name);
+
+if ($result['error']) {
+    // Handle error
+    error_log('Subscription failed: ' . $result['error']);
+    
+    // Display user-friendly message
+    return array(
+        'success' => false,
+        'message' => __('Unable to subscribe. Please try again.', 'your-plugin')
+    );
+}
+
+// Success
+return array(
+    'success' => true,
+    'message' => __('Successfully subscribed!', 'your-plugin')
+);
+```
+
+## Best Practices
+
+1. **Always check for errors** - All service methods can return errors
+2. **Validate account data** - Check that account exists before using
+3. **Handle API limits** - Be aware of rate limiting on third-party APIs
+4. **Test connections** - Use `connect()` method to validate credentials
+5. **Log failures** - Keep track of subscription failures for debugging
+
+## Related Documentation
+
+- [Custom Services](/api/services/custom-services)
+- [Subscribe Form Module](/modules/subscribe-form)
+- [Contact Form Module](/modules/contact-form)

@@ -1,0 +1,534 @@
+---
+title: 'Custom Modules'
+description: 'Learn how to create custom modules for Beaver Builder'
+icon: 'cube'
+---
+
+## Module Registration
+
+Custom modules are registered using the `FLBuilder::register_module()` function and must extend the `FLBuilderModule` base class.
+
+### Basic Module Structure
+
+Here's a complete example of a simple custom module:
+
+```php
+<?php
+
+/**
+ * @class FLMyCustomModule
+ */
+class FLMyCustomModule extends FLBuilderModule {
+
+    /**
+     * Constructor
+     */
+    public function __construct() {
+        parent::__construct(array(
+            'name'            => __( 'My Custom Module', 'fl-builder' ),
+            'description'     => __( 'A custom module example.', 'fl-builder' ),
+            'category'        => __( 'Basic', 'fl-builder' ),
+            'icon'            => 'button.svg',
+            'partial_refresh' => true,
+            'dir'             => MY_BB_DIR . 'modules/my-custom-module/',
+            'url'             => MY_BB_URL . 'modules/my-custom-module/',
+        ));
+    }
+}
+
+/**
+ * Register the module and its form settings.
+ */
+FLBuilder::register_module('FLMyCustomModule', array(
+    'general' => array(
+        'title'    => __( 'General', 'fl-builder' ),
+        'sections' => array(
+            'general' => array(
+                'title'  => '',
+                'fields' => array(
+                    'text' => array(
+                        'type'    => 'text',
+                        'label'   => __( 'Text', 'fl-builder' ),
+                        'default' => __( 'Hello World', 'fl-builder' ),
+                    ),
+                ),
+            ),
+        ),
+    ),
+));
+```
+
+## Module Class Structure
+
+The module class extends `FLBuilderModule` and defines the module's behavior.
+
+### Constructor Parameters
+
+The parent constructor accepts an array of parameters:
+
+<ParamField path="name" type="string" required>
+  Display name for the module shown in the UI
+</ParamField>
+
+<ParamField path="description" type="string" required>
+  Brief description of what the module does
+</ParamField>
+
+<ParamField path="category" type="string" required>
+  Category to group the module under (e.g., 'Basic', 'Advanced')
+</ParamField>
+
+<ParamField path="icon" type="string">
+  Icon filename (SVG) or dashicon class
+</ParamField>
+
+<ParamField path="dir" type="string">
+  Absolute path to the module directory
+</ParamField>
+
+<ParamField path="url" type="string">
+  URL to the module directory
+</ParamField>
+
+<ParamField path="enabled" type="boolean" default="true">
+  Whether the module is enabled on the frontend
+</ParamField>
+
+<ParamField path="editor_export" type="boolean" default="true">
+  Whether module content should be exported to WP editor
+</ParamField>
+
+<ParamField path="partial_refresh" type="boolean" default="false">
+  Enable partial refresh for faster preview updates
+</ParamField>
+
+<ParamField path="include_wrapper" type="boolean" default="true">
+  Whether to include default module wrapper divs
+</ParamField>
+
+<ParamField path="element_setting" type="boolean" default="true">
+  Show container element setting in Advanced tab
+</ParamField>
+
+### Example from Beaver Builder Core
+
+From `~/workspace/source/modules/button/button.php:12`:
+
+```php
+public function __construct() {
+    parent::__construct(array(
+        'name'            => __( 'Button', 'fl-builder' ),
+        'description'     => __( 'A simple call to action button.', 'fl-builder' ),
+        'category'        => __( 'Basic', 'fl-builder' ),
+        'icon'            => 'button.svg',
+        'partial_refresh' => true,
+        'include_wrapper' => false,
+        'element_setting' => false,
+    ));
+}
+```
+
+## Directory Structure
+
+Each module should be in its own directory with the following structure:
+
+```
+my-custom-module/
+├── my-custom-module.php     # Main module class and registration
+├── icon.svg                 # Module icon (optional)
+├── includes/
+│   ├── frontend.php         # HTML output template
+│   ├── frontend.css.php     # Dynamic CSS
+│   └── frontend.js.php      # Dynamic JavaScript
+├── css/
+│   └── frontend.css         # Static CSS (optional)
+└── js/
+    └── frontend.js          # Static JavaScript (optional)
+```
+
+### Frontend Template
+
+Create `includes/frontend.php` to define your module's HTML output:
+
+```php
+<?php
+// includes/frontend.php
+
+// $module - Current module instance
+// $settings - Module settings object
+// $id - Unique module ID
+
+?>
+<div class="my-custom-module-wrap">
+    <h3><?php echo esc_html( $settings->heading ); ?></h3>
+    <p><?php echo wp_kses_post( $settings->text ); ?></p>
+</div>
+```
+
+### Dynamic CSS Template
+
+Create `includes/frontend.css.php` for settings-based styling:
+
+```php
+<?php
+// includes/frontend.css.php
+
+// Color setting
+if ( ! empty( $settings->text_color ) ) {
+    ?>
+    .fl-node-<?php echo $id; ?> .my-custom-module-wrap {
+        color: <?php echo esc_attr( $settings->text_color ); ?>;
+    }
+    <?php
+}
+
+// Responsive typography
+FLBuilderCSS::typography_field_rule( array(
+    'settings'     => $settings,
+    'setting_name' => 'typography',
+    'selector'     => ".fl-node-$id .my-custom-module-wrap",
+) );
+
+// Responsive dimension
+FLBuilderCSS::responsive_rule( array(
+    'settings'     => $settings,
+    'setting_name' => 'padding',
+    'selector'     => ".fl-node-$id .my-custom-module-wrap",
+    'prop'         => 'padding',
+) );
+?>
+```
+
+## Module Class Methods
+
+The `FLBuilderModule` base class provides several methods you can override:
+
+### enqueue_scripts()
+
+Enqueue additional CSS and JavaScript files:
+
+```php
+public function enqueue_scripts() {
+    // Enqueue CSS
+    $this->add_css( 'my-custom-styles', $this->url . 'css/custom.css' );
+    
+    // Enqueue JS
+    $this->add_js( 'my-custom-script', $this->url . 'js/custom.js', array( 'jquery' ) );
+    
+    // Conditional enqueue based on settings
+    if ( 'lightbox' == $this->settings->click_action ) {
+        $this->add_js( 'jquery-magnificpopup' );
+        $this->add_css( 'jquery-magnificpopup' );
+    }
+}
+```
+
+From `~/workspace/source/modules/button/button.php:123`:
+
+```php
+public function enqueue_scripts() {
+    if ( $this->settings && 'lightbox' == $this->settings->click_action ) {
+        $this->add_js( 'jquery-magnificpopup' );
+        $this->add_css( 'font-awesome-5' );
+        $this->add_css( 'jquery-magnificpopup' );
+    }
+}
+```
+
+### update( $settings )
+
+Modify settings before they are saved:
+
+```php
+public function update( $settings ) {
+    // Remove old deprecated settings
+    if ( isset( $settings->old_field ) ) {
+        unset( $settings->old_field );
+    }
+    
+    // Process or validate settings
+    if ( ! empty( $settings->custom_value ) ) {
+        $settings->custom_value = sanitize_text_field( $settings->custom_value );
+    }
+    
+    return $settings;
+}
+```
+
+### filter_settings( $settings, $helper )
+
+Ensure backwards compatibility with old settings:
+
+```php
+public function filter_settings( $settings, $helper ) {
+    // Handle old alignment settings
+    if ( isset( $settings->old_alignment ) ) {
+        $settings->new_alignment = $settings->old_alignment;
+        unset( $settings->old_alignment );
+    }
+    
+    // Handle opacity inputs
+    $helper->handle_opacity_inputs( $settings, 'bg_opacity', 'bg_color' );
+    
+    return $settings;
+}
+```
+
+### delete()
+
+Perform cleanup when a module is updated or deleted:
+
+```php
+public function delete() {
+    // Clear cached data
+    if ( ! empty( $this->settings->cached_image_id ) ) {
+        FLBuilderPhoto::delete_cached_photo( $this->settings->cached_image_id );
+    }
+}
+```
+
+### remove()
+
+Run logic when a module is actually removed from the page:
+
+```php
+public function remove() {
+    // Delete associated post meta
+    if ( ! empty( $this->settings->related_post_id ) ) {
+        delete_post_meta( $this->settings->related_post_id, 'my_custom_meta' );
+    }
+}
+```
+
+## Complete Example: Alert Module
+
+Here's a complete working example:
+
+<CodeGroup>
+```php alert-module.php
+<?php
+/**
+ * Alert Module
+ */
+class FLAlertModule extends FLBuilderModule {
+
+    public function __construct() {
+        parent::__construct(array(
+            'name'            => __( 'Alert', 'my-plugin' ),
+            'description'     => __( 'Display an alert message.', 'my-plugin' ),
+            'category'        => __( 'Basic', 'my-plugin' ),
+            'icon'            => 'warning.svg',
+            'partial_refresh' => true,
+            'dir'             => MY_BB_DIR . 'modules/alert/',
+            'url'             => MY_BB_URL . 'modules/alert/',
+        ));
+    }
+    
+    public function get_icon() {
+        // Return alert icon class
+        return 'dashicons dashicons-warning';
+    }
+}
+
+FLBuilder::register_module('FLAlertModule', array(
+    'general' => array(
+        'title'    => __( 'General', 'my-plugin' ),
+        'sections' => array(
+            'general' => array(
+                'title'  => '',
+                'fields' => array(
+                    'message' => array(
+                        'type'    => 'editor',
+                        'label'   => __( 'Message', 'my-plugin' ),
+                        'default' => __( 'This is an alert message.', 'my-plugin' ),
+                    ),
+                    'type' => array(
+                        'type'    => 'select',
+                        'label'   => __( 'Alert Type', 'my-plugin' ),
+                        'default' => 'info',
+                        'options' => array(
+                            'info'    => __( 'Info', 'my-plugin' ),
+                            'success' => __( 'Success', 'my-plugin' ),
+                            'warning' => __( 'Warning', 'my-plugin' ),
+                            'error'   => __( 'Error', 'my-plugin' ),
+                        ),
+                    ),
+                    'dismissible' => array(
+                        'type'    => 'select',
+                        'label'   => __( 'Dismissible', 'my-plugin' ),
+                        'default' => 'no',
+                        'options' => array(
+                            'yes' => __( 'Yes', 'my-plugin' ),
+                            'no'  => __( 'No', 'my-plugin' ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+    ),
+    'style' => array(
+        'title'    => __( 'Style', 'my-plugin' ),
+        'sections' => array(
+            'colors' => array(
+                'title'  => __( 'Colors', 'my-plugin' ),
+                'fields' => array(
+                    'bg_color' => array(
+                        'type'       => 'color',
+                        'label'      => __( 'Background Color', 'my-plugin' ),
+                        'show_reset' => true,
+                        'show_alpha' => true,
+                    ),
+                    'text_color' => array(
+                        'type'       => 'color',
+                        'label'      => __( 'Text Color', 'my-plugin' ),
+                        'show_reset' => true,
+                    ),
+                ),
+            ),
+        ),
+    ),
+));
+```
+
+```php includes/frontend.php
+<?php
+$classes = array(
+    'fl-alert',
+    'fl-alert-' . $settings->type,
+);
+
+if ( 'yes' === $settings->dismissible ) {
+    $classes[] = 'fl-alert-dismissible';
+}
+?>
+<div class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>">
+    <?php if ( 'yes' === $settings->dismissible ) : ?>
+        <button type="button" class="fl-alert-close" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    <?php endif; ?>
+    <div class="fl-alert-message">
+        <?php echo wp_kses_post( $settings->message ); ?>
+    </div>
+</div>
+```
+
+```php includes/frontend.css.php
+<?php
+// Background color
+if ( ! empty( $settings->bg_color ) ) {
+    ?>
+    .fl-node-<?php echo $id; ?> .fl-alert {
+        background-color: <?php echo esc_attr( $settings->bg_color ); ?>;
+    }
+    <?php
+}
+
+// Text color
+if ( ! empty( $settings->text_color ) ) {
+    ?>
+    .fl-node-<?php echo $id; ?> .fl-alert {
+        color: <?php echo esc_attr( $settings->text_color ); ?>;
+    }
+    <?php
+}
+?>
+```
+
+```js includes/frontend.js.php
+(function($) {
+    $('.fl-node-<?php echo $id; ?> .fl-alert-close').on('click', function() {
+        $(this).closest('.fl-alert').fadeOut();
+    });
+})(jQuery);
+```
+</CodeGroup>
+
+## Module Icon
+
+You can provide a custom icon for your module:
+
+### SVG File
+
+Place an `icon.svg` file in your module directory:
+
+```xml
+<!-- icon.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
+</svg>
+```
+
+### Inline SVG
+
+```php
+public function get_icon() {
+    return '<svg>...</svg>';
+}
+```
+
+### Dashicon
+
+```php
+public function get_icon() {
+    return 'dashicons dashicons-warning';
+}
+```
+
+## Advanced Features
+
+### Module Categories
+
+Create custom categories for your modules:
+
+```php
+function my_bb_register_module_categories( $categories ) {
+    $categories['my-category'] = __( 'My Category', 'my-plugin' );
+    return $categories;
+}
+add_filter( 'fl_builder_module_categories', 'my_bb_register_module_categories' );
+```
+
+### Container Modules
+
+Create modules that accept child modules:
+
+```php
+public function __construct() {
+    parent::__construct(array(
+        'name'    => __( 'Container', 'my-plugin' ),
+        'accepts' => array( 'my-child-module' ), // or 'all'
+        'template' => array(
+            array(
+                'type' => 'my-child-module',
+                'settings' => array(
+                    'text' => 'Default text',
+                ),
+            ),
+        ),
+    ));
+}
+```
+
+Render children in your template:
+
+```php
+// includes/frontend.php
+<div class="my-container">
+    <?php $module->render_children(); ?>
+</div>
+```
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Module Settings" icon="sliders" href="/developer/module-settings">
+    Configure advanced settings forms
+  </Card>
+  <Card title="Hooks & Filters" icon="code" href="/developer/hooks-filters">
+    Extend with WordPress hooks
+  </Card>
+  <Card title="Getting Started" icon="book" href="/developer/getting-started">
+    Back to development basics
+  </Card>
+</CardGroup>

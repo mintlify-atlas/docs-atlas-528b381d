@@ -1,0 +1,713 @@
+---
+title: 'Global Settings'
+description: 'Configure site-wide defaults, global styles, and default settings in Beaver Builder'
+icon: 'globe'
+---
+
+Global Settings allow you to set default values and styles that apply across your entire site, ensuring consistency and reducing repetitive configuration.
+
+## Accessing Global Settings
+
+There are several ways to access Global Settings:
+
+<Steps>
+  <Step title="From Builder">
+    Click Tools → Global Settings in the top bar
+  </Step>
+  
+  <Step title="From WordPress Admin">
+    Go to Settings → Beaver Builder → Global Settings
+  </Step>
+</Steps>
+
+<Note>
+Global Settings apply to all posts and pages using Beaver Builder. Changes affect your entire site.
+</Note>
+
+## General Settings
+
+Configure fundamental site-wide defaults:
+
+### Default Page Heading
+
+Control the display of default WordPress page headings:
+
+```php
+// From global-settings.php
+'show_default_heading' => array(
+  'type'    => 'select',
+  'label'   => __( 'Show', 'fl-builder' ),
+  'default' => '0',
+  'options' => array(
+    '0' => __( 'No', 'fl-builder' ),
+    '1' => __( 'Yes', 'fl-builder' ),
+  ),
+)
+```
+
+**When to Hide:**
+- Building custom headers
+- Using full-width hero sections
+- Creating landing pages
+
+**CSS Selector:**
+```php
+'default_heading_selector' => array(
+  'type'    => 'text',
+  'label'   => __( 'CSS Selector', 'fl-builder' ),
+  'default' => '.fl-post-header',
+)
+```
+
+<Tip>
+If you hide the default heading, provide a CSS selector so Beaver Builder can hide it properly.
+</Tip>
+
+### Row Spacing
+
+Set default spacing for all rows:
+
+#### Row Margins
+
+Outer spacing around rows:
+
+```php
+'row_margins' => array(
+  'type'       => 'dimension',
+  'label'      => __( 'Margins', 'fl-builder' ),
+  'default'    => '0',
+  'units'      => array( 'px', '%' ),
+  'responsive' => array(
+    'default' => array(
+      'top'    => '0',
+      'right'  => '0',
+      'bottom' => '0',
+      'left'   => '0',
+    ),
+  ),
+)
+```
+
+**Typical Values:**
+- **Top**: 0px (no gap at top)
+- **Bottom**: 0px (no gap at bottom)
+- **Left/Right**: 0px (rows span full width)
+
+#### Row Padding
+
+Inner spacing within rows:
+
+```php
+'row_padding' => array(
+  'type'       => 'dimension',
+  'label'      => __( 'Padding', 'fl-builder' ),
+  'default'    => '20',
+  'units'      => array( 'px', 'em', '%', 'vw', 'vh' ),
+  'responsive' => array(
+    'default' => array(
+      'default' => '20',
+    ),
+  ),
+)
+```
+
+**Recommended Values:**
+- **Desktop**: 20-40px
+- **Tablet**: 15-30px
+- **Mobile**: 10-20px
+
+<CardGroup cols={2}>
+  <Card title="Loose Spacing" icon="arrows-up-down">
+    40px padding creates airy, spacious layouts
+  </Card>
+  
+  <Card title="Tight Spacing" icon="compress">
+    10px padding creates compact, dense layouts
+  </Card>
+</CardGroup>
+
+### Row Defaults
+
+Configure default row behavior:
+
+#### Max Width
+
+Set the maximum width for fixed-width rows:
+
+```php
+'row_width' => array(
+  'type'       => 'unit',
+  'label'      => __( 'Max Width', 'fl-builder' ),
+  'units'      => array( 'px', 'vw', '%' ),
+  'responsive' => array(
+    'default' => array(
+      'default' => '1100',
+    ),
+  ),
+)
+```
+
+**Common Max Widths:**
+- **1400px**: Wide layouts
+- **1200px**: Standard wide
+- **1100px**: Beaver Builder default
+- **1000px**: Comfortable reading
+- **960px**: Traditional grid
+
+<Note>
+This sets the maximum width for "Fixed" rows. Full-width rows ignore this setting.
+</Note>
+
+#### Default Row Width
+
+Choose whether new rows are fixed or full-width by default:
+
+```php
+'row_width_default' => array(
+  'type'    => 'select',
+  'label'   => __( 'Default Row Width', 'fl-builder' ),
+  'default' => 'fixed',
+  'options' => array(
+    'fixed' => __( 'Fixed', 'fl-builder' ),
+    'full'  => __( 'Full Width', 'fl-builder' ),
+  ),
+)
+```
+
+#### Default Row Content Width
+
+For full-width rows, set default content width:
+
+```php
+'row_content_width_default' => array(
+  'type'    => 'select',
+  'label'   => __( 'Default Row Content Width', 'fl-builder' ),
+  'default' => 'fixed',
+  'options' => array(
+    'fixed' => __( 'Fixed', 'fl-builder' ),
+    'full'  => __( 'Full Width', 'fl-builder' ),
+  ),
+)
+```
+
+### Column Spacing
+
+Default spacing for columns:
+
+```php
+'column_margins' => array(
+  'type'       => 'dimension',
+  'label'      => __( 'Margins', 'fl-builder' ),
+  'units'      => array( 'px', '%' ),
+  'responsive' => true,
+),
+'column_padding' => array(
+  'type'       => 'dimension',
+  'label'      => __( 'Padding', 'fl-builder' ),
+  'units'      => array( 'px', 'em', '%' ),
+  'responsive' => true,
+)
+```
+
+**Best Practice:**
+- Leave column margins at default (0)
+- Set column padding if you want internal spacing
+- Use row padding for overall spacing
+
+### Module Spacing
+
+Default spacing between modules:
+
+```php
+'module_margins' => array(
+  'type'       => 'dimension',
+  'label'      => __( 'Margins', 'fl-builder' ),
+  'default'    => '20',
+  'units'      => array( 'px', '%' ),
+  'responsive' => array(
+    'default' => array(
+      'default' => '20',
+    ),
+  ),
+)
+```
+
+**Typical Setup:**
+- **Top/Bottom**: 20px (vertical spacing)
+- **Left/Right**: 0px (fill column width)
+
+<Tip>
+Vertical spacing between modules creates better readability and visual separation.
+</Tip>
+
+## Responsive Layout Settings
+
+Configure responsive behavior:
+
+### Enable Responsive Design
+
+Toggle responsive features:
+
+```php
+'responsive_enabled' => array(
+  'type'    => 'select',
+  'label'   => __( 'Enabled', 'fl-builder' ),
+  'default' => '1',
+  'options' => array(
+    '0' => __( 'No', 'fl-builder' ),
+    '1' => __( 'Yes', 'fl-builder' ),
+  ),
+)
+```
+
+<Warning>
+Disabling responsive design is not recommended. Modern websites must be mobile-friendly.
+</Warning>
+
+### Breakpoints
+
+Define when layouts adapt to different screen sizes:
+
+#### Large Device Breakpoint
+
+```php
+'large_breakpoint' => array(
+  'type'      => 'text',
+  'label'     => __( 'Large Device Breakpoint', 'fl-builder' ),
+  'default'   => '1200',
+  'maxlength' => '4',
+  'help'      => __( 'The browser width at which the layout will adjust for large devices.', 'fl-builder' ),
+)
+```
+
+**Default**: 1200px
+
+#### Medium Device Breakpoint
+
+```php
+'medium_breakpoint' => array(
+  'type'      => 'text',
+  'label'     => __( 'Medium Device Breakpoint', 'fl-builder' ),
+  'default'   => '992',
+  'help'      => __( 'The browser width at which the layout will adjust for medium devices such as tablets.', 'fl-builder' ),
+)
+```
+
+**Default**: 992px (tablets)
+
+#### Small Device Breakpoint
+
+```php
+'responsive_breakpoint' => array(
+  'type'      => 'text',
+  'label'     => __( 'Small Device Breakpoint', 'fl-builder' ),
+  'default'   => '768',
+  'help'      => __( 'The browser width at which the layout will adjust for small devices such as phones.', 'fl-builder' ),
+)
+```
+
+**Default**: 768px (phones)
+
+<Tabs>
+  <Tab title="Default (Desktop)">
+    Above 1200px - Full desktop experience
+  </Tab>
+  
+  <Tab title="Large">
+    1200px and below - Large screens and small desktops
+  </Tab>
+  
+  <Tab title="Medium">
+    992px and below - Tablets in landscape
+  </Tab>
+  
+  <Tab title="Responsive">
+    768px and below - Tablets portrait and phones
+  </Tab>
+</Tabs>
+
+### Auto Spacing
+
+Automatically adjust spacing on small devices:
+
+```php
+'auto_spacing' => array(
+  'type'    => 'select',
+  'label'   => __( 'Enable Auto Spacing', 'fl-builder' ),
+  'default' => '1',
+  'options' => array(
+    '0' => __( 'No', 'fl-builder' ),
+    '1' => __( 'Yes', 'fl-builder' ),
+  ),
+  'help'    => __( 'When auto spacing is enabled, the builder will automatically adjust the margins and padding in your layout once the small device breakpoint is reached.', 'fl-builder' ),
+)
+```
+
+**What It Does:**
+- Reduces excessive padding on mobile
+- Maintains proportional spacing
+- Prevents cramped or overly spacious mobile layouts
+
+<Tip>
+Leave auto spacing enabled for better mobile layouts without manual responsive configuration.
+</Tip>
+
+### Column Max Width
+
+Limit narrow column widths on mobile:
+
+```php
+'responsive_col_max_width' => array(
+  'type'    => 'select',
+  'label'   => __( 'Enable Column Max Width', 'fl-builder' ),
+  'default' => '1',
+  'help'    => __( 'When enabled, columns assigned 50% width or less are limited to max width 400px when screen width reaches or goes below the small device breakpoint.', 'fl-builder' ),
+)
+```
+
+**Benefit:**
+- Prevents thin columns on mobile
+- Improves readability
+- Creates better content flow
+
+### Base Font Size
+
+Set base font size for vh/vw typography calculations:
+
+```php
+'responsive_base_fontsize' => array(
+  'type'        => 'text',
+  'label'       => __( 'Base Font Size', 'fl-builder' ),
+  'default'     => '16',
+  'description' => 'px',
+  'help'        => __( 'When typography unit is set to vh/vw this unit will be used to calculate the font size.', 'fl-builder' ),
+)
+```
+
+## CSS Tab
+
+Add custom CSS that applies site-wide:
+
+```php
+'css' => array(
+  'type'    => 'code',
+  'label'   => '',
+  'editor'  => 'css',
+  'rows'    => '18',
+)
+```
+
+### Custom CSS Examples
+
+#### Brand Colors
+
+```css
+/* Define brand colors as CSS variables */
+:root {
+  --brand-primary: #3490dc;
+  --brand-secondary: #ffed4e;
+  --brand-dark: #2d3748;
+  --brand-light: #f7fafc;
+}
+
+/* Use throughout site */
+.fl-button {
+  background: var(--brand-primary);
+}
+```
+
+#### Typography Defaults
+
+```css
+/* Set default font stack */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
+}
+
+/* Heading styles */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+}
+```
+
+#### Utility Classes
+
+```css
+/* Spacing utilities */
+.mt-large { margin-top: 40px !important; }
+.mb-large { margin-bottom: 40px !important; }
+.text-center { text-align: center !important; }
+
+/* Responsive helpers */
+@media (max-width: 768px) {
+  .hide-mobile { display: none !important; }
+}
+```
+
+<Warning>
+Global CSS applies to the entire site. Test thoroughly to avoid unintended side effects.
+</Warning>
+
+## JavaScript Tab
+
+Add custom JavaScript that runs site-wide:
+
+```php
+'js' => array(
+  'type'    => 'code',
+  'label'   => '',
+  'editor'  => 'javascript',
+  'rows'    => '18',
+)
+```
+
+### Custom JavaScript Examples
+
+#### Smooth Scrolling
+
+```javascript
+// Add smooth scrolling to anchor links
+jQuery(document).ready(function($) {
+  $('a[href^="#"]').on('click', function(e) {
+    e.preventDefault();
+    var target = $(this.hash);
+    if (target.length) {
+      $('html, body').animate({
+        scrollTop: target.offset().top - 100
+      }, 800);
+    }
+  });
+});
+```
+
+#### Track Events
+
+```javascript
+// Track button clicks
+jQuery('.fl-button').on('click', function() {
+  var buttonText = jQuery(this).text();
+  // Send to analytics
+  if (typeof gtag !== 'undefined') {
+    gtag('event', 'button_click', {
+      'button_text': buttonText
+    });
+  }
+});
+```
+
+#### Custom Interactions
+
+```javascript
+// Add custom hover effects
+jQuery(document).ready(function($) {
+  $('.custom-hover').hover(
+    function() {
+      $(this).addClass('is-hovered');
+    },
+    function() {
+      $(this).removeClass('is-hovered');
+    }
+  );
+});
+```
+
+<Note>
+Beaver Builder loads jQuery by default. You can use jQuery or vanilla JavaScript.
+</Note>
+
+## Settings Forms
+
+Understanding the settings form structure:
+
+```php
+// From global-settings.php
+FLBuilder::register_settings_form('global', array(
+  'title' => __( 'Global Settings', 'fl-builder' ),
+  'tabs'  => array(
+    'general' => array(
+      'title'       => __( 'General', 'fl-builder' ),
+      'sections'    => array(
+        // Sections with fields
+      ),
+    ),
+    'css' => array(
+      'title'    => __( 'CSS', 'fl-builder' ),
+      'sections' => array(
+        // CSS code field
+      ),
+    ),
+    'js' => array(
+      'title'    => __( 'JavaScript', 'fl-builder' ),
+      'sections' => array(
+        // JavaScript code field
+      ),
+    ),
+  ),
+));
+```
+
+### Field Types
+
+Global Settings use various field types:
+
+<Tabs>
+  <Tab title="Dimension">
+    Four-sided spacing controls:
+    - Top, Right, Bottom, Left
+    - Linked or individual values
+    - Multiple units (px, em, %, etc.)
+    - Responsive support
+  </Tab>
+  
+  <Tab title="Unit">
+    Single value with unit:
+    - Numeric input
+    - Unit selector
+    - Responsive values
+    - Slider support
+  </Tab>
+  
+  <Tab title="Select">
+    Dropdown selection:
+    - Predefined options
+    - Toggle other fields
+    - Default value
+  </Tab>
+  
+  <Tab title="Code">
+    Code editor:
+    - Syntax highlighting
+    - CSS or JavaScript
+    - Line numbers
+    - Auto-completion
+  </Tab>
+</Tabs>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Set Sensible Defaults">
+    Configure Global Settings to match your design system. This reduces repetitive configuration on individual pages.
+  </Accordion>
+  
+  <Accordion title="Test Responsive Settings">
+    After changing breakpoints, test your entire site to ensure layouts adapt correctly.
+  </Accordion>
+  
+  <Accordion title="Document Custom Code">
+    Add comments to custom CSS and JavaScript to explain what it does and why.
+  </Accordion>
+  
+  <Accordion title="Use CSS Variables">
+    Define brand colors and common values as CSS variables for easy maintenance.
+  </Accordion>
+  
+  <Accordion title="Backup Before Changes">
+    Global Settings affect your entire site. Backup before making major changes.
+  </Accordion>
+  
+  <Accordion title="Validate Custom Code">
+    Test custom CSS and JavaScript thoroughly to avoid breaking the site.
+  </Accordion>
+</AccordionGroup>
+
+## Common Configurations
+
+### Tight Spacing Layout
+
+```
+Row Padding: 15px
+Column Padding: 0px
+Module Margins: 15px (bottom only)
+```
+
+**Result**: Compact, efficient layouts
+
+### Loose Spacing Layout
+
+```
+Row Padding: 40px
+Column Padding: 20px
+Module Margins: 30px (bottom only)
+```
+
+**Result**: Airy, spacious layouts
+
+### Full-Width Focus
+
+```
+Default Row Width: Full Width
+Default Content Width: Fixed
+Max Width: 1200px
+```
+
+**Result**: Full-width backgrounds with contained content
+
+### Mobile-First Breakpoints
+
+```
+Large: 1024px
+Medium: 768px
+Small: 480px
+```
+
+**Result**: More granular mobile control
+
+## Troubleshooting
+
+### Changes Not Applying
+
+1. **Clear Cache**: Clear all caching plugins
+2. **Hard Refresh**: Ctrl+Shift+R (Cmd+Shift+R on Mac)
+3. **Check Specificity**: Custom CSS may be overridden
+4. **Verify Syntax**: Check for CSS/JS errors
+
+### Responsive Issues
+
+1. **Check Breakpoints**: Verify breakpoint values
+2. **Test Real Devices**: Don't rely only on browser emulation
+3. **Review Auto Spacing**: Ensure it's enabled
+4. **Check Column Settings**: Review column max width setting
+
+### JavaScript Errors
+
+1. **Open Console**: Check browser console for errors
+2. **Syntax Check**: Validate JavaScript syntax
+3. **jQuery Ready**: Wrap code in jQuery ready function
+4. **Conflict Check**: Test with other plugins disabled
+
+### CSS Not Working
+
+1. **Specificity**: Add `!important` if needed (use sparingly)
+2. **Selectors**: Verify CSS selectors are correct
+3. **Cache**: Clear all caches
+4. **Minification**: Check if minification is breaking code
+
+## Global vs Local Settings
+
+Understanding when to use each:
+
+<CardGroup cols={2}>
+  <Card title="Global Settings" icon="globe">
+    Use for:
+    - Site-wide defaults
+    - Brand colors and fonts
+    - Consistent spacing
+    - Reusable utilities
+  </Card>
+  
+  <Card title="Local Settings" icon="file">
+    Use for:
+    - Page-specific styles
+    - One-off designs
+    - A/B testing
+    - Special cases
+  </Card>
+</CardGroup>
+
+<Card title="Next Steps" icon="arrow-right" href="/advanced/performance">
+  Learn how to optimize Beaver Builder for performance
+</Card>

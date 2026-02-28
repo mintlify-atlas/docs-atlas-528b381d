@@ -1,0 +1,574 @@
+---
+title: 'Creating Custom Service Integrations'
+description: 'Learn how to create custom email service integrations in Beaver Builder by extending the FLBuilderService base class.'
+---
+
+Create custom email marketing service integrations for Beaver Builder by extending the `FLBuilderService` base class. This allows you to integrate any email service provider with Beaver Builder's subscribe and contact form modules.
+
+## Overview
+
+Custom service integrations require:
+
+1. A PHP class extending `FLBuilderService`
+2. Implementation of three abstract methods
+3. Registration with Beaver Builder
+4. Optional: Custom API wrapper class
+
+## Basic Service Structure
+
+### File Location
+
+Create your service file in your plugin or theme:
+
+```
+your-plugin/
+├── includes/
+│   └── class-bb-service-custom.php
+└── your-plugin.php
+```
+
+### Minimal Service Class
+
+```php
+<?php
+/**
+ * Custom Email Service Integration
+ */
+final class FLBuilderServiceCustom extends FLBuilderService {
+
+    /**
+     * Service ID - must be unique
+     */
+    public $id = 'custom';
+
+    /**
+     * Test API connection
+     */
+    public function connect($fields = array()) {
+        $response = array(
+            'error' => false,
+            'data'  => array(),
+        );
+
+        // Validate fields
+        if (empty($fields['api_key'])) {
+            $response['error'] = __('Please enter an API key.', 'your-plugin');
+            return $response;
+        }
+
+        try {
+            // Test connection to your service
+            $api = new CustomEmailAPI($fields['api_key']);
+            $result = $api->testConnection();
+
+            if ($result) {
+                $response['data'] = array(
+                    'api_key' => $fields['api_key'],
+                );
+            } else {
+                $response['error'] = __('Invalid API key.', 'your-plugin');
+            }
+        } catch (Exception $e) {
+            $response['error'] = $e->getMessage();
+        }
+
+        return $response;
+    }
+
+    /**
+     * Render connection settings form
+     */
+    public function render_connect_settings() {
+        ob_start();
+
+        FLBuilder::render_settings_field('api_key', array(
+            'row_class' => 'fl-builder-service-connect-row',
+            'class'     => 'fl-builder-service-connect-input',
+            'type'      => 'text',
+            'label'     => __('API Key', 'your-plugin'),
+            'help'      => __('Enter your API key from your account settings.', 'your-plugin'),
+            'preview'   => array(
+                'type' => 'none',
+            ),
+        ));
+
+        return ob_get_clean();
+    }
+
+    /**
+     * Render service-specific fields (lists, tags, etc.)
+     */
+    public function render_fields($account, $settings) {
+        $account_data = $this->get_account_data($account);
+        $response = array(
+            'error' => false,
+            'html'  => '',
+        );
+
+        if (!$account_data) {
+            $response['error'] = __('Account not found.', 'your-plugin');
+            return $response;
+        }
+
+        try {
+            $api = new CustomEmailAPI($account_data['api_key']);
+            $lists = $api->getLists();
+
+            // Render list selection
+            $response['html'] = $this->render_list_field($lists, $settings);
+
+        } catch (Exception $e) {
+            $response['error'] = $e->getMessage();
+        }
+
+        return $response;
+    }
+
+    /**
+     * Subscribe a user
+     */
+    public function subscribe($settings, $email, $name = false) {
+        $account_data = $this->get_account_data($settings->service_account);
+        $response = array(
+            'error' => false,
+        );
+
+        if (!$account_data) {
+            $response['error'] = __('Account not connected.', 'your-plugin');
+            return $response;
+        }
+
+        try {
+            $api = new CustomEmailAPI($account_data['api_key']);
+
+            $subscriber_data = array(
+                'email' => $email,
+                'list_id' => $settings->list_id,
+            );
+
+            if ($name) {
+                $names = explode(' ', $name, 2);
+                $subscriber_data['first_name'] = $names[0];
+                if (isset($names[1])) {
+                    $subscriber_data['last_name'] = $names[1];
+                }
+            }
+
+            $result = $api->subscribe($subscriber_data);
+
+            if (!$result) {
+                $response['error'] = __('Subscription failed.', 'your-plugin');
+            }
+
+        } catch (Exception $e) {
+            $response['error'] = $e->getMessage();
+        }
+
+        return $response;
+    }
+
+    /**
+     * Render list selection field
+     */
+    private function render_list_field($lists, $settings) {
+        ob_start();
+
+        $options = array(
+            '' => __('Choose...', 'your-plugin'),
+        );
+
+        foreach ($lists as $list) {
+            $options[$list['id']] = $list['name'];
+        }
+
+        FLBuilder::render_settings_field('list_id', array(
+            'row_class' => 'fl-builder-service-field-row',
+            'class'     => 'fl-builder-service-list-select',
+            'type'      => 'select',
+            'label'     => __('List', 'your-plugin'),
+            'options'   => $options,
+            'preview'   => array(
+                'type' => 'none',
+            ),
+        ), $settings);
+
+        return ob_get_clean();
+    }
+}
+```
+
+## Registration
+
+### Register Your Service
+
+Register your custom service with Beaver Builder:
+
+```php
+/**
+ * Register custom email service
+ */
+function register_custom_email_service() {
+    if (!class_exists('FLBuilder')) {
+        return;
+    }
+
+    // Load your service class
+    require_once plugin_dir_path(__FILE__) . 'includes/class-bb-service-custom.php';
+}
+add_action('init', 'register_custom_email_service');
+```
+
+### Make Service Available
+
+Beaver Builder automatically detects service classes that extend `FLBuilderService`. Ensure your class:
+
+1. Extends `FLBuilderService`
+2. Has a unique `$id` property
+3. Is loaded before services are initialized
+
+## Advanced Features
+
+### API Wrapper Class
+
+Create a separate API wrapper for cleaner code:
+
+```php
+<?php
+/**
+ * Custom Email Service API Wrapper
+ */
+class CustomEmailAPI {
+
+    private $api_key;
+    private $api_url = 'https://api.customservice.com/v1/';
+
+    public function __construct($api_key) {
+        $this->api_key = $api_key;
+    }
+
+    /**
+     * Test connection
+     */
+    public function testConnection() {
+        $response = $this->request('GET', 'account');
+        return isset($response['id']);
+    }
+
+    /**
+     * Get lists
+     */
+    public function getLists() {
+        return $this->request('GET', 'lists');
+    }
+
+    /**
+     * Subscribe user
+     */
+    public function subscribe($data) {
+        return $this->request('POST', 'subscribers', $data);
+    }
+
+    /**
+     * Make API request
+     */
+    private function request($method, $endpoint, $data = array()) {
+        $url = $this->api_url . $endpoint;
+
+        $args = array(
+            'method'  => $method,
+            'headers' => array(
+                'Authorization' => 'Bearer ' . $this->api_key,
+                'Content-Type'  => 'application/json',
+            ),
+        );
+
+        if (!empty($data)) {
+            $args['body'] = json_encode($data);
+        }
+
+        $response = wp_remote_request($url, $args);
+
+        if (is_wp_error($response)) {
+            throw new Exception($response->get_error_message());
+        }
+
+        $body = wp_remote_retrieve_body($response);
+        $result = json_decode($body, true);
+
+        $code = wp_remote_retrieve_response_code($response);
+        if ($code >= 400) {
+            $message = isset($result['message']) ? $result['message'] : 'API Error';
+            throw new Exception($message);
+        }
+
+        return $result;
+    }
+}
+```
+
+### Supporting Multiple Fields
+
+Add support for tags, custom fields, or other features:
+
+```php
+public function render_fields($account, $settings) {
+    $account_data = $this->get_account_data($account);
+    $response = array(
+        'error' => false,
+        'html'  => '',
+    );
+
+    try {
+        $api = new CustomEmailAPI($account_data['api_key']);
+
+        // Render list field
+        $lists = $api->getLists();
+        $response['html'] .= $this->render_list_field($lists, $settings);
+
+        // Render tags field
+        $response['html'] .= $this->render_tags_field($settings);
+
+        // Render custom fields
+        if (isset($settings->list_id)) {
+            $custom_fields = $api->getCustomFields($settings->list_id);
+            $response['html'] .= $this->render_custom_fields($custom_fields, $settings);
+        }
+
+    } catch (Exception $e) {
+        $response['error'] = $e->getMessage();
+    }
+
+    return $response;
+}
+
+private function render_tags_field($settings) {
+    ob_start();
+
+    FLBuilder::render_settings_field('tags', array(
+        'row_class' => 'fl-builder-service-field-row',
+        'type'      => 'text',
+        'label'     => __('Tags', 'your-plugin'),
+        'help'      => __('Comma-separated list of tags.', 'your-plugin'),
+        'preview'   => array('type' => 'none'),
+    ), $settings);
+
+    return ob_get_clean();
+}
+```
+
+### OAuth Authentication
+
+Implement OAuth flow like AWeber:
+
+```php
+public function render_connect_settings() {
+    ob_start();
+
+    ?>
+    <p><?php _e('Click the button below to connect your account:', 'your-plugin'); ?></p>
+    <a href="<?php echo $this->get_oauth_url(); ?>" class="fl-builder-button" target="_blank">
+        <?php _e('Connect Account', 'your-plugin'); ?>
+    </a>
+
+    <div style="margin-top: 20px;">
+        <?php
+        FLBuilder::render_settings_field('auth_code', array(
+            'row_class' => 'fl-builder-service-connect-row',
+            'type'      => 'text',
+            'label'     => __('Authorization Code', 'your-plugin'),
+            'help'      => __('Paste the authorization code here.', 'your-plugin'),
+            'preview'   => array('type' => 'none'),
+        ));
+        ?>
+    </div>
+    <?php
+
+    return ob_get_clean();
+}
+
+private function get_oauth_url() {
+    $params = array(
+        'client_id'     => 'your-client-id',
+        'redirect_uri'  => admin_url('admin.php?page=fl-builder-settings'),
+        'response_type' => 'code',
+        'scope'         => 'read write',
+    );
+
+    return 'https://oauth.service.com/authorize?' . http_build_query($params);
+}
+
+public function connect($fields = array()) {
+    if (empty($fields['auth_code'])) {
+        return array(
+            'error' => __('Please provide authorization code.', 'your-plugin'),
+            'data'  => array(),
+        );
+    }
+
+    // Exchange auth code for access token
+    $token = $this->exchange_auth_code($fields['auth_code']);
+
+    if (!$token) {
+        return array(
+            'error' => __('Invalid authorization code.', 'your-plugin'),
+            'data'  => array(),
+        );
+    }
+
+    return array(
+        'error' => false,
+        'data'  => array(
+            'access_token' => $token,
+        ),
+    );
+}
+```
+
+### Caching API Responses
+
+Cache expensive API calls:
+
+```php
+public function render_fields($account, $settings) {
+    $cache_key = 'custom_service_lists_' . md5($account);
+    $lists = get_transient($cache_key);
+
+    if (false === $lists) {
+        try {
+            $account_data = $this->get_account_data($account);
+            $api = new CustomEmailAPI($account_data['api_key']);
+            $lists = $api->getLists();
+
+            // Cache for 1 hour
+            set_transient($cache_key, $lists, HOUR_IN_SECONDS);
+
+        } catch (Exception $e) {
+            return array(
+                'error' => $e->getMessage(),
+                'html'  => '',
+            );
+        }
+    }
+
+    return array(
+        'error' => false,
+        'html'  => $this->render_list_field($lists, $settings),
+    );
+}
+```
+
+### Webhook Support
+
+Add webhook functionality:
+
+```php
+public function subscribe($settings, $email, $name = false) {
+    $account_data = $this->get_account_data($settings->service_account);
+    $response = array('error' => false);
+
+    try {
+        $api = new CustomEmailAPI($account_data['api_key']);
+        $result = $api->subscribe($subscriber_data);
+
+        // Trigger webhook
+        do_action('fl_builder_custom_service_subscribed', array(
+            'email'   => $email,
+            'name'    => $name,
+            'list_id' => $settings->list_id,
+            'result'  => $result,
+        ));
+
+    } catch (Exception $e) {
+        $response['error'] = $e->getMessage();
+
+        // Log error
+        do_action('fl_builder_custom_service_error', array(
+            'email' => $email,
+            'error' => $e->getMessage(),
+        ));
+    }
+
+    return $response;
+}
+```
+
+## Testing Your Service
+
+### Manual Testing
+
+1. Activate your plugin/theme
+2. Go to **Settings > Beaver Builder > Services**
+3. Add a new account for your service
+4. Test the connection
+5. Create a subscribe form module
+6. Select your service and configure settings
+7. Test form submission
+
+### Automated Testing
+
+```php
+// PHPUnit test example
+class CustomServiceTest extends WP_UnitTestCase {
+
+    public function test_connection() {
+        $service = new FLBuilderServiceCustom();
+
+        $result = $service->connect(array(
+            'api_key' => 'test-key',
+        ));
+
+        $this->assertFalse($result['error']);
+        $this->assertArrayHasKey('api_key', $result['data']);
+    }
+
+    public function test_subscribe() {
+        $service = new FLBuilderServiceCustom();
+
+        $settings = new stdClass();
+        $settings->service_account = 'test-account';
+        $settings->list_id = '123';
+
+        $result = $service->subscribe(
+            $settings,
+            'test@example.com',
+            'Test User'
+        );
+
+        $this->assertFalse($result['error']);
+    }
+}
+```
+
+## Error Handling Best Practices
+
+```php
+try {
+    $api = new CustomEmailAPI($account_data['api_key']);
+    $result = $api->subscribe($data);
+
+    if (!$result) {
+        throw new Exception(__('Subscription failed', 'your-plugin'));
+    }
+
+} catch (Exception $e) {
+    // Log error for debugging
+    error_log('Custom Service Error: ' . $e->getMessage());
+
+    // User-friendly error message
+    $response['error'] = sprintf(
+        __('Unable to subscribe: %s', 'your-plugin'),
+        $e->getMessage()
+    );
+}
+```
+
+## Complete Example
+
+See the [GitHub repository](https://github.com/wpbeaverbuilder/bb-custom-service-example) for a complete working example of a custom service integration.
+
+## Related Documentation
+
+- [Email Service Integrations](/api/services/email-integrations)
+- [Subscribe Form Module](/modules/subscribe-form)
+- [Contact Form Module](/modules/contact-form)
+- [FLBuilderService Base Class Reference](/api/classes/flbuilderservice)

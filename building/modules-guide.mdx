@@ -1,0 +1,497 @@
+---
+title: 'Modules Guide'
+description: 'Learn how to add and configure modules in Beaver Builder'
+icon: 'grid-2'
+---
+
+Modules are the building blocks of your Beaver Builder pages. Each module provides specific functionality to add content and features to your site.
+
+## Adding Modules
+
+There are multiple ways to add modules to your page:
+
+### From Content Panel
+
+<Steps>
+  <Step title="Open Content Panel">
+    Click the "+" icon in the top left corner
+  </Step>
+  
+  <Step title="Browse Modules">
+    Scroll through available modules or use the search
+  </Step>
+  
+  <Step title="Drag Module">
+    Drag your chosen module to the page
+  </Step>
+  
+  <Step title="Drop in Place">
+    Drop the module in a blue drop zone
+  </Step>
+</Steps>
+
+### Quick Add
+
+- Hover over a column
+- Click the "+" icon that appears
+- Select module from quick menu
+
+<Tip>
+Use the search function to quickly find specific modules by name or function.
+</Tip>
+
+## Configuring Module Settings
+
+Each module has its own set of configuration options:
+
+### Opening Settings
+
+1. **Hover** over the module
+2. **Click** the wrench icon (⚙️)
+3. **Settings panel** opens on the right
+
+### Settings Tabs
+
+Most modules have multiple tabs:
+
+- **General**: Content and basic settings
+- **Style**: Visual styling options
+- **Advanced**: Custom code and advanced options
+
+### Common Settings
+
+Settings found in most modules:
+
+<CardGroup cols={2}>
+  <Card title="Content" icon="text">
+    Text, images, and media content
+  </Card>
+  
+  <Card title="Typography" icon="font">
+    Font family, size, weight, and styling
+  </Card>
+  
+  <Card title="Colors" icon="palette">
+    Background, text, and accent colors
+  </Card>
+  
+  <Card title="Spacing" icon="arrows-up-down">
+    Margins and padding controls
+  </Card>
+</CardGroup>
+
+### Saving Changes
+
+<Note>
+Changes preview in real-time. Click "Save" in the settings panel to apply them permanently.
+</Note>
+
+## Common Modules
+
+Beaver Builder includes many built-in modules organized by category:
+
+### Basic Modules
+
+Essential content modules for everyday use:
+
+#### Button Module
+
+Create clickable call-to-action buttons.
+
+```php
+// Button module configuration
+FLBuilder::register_module('FLButtonModule', array(
+  'name'            => __( 'Button', 'fl-builder' ),
+  'description'     => __( 'A simple call to action button.', 'fl-builder' ),
+  'category'        => __( 'Basic', 'fl-builder' ),
+  'icon'            => 'button.svg',
+));
+```
+
+**Key Settings:**
+- Text and icon
+- Link or button action
+- Click actions (Link, Button, Lightbox)
+- Width and alignment
+- Colors and backgrounds
+- Border and styling
+
+**Click Actions:**
+- **Link**: Navigate to URL
+- **Button**: Execute custom JavaScript
+- **Lightbox**: Display content in popup
+
+#### Heading Module
+
+Display titles and page headings.
+
+```php
+// Heading module configuration  
+FLBuilder::register_module('FLHeadingModule', array(
+  'name'            => __( 'Heading', 'fl-builder' ),
+  'description'     => __( 'Display a title/page heading.', 'fl-builder' ),
+  'category'        => __( 'Basic', 'fl-builder' ),
+));
+```
+
+**Key Settings:**
+- Heading text
+- HTML tag (h1-h6)
+- Optional link
+- Typography controls
+- Text color
+- Text alignment
+
+<Tip>
+Choose the appropriate HTML tag for accessibility. Use H1 for main page titles, H2 for sections, etc.
+</Tip>
+
+#### Photo Module
+
+Add and display images.
+
+**Key Settings:**
+- Photo source (Media Library or URL)
+- Caption and alt text
+- Link options
+- Alignment
+- Size and crop
+- Border and styling
+
+#### HTML Module
+
+Add custom HTML code.
+
+```php
+// HTML module configuration
+FLBuilder::register_module('FLHtmlModule', array(
+  'name'            => __( 'HTML', 'fl-builder' ),
+  'description'     => __( 'Display raw HTML code.', 'fl-builder' ),
+  'category'        => __( 'Basic', 'fl-builder' ),
+));
+```
+
+**Use Cases:**
+- Embed third-party widgets
+- Add custom markup
+- Insert tracking codes
+- Integrate external services
+
+<Warning>
+Be careful with custom HTML. Invalid code can break your page layout.
+</Warning>
+
+#### Video Module
+
+Embed videos from various sources.
+
+**Supported Sources:**
+- YouTube
+- Vimeo
+- Self-hosted (MP4, WebM)
+- Embed code
+
+**Key Settings:**
+- Video source and URL
+- Autoplay and loop
+- Controls visibility
+- Aspect ratio
+- Fallback image
+
+### Advanced Modules
+
+More complex modules for advanced functionality:
+
+#### Accordion Module
+
+Create collapsible content sections.
+
+**Use Cases:**
+- FAQs
+- Content organization
+- Space-saving layouts
+
+#### Tabs Module
+
+Organize content in tabbed interface.
+
+**Settings:**
+- Tab labels and content
+- Layout (horizontal/vertical)
+- Styling options
+
+#### Gallery Module
+
+Display image galleries with various layouts.
+
+**Layout Options:**
+- Grid
+- Masonry
+- Carousel
+- Collage
+
+#### Content Slider Module
+
+Create content slideshows.
+
+**Features:**
+- Multiple slides
+- Text and images
+- Navigation controls
+- Autoplay options
+
+### Form Modules
+
+Modules for user interaction:
+
+#### Contact Form Module
+
+Build custom contact forms.
+
+**Field Types:**
+- Text input
+- Email
+- Textarea
+- Select dropdown
+- Checkbox
+- Radio buttons
+
+#### Subscribe Form Module
+
+Email subscription forms.
+
+**Integrations:**
+- MailChimp
+- Campaign Monitor
+- ActiveCampaign
+- GetResponse
+
+### Social Modules
+
+Social media integration:
+
+#### Social Buttons Module
+
+Add social sharing buttons.
+
+**Supported Networks:**
+- Facebook
+- Twitter/X
+- LinkedIn
+- Pinterest
+- Instagram
+- Custom links
+
+### Commerce Modules
+
+<Note>
+Some commerce modules require WooCommerce or other e-commerce plugins to be installed.
+</Note>
+
+#### Pricing Table Module
+
+Create pricing comparison tables.
+
+**Features:**
+- Multiple columns
+- Feature lists
+- Pricing options
+- Call-to-action buttons
+
+#### WooCommerce Module
+
+Display WooCommerce products.
+
+**Display Options:**
+- Product grid
+- Product carousel
+- Featured products
+- Categories
+
+## Module Categories
+
+Modules are organized into logical categories:
+
+<Tabs>
+  <Tab title="Basic">
+    Core content modules:
+    - Button
+    - Heading
+    - Photo
+    - HTML
+    - Video
+    - Icon
+    - Rich Text
+  </Tab>
+  
+  <Tab title="Advanced">
+    Complex functionality:
+    - Accordion
+    - Tabs
+    - Gallery
+    - Content Slider
+    - Countdown
+    - Separator
+  </Tab>
+  
+  <Tab title="Forms">
+    User input modules:
+    - Contact Form
+    - Subscribe Form
+    - Login Form
+    - Search
+  </Tab>
+  
+  <Tab title="Social">
+    Social integration:
+    - Social Buttons
+    - Testimonials
+  </Tab>
+  
+  <Tab title="WordPress">
+    WordPress content:
+    - Post Grid
+    - Post Carousel
+    - Post Slider
+    - Widget
+    - Sidebar
+    - Menu
+  </Tab>
+</Tabs>
+
+## Working with Module Settings
+
+### Responsive Settings
+
+Many settings support responsive values:
+
+1. Click the device icon next to the setting
+2. Set different values for each breakpoint
+3. Preview on different device sizes
+
+### Color Controls
+
+Color settings include:
+
+- **Color Picker**: Choose any color
+- **Alpha/Opacity**: Control transparency
+- **Reset**: Return to default
+
+### Typography Controls
+
+Typography settings typically include:
+
+- Font family
+- Font weight and style
+- Font size (responsive)
+- Line height
+- Letter spacing
+- Text transform
+- Text decoration
+
+### Dimension Controls
+
+For margins, padding, and borders:
+
+- **Linked**: Set all sides at once
+- **Unlinked**: Set each side individually
+- **Units**: Choose px, %, em, vh, vw
+- **Responsive**: Different values per breakpoint
+
+## Module Actions
+
+### Duplicate Module
+
+1. Hover over module
+2. Click duplicate icon
+3. Module and settings are copied
+
+### Move Module
+
+1. Hover over module
+2. Click and drag the handle (⋮⋮)
+3. Drop in new location
+
+### Copy/Paste Module
+
+1. Hover and click copy icon
+2. Navigate to target location
+3. Click paste icon
+
+### Save Module
+
+1. Hover over module
+2. Click save icon
+3. Name your saved module
+4. Access from "Saved" tab
+
+<Tip>
+Save commonly configured modules to reuse across pages and sites.
+</Tip>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Choose the Right Module">
+    Select modules that match your content type. Don't use workarounds when a dedicated module exists.
+  </Accordion>
+  
+  <Accordion title="Configure for Mobile">
+    Always set responsive values for typography, spacing, and alignment to ensure mobile compatibility.
+  </Accordion>
+  
+  <Accordion title="Use Semantic HTML">
+    Choose appropriate HTML tags (h1-h6) in heading modules for better SEO and accessibility.
+  </Accordion>
+  
+  <Accordion title="Optimize Images">
+    Compress images before uploading to improve page load times.
+  </Accordion>
+  
+  <Accordion title="Test Interactions">
+    Test forms, buttons, and interactive modules thoroughly before publishing.
+  </Accordion>
+</AccordionGroup>
+
+## Custom Modules
+
+Developers can create custom modules:
+
+```php
+// Register a custom module
+FLBuilder::register_module('MyCustomModule', array(
+  'name'            => 'My Custom Module',
+  'description'     => 'A custom module for specific functionality',
+  'category'        => 'Custom',
+  'icon'            => 'custom-icon.svg',
+  'partial_refresh' => true,
+));
+```
+
+<Card title="Learn More" icon="code" href="/developer/custom-modules">
+  See the developer documentation for creating custom modules
+</Card>
+
+## Troubleshooting
+
+### Module Won't Save
+
+- Check required fields are filled
+- Verify image/media files are uploaded
+- Review PHP error logs
+
+### Module Not Displaying
+
+- Check visibility settings
+- Verify responsive display options
+- Review custom CSS conflicts
+
+### Settings Not Taking Effect
+
+- Clear cache plugins
+- Check for CSS specificity conflicts
+- Verify global settings aren't overriding
+
+<Card title="Next Steps" icon="arrow-right" href="/building/styling">
+  Learn how to style your modules and elements
+</Card>

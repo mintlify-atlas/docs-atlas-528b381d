@@ -1,0 +1,743 @@
+---
+title: 'Styling Elements'
+description: 'Master CSS styling, typography, colors, and custom classes in Beaver Builder'
+icon: 'paintbrush'
+---
+
+Beaver Builder provides powerful styling controls to customize the appearance of your modules, rows, and columns.
+
+## CSS Settings
+
+Beaver Builder automatically generates optimized CSS based on your settings:
+
+### How CSS Generation Works
+
+```php
+// CSS rendering system from class-fl-builder-css.php
+FLBuilderCSS::rule(array(
+  'selector' => '.fl-node-{id}',
+  'props'    => array(
+    'color' => '#333333',
+    'font-size' => '16px',
+  )
+));
+```
+
+The builder:
+
+1. **Collects** settings from modules and rows
+2. **Generates** CSS rules automatically
+3. **Optimizes** output for performance
+4. **Organizes** media queries for responsive design
+
+### CSS Rule Structure
+
+CSS is organized by breakpoints:
+
+```css
+/* Default (Desktop) */
+.fl-node-abc123 {
+  font-size: 24px;
+}
+
+/* Large Devices (max-width: 1200px) */
+@media(max-width: 1200px) {
+  .fl-node-abc123 {
+    font-size: 22px;
+  }
+}
+
+/* Medium Devices (max-width: 992px) */
+@media(max-width: 992px) {
+  .fl-node-abc123 {
+    font-size: 20px;
+  }
+}
+
+/* Small Devices (max-width: 768px) */
+@media(max-width: 768px) {
+  .fl-node-abc123 {
+    font-size: 18px;
+  }
+}
+```
+
+### Responsive CSS Rules
+
+Create responsive styles with the responsive rule helper:
+
+```php
+FLBuilderCSS::responsive_rule(array(
+  'settings'     => $settings,
+  'setting_name' => 'font_size',
+  'selector'     => '.fl-heading',
+  'prop'         => 'font-size',
+));
+```
+
+<Tip>
+Responsive settings automatically generate media queries for all configured breakpoints.
+</Tip>
+
+## Typography Controls
+
+Typography settings control text appearance:
+
+### Typography Field
+
+The typography field provides comprehensive text styling:
+
+```php
+// Typography field structure
+'typography' => array(
+  'type'       => 'typography',
+  'label'      => __( 'Typography', 'fl-builder' ),
+  'responsive' => true,
+  'preview'    => array(
+    'type'     => 'css',
+    'selector' => '.element',
+  ),
+)
+```
+
+### Font Family
+
+Choose from available fonts:
+
+<Tabs>
+  <Tab title="System Fonts">
+    Built-in system fonts:
+    - Arial
+    - Helvetica
+    - Times New Roman
+    - Georgia
+    - Verdana
+  </Tab>
+  
+  <Tab title="Google Fonts">
+    Access 1000+ Google Fonts:
+    - Open Sans
+    - Roboto
+    - Lato
+    - Montserrat
+    - And many more
+  </Tab>
+  
+  <Tab title="Custom Fonts">
+    Upload custom fonts:
+    - WOFF/WOFF2
+    - TTF
+    - EOT
+  </Tab>
+</Tabs>
+
+### Font Properties
+
+#### Font Weight
+
+Control text thickness:
+
+- **100**: Thin
+- **300**: Light
+- **400**: Normal/Regular
+- **500**: Medium
+- **600**: Semi-Bold
+- **700**: Bold
+- **900**: Black
+
+<Note>
+Available weights depend on the selected font family. Not all fonts support all weights.
+</Note>
+
+#### Font Size
+
+Set text size with units:
+
+- **px**: Fixed pixels
+- **em**: Relative to parent
+- **rem**: Relative to root
+- **vw**: Viewport width percentage
+- **vh**: Viewport height percentage
+
+```php
+// Font size with unit
+'font_size' => array(
+  'length' => '24',
+  'unit'   => 'px',
+)
+```
+
+#### Line Height
+
+Control spacing between lines:
+
+- **Unitless**: Relative to font size (recommended)
+- **px**: Fixed pixel value
+- **em/rem**: Relative units
+
+```php
+// Line height configuration
+'line_height' => array(
+  'length' => '1.5',  // 1.5x the font size
+  'unit'   => '',     // Unitless
+)
+```
+
+#### Letter Spacing
+
+Adjust space between characters:
+
+```php
+'letter_spacing' => array(
+  'length' => '0.5',
+  'unit'   => 'px',
+)
+```
+
+### Text Transform
+
+Change text capitalization:
+
+- **None**: Keep original
+- **Uppercase**: ALL CAPS
+- **Lowercase**: all lowercase  
+- **Capitalize**: First Letter Capitalized
+
+### Text Decoration
+
+Add text styling:
+
+- **None**: No decoration
+- **Underline**: Underlined text
+- **Overline**: Line above text
+- **Line-through**: Strikethrough text
+
+### Text Alignment
+
+Align text horizontally:
+
+- **Left**: Left-aligned
+- **Center**: Centered
+- **Right**: Right-aligned
+- **Justify**: Justified (full width)
+
+<Tip>
+Set different alignment values for each breakpoint to optimize text layout on mobile devices.
+</Tip>
+
+## Colors and Backgrounds
+
+Comprehensive color and background controls:
+
+### Color Picker
+
+Advanced color selection:
+
+<Steps>
+  <Step title="Open Picker">
+    Click the color field to open the picker
+  </Step>
+  
+  <Step title="Select Color">
+    Choose from:
+    - Color wheel
+    - Hex input (#RRGGBB)
+    - RGB values
+    - HSL values
+  </Step>
+  
+  <Step title="Set Opacity">
+    Use the alpha slider to adjust transparency (0-100%)
+  </Step>
+  
+  <Step title="Apply">
+    Color updates in real-time as you select
+  </Step>
+</Steps>
+
+### Color Properties
+
+Common color properties:
+
+```php
+// Color field with alpha support
+'text_color' => array(
+  'type'        => 'color',
+  'label'       => __( 'Text Color', 'fl-builder' ),
+  'show_reset'  => true,
+  'show_alpha'  => true,
+  'responsive'  => true,
+  'preview'     => array(
+    'type'     => 'css',
+    'selector' => '.element',
+    'property' => 'color',
+  ),
+)
+```
+
+### Background Types
+
+Multiple background options:
+
+<CardGroup cols={2}>
+  <Card title="Solid Color" icon="droplet">
+    Single color background with optional opacity
+  </Card>
+  
+  <Card title="Gradient" icon="wand-magic-sparkles">
+    Linear or radial gradients with multiple color stops
+  </Card>
+  
+  <Card title="Image" icon="image">
+    Background images with position, size, and repeat controls
+  </Card>
+  
+  <Card title="Video" icon="video">
+    Background videos with fallback images
+  </Card>
+</CardGroup>
+
+### Background Color
+
+Simple color backgrounds:
+
+```php
+'bg_color' => array(
+  'type'        => 'color',
+  'label'       => __( 'Background Color', 'fl-builder' ),
+  'show_reset'  => true,
+  'show_alpha'  => true,
+  'preview'     => array(
+    'type' => 'refresh',
+  ),
+)
+```
+
+### Background Gradient
+
+Advanced gradient backgrounds:
+
+**Gradient Types:**
+- **Linear**: Straight line gradient
+- **Radial**: Circular gradient
+
+**Settings:**
+- Multiple color stops
+- Direction/angle
+- Position (for radial)
+
+```php
+'bg_gradient' => array(
+  'type'    => 'gradient',
+  'label'   => __( 'Background Gradient', 'fl-builder' ),
+  'preview' => array(
+    'type' => 'refresh',
+  ),
+)
+```
+
+### Background Image
+
+Image background settings:
+
+**Image Options:**
+- Source (Media Library or URL)
+- Position (9 presets + custom)
+- Repeat (none, tile, horizontal, vertical)
+- Size (none, fit, fill)
+- Attachment (scroll, fixed)
+
+```php
+// Background image controls
+'bg_image' => array(
+  'type'        => 'photo',
+  'show_remove' => true,
+  'label'       => __( 'Photo', 'fl-builder' ),
+  'responsive'  => true,
+)
+```
+
+### Multiple Backgrounds
+
+Layer multiple backgrounds:
+
+```php
+'background' => array(
+  'type'       => 'background',
+  'label'      => __( 'Background Layers', 'fl-builder' ),
+  'responsive' => array(
+    'default' => array(
+      'default' => array(
+        array(
+          'type'  => 'color',
+          'state' => array(
+            'color' => '#ffffff',
+          ),
+        ),
+      ),
+    ),
+  ),
+)
+```
+
+## Border and Shadow
+
+Border and box shadow controls:
+
+### Border Field
+
+Comprehensive border styling:
+
+```php
+FLBuilderCSS::border_field_rule(array(
+  'settings'     => $settings,
+  'setting_name' => 'border',
+  'selector'     => '.element',
+));
+```
+
+**Border Properties:**
+
+<Tabs>
+  <Tab title="Style">
+    Border style options:
+    - None
+    - Solid
+    - Dashed
+    - Dotted
+    - Double
+    - Groove
+    - Ridge
+  </Tab>
+  
+  <Tab title="Width">
+    Border width per side:
+    - Top
+    - Right
+    - Bottom
+    - Left
+    
+    Set individually or link all sides
+  </Tab>
+  
+  <Tab title="Color">
+    Border color with alpha support
+  </Tab>
+  
+  <Tab title="Radius">
+    Corner radius:
+    - Top-left
+    - Top-right
+    - Bottom-right
+    - Bottom-left
+  </Tab>
+</Tabs>
+
+### Border Generation
+
+How borders are rendered:
+
+```php
+// Border field props from class-fl-builder-css.php
+static public function border_field_props( $setting = array() ) {
+  $props = array();
+  
+  if ( isset( $setting['style'] ) && ! empty( $setting['style'] ) ) {
+    $props['border-style'] = $setting['style'];
+    $props['border-width'] = '0';
+  }
+  
+  if ( isset( $setting['color'] ) && ! empty( $setting['color'] ) ) {
+    $props['border-color'] = $setting['color'];
+  }
+  
+  // Width per side
+  if ( isset( $setting['width'] ) && is_array( $setting['width'] ) ) {
+    foreach ( array( 'top', 'right', 'bottom', 'left' ) as $side ) {
+      if ( isset( $setting['width'][ $side ] ) ) {
+        $props[ "border-$side-width" ] = $setting['width'][ $side ] . 'px';
+      }
+    }
+  }
+  
+  return $props;
+}
+```
+
+### Box Shadow
+
+Add depth with shadows:
+
+```php
+'shadow' => array(
+  'horizontal' => '0',    // X offset
+  'vertical'   => '0',    // Y offset  
+  'blur'       => '10',   // Blur radius
+  'spread'     => '0',    // Spread radius
+  'color'      => 'rgba(0,0,0,0.2)',
+  'inset'      => false,  // Inner shadow
+)
+```
+
+<Tip>
+Use subtle shadows for depth. Excessive shadows can make designs look dated.
+</Tip>
+
+## Spacing Controls
+
+Margin and padding controls:
+
+### Dimension Field
+
+Control spacing on all sides:
+
+```php
+FLBuilderCSS::dimension_field_rule(array(
+  'settings'     => $settings,
+  'setting_name' => 'padding',
+  'selector'     => '.element',
+  'unit'         => 'px',
+  'props'        => array(
+    'padding-top'    => 'padding_top',
+    'padding-right'  => 'padding_right',
+    'padding-bottom' => 'padding_bottom',
+    'padding-left'   => 'padding_left',
+  ),
+));
+```
+
+### Margins
+
+Outer spacing:
+
+- **Top**: Space above element
+- **Right**: Space to the right
+- **Bottom**: Space below element  
+- **Left**: Space to the left
+
+**Units:**
+- px (pixels)
+- % (percentage)
+- em (relative to font size)
+- vw/vh (viewport units)
+
+### Padding
+
+Inner spacing:
+
+- **Top**: Inner space from top
+- **Right**: Inner space from right
+- **Bottom**: Inner space from bottom
+- **Left**: Inner space from left
+
+<Note>
+Padding increases element size, while margins create space between elements.
+</Note>
+
+### Linked vs Unlinked
+
+- **Linked**: All sides use same value
+- **Unlinked**: Set each side independently
+
+### Responsive Spacing
+
+Set different spacing for each breakpoint:
+
+```php
+'responsive' => array(
+  'default_unit' => array(
+    'default'    => 'px',
+    'large'      => 'px',
+    'medium'     => 'px',
+    'responsive' => 'px',
+  ),
+  'placeholder' => array(
+    'default' => array(
+      'top'    => '20',
+      'right'  => '20',
+      'bottom' => '20',
+      'left'   => '20',
+    ),
+  ),
+)
+```
+
+## Custom CSS Classes
+
+Add custom CSS classes for advanced styling:
+
+### Adding Classes
+
+<Steps>
+  <Step title="Open Advanced Tab">
+    Open module/row/column settings and go to Advanced tab
+  </Step>
+  
+  <Step title="Find CSS Selectors Section">
+    Locate the "HTML Element" or "CSS Selectors" section
+  </Step>
+  
+  <Step title="Add Class">
+    Enter class name(s) in the "Class" field
+  </Step>
+  
+  <Step title="Save">
+    Save settings to apply the class
+  </Step>
+</Steps>
+
+### Class Naming Rules
+
+<Warning>
+Class names must:
+- Start with a letter
+- Contain only letters, numbers, dashes, and underscores
+- Not contain spaces (use dashes or underscores)
+- Be lowercase by convention
+</Warning>
+
+Examples:
+- ✅ `my-custom-class`
+- ✅ `hero_section`
+- ✅ `btn-primary`
+- ❌ `123invalid`
+- ❌ `my class` (space)
+- ❌ `my@class` (special char)
+
+### Using Custom CSS
+
+Write custom CSS in Global Settings or row settings:
+
+```css
+/* Target your custom class */
+.my-custom-class {
+  background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+  padding: 40px;
+  border-radius: 8px;
+}
+
+/* Responsive custom styles */
+@media (max-width: 768px) {
+  .my-custom-class {
+    padding: 20px;
+  }
+}
+```
+
+### Custom CSS Location
+
+Add custom CSS in:
+
+1. **Global Settings**: Tools → Global Settings → CSS tab
+2. **Row Settings**: Advanced → CSS Selectors
+3. **Theme**: Your theme's stylesheet
+
+<Tip>
+Use Global Settings CSS for site-wide styles, and row-specific CSS for page-specific styles.
+</Tip>
+
+## Advanced Styling
+
+### Hover States
+
+Create hover effects:
+
+```css
+.my-button {
+  background: #3490dc;
+  transition: all 0.3s ease;
+}
+
+.my-button:hover {
+  background: #2779bd;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+```
+
+### Animations
+
+Add CSS animations:
+
+```css
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animated-element {
+  animation: slideIn 0.5s ease-out;
+}
+```
+
+### Custom Properties (CSS Variables)
+
+Use CSS variables for consistency:
+
+```css
+:root {
+  --primary-color: #3490dc;
+  --secondary-color: #ffed4e;
+  --spacing-unit: 20px;
+}
+
+.element {
+  color: var(--primary-color);
+  padding: var(--spacing-unit);
+}
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use Responsive Typography">
+    Always set responsive font sizes to ensure readability on all devices. Reduce sizes by 10-20% for mobile.
+  </Accordion>
+  
+  <Accordion title="Maintain Consistency">
+    Use consistent spacing, colors, and typography throughout your site. Consider using CSS variables.
+  </Accordion>
+  
+  <Accordion title="Test Color Contrast">
+    Ensure sufficient contrast between text and backgrounds for accessibility (WCAG AA: 4.5:1 ratio).
+  </Accordion>
+  
+  <Accordion title="Optimize for Performance">
+    Minimize custom CSS and use builder settings when possible for better optimization.
+  </Accordion>
+  
+  <Accordion title="Keep Specificity Low">
+    Avoid overly specific selectors. Use classes rather than IDs or complex selectors.
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+### Styles Not Applying
+
+1. **Check specificity**: Your CSS might be overridden by more specific rules
+2. **Clear cache**: Clear all caching plugins
+3. **Inspect element**: Use browser dev tools to see computed styles
+4. **Check syntax**: Validate CSS for errors
+
+### Responsive Issues
+
+1. **Verify breakpoints**: Check Global Settings breakpoint values
+2. **Test on real devices**: Emulators can differ from actual devices
+3. **Check media queries**: Ensure queries are in correct order
+
+### Typography Problems
+
+1. **Font not loading**: Check font URL and format
+2. **Weight not available**: Verify the font supports the requested weight
+3. **FOUT/FOIT**: Implement font loading strategies
+
+<Card title="Next Steps" icon="arrow-right" href="/building/layouts">
+  Learn how to create complex layouts with rows and columns
+</Card>

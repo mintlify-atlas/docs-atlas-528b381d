@@ -1,0 +1,270 @@
+---
+title: 'Getting Started'
+description: 'Set up your development environment and learn the basics of Beaver Builder development'
+icon: 'rocket'
+---
+
+## Development Environment Setup
+
+Before you start developing custom modules or extensions for Beaver Builder, ensure you have a proper development environment:
+
+### Requirements
+
+- WordPress 5.0 or higher
+- PHP 7.4 or higher
+- Beaver Builder plugin installed and activated
+- Code editor (VS Code, PHPStorm, etc.)
+- Local development environment (Local, MAMP, Docker, etc.)
+
+### Setting Up Your Plugin
+
+Create a custom plugin to house your Beaver Builder customizations:
+
+```php
+<?php
+/**
+ * Plugin Name: My Beaver Builder Extensions
+ * Description: Custom modules and extensions for Beaver Builder
+ * Version: 1.0.0
+ * Author: Your Name
+ */
+
+// Exit if accessed directly
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+
+define( 'MY_BB_DIR', plugin_dir_path( __FILE__ ) );
+define( 'MY_BB_URL', plugins_url( '/', __FILE__ ) );
+
+/**
+ * Load custom modules
+ */
+function my_bb_load_modules() {
+    if ( class_exists( 'FLBuilder' ) ) {
+        require_once MY_BB_DIR . 'modules/my-custom-module/my-custom-module.php';
+    }
+}
+add_action( 'init', 'my_bb_load_modules' );
+```
+
+## Plugin Structure Overview
+
+Beaver Builder follows a modular architecture. Understanding the core structure will help you develop effectively:
+
+### Directory Structure
+
+```
+my-bb-extensions/
+├── modules/
+│   └── my-custom-module/
+│       ├── includes/
+│       │   ├── frontend.php
+│       │   ├── frontend.css.php
+│       │   └── frontend.js.php
+│       ├── css/
+│       │   └── frontend.css
+│       ├── js/
+│       │   └── frontend.js
+│       ├── icon.svg
+│       └── my-custom-module.php
+├── extensions/
+│   └── my-extension/
+└── my-bb-extensions.php
+```
+
+### Key Components
+
+<CardGroup cols={2}>
+  <Card title="Modules" icon="cube">
+    Custom content blocks that users drag and drop into their layouts
+  </Card>
+  <Card title="Extensions" icon="puzzle-piece">
+    Functionality that extends or modifies Beaver Builder's core features
+  </Card>
+  <Card title="Settings Forms" icon="sliders">
+    Configuration interfaces for modules and rows/columns
+  </Card>
+  <Card title="Templates" icon="file-code">
+    PHP files that render module output on the frontend
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+### Code Standards
+
+Follow WordPress coding standards and Beaver Builder conventions:
+
+<AccordionGroup>
+  <Accordion title="Naming Conventions">
+    - Use descriptive, prefixed class names (e.g., `FLMyCustomModule`)
+    - Prefix functions to avoid conflicts (e.g., `my_bb_custom_function`)
+    - Use lowercase with hyphens for slugs (e.g., `my-custom-module`)
+  </Accordion>
+  
+  <Accordion title="File Organization">
+    - Keep module files in their own directories
+    - Use `includes/` for template files
+    - Separate CSS and JS into dedicated files
+    - Include an `icon.svg` for your module icon
+  </Accordion>
+  
+  <Accordion title="Security">
+    - Sanitize all user inputs
+    - Escape all outputs
+    - Check user capabilities
+    - Use nonces for AJAX requests
+  </Accordion>
+  
+  <Accordion title="Performance">
+    - Enqueue scripts/styles only when needed
+    - Use transients for expensive operations
+    - Optimize database queries
+    - Implement proper caching
+  </Accordion>
+</AccordionGroup>
+
+### Module Development Workflow
+
+<Steps>
+  <Step title="Plan Your Module">
+    Define the purpose, features, and settings your module will need
+  </Step>
+  
+  <Step title="Create Module Structure">
+    Set up the directory structure and base files
+  </Step>
+  
+  <Step title="Define Settings">
+    Create the settings form with fields users will configure
+  </Step>
+  
+  <Step title="Build Frontend Template">
+    Develop the HTML output in `includes/frontend.php`
+  </Step>
+  
+  <Step title="Style Your Module">
+    Add CSS in `includes/frontend.css.php` or static CSS files
+  </Step>
+  
+  <Step title="Add Interactivity">
+    Include JavaScript in `includes/frontend.js.php` if needed
+  </Step>
+  
+  <Step title="Test Thoroughly">
+    Test in the builder, frontend, and with different settings combinations
+  </Step>
+</Steps>
+
+## Development Workflow
+
+### Local Development
+
+1. **Enable WordPress Debug Mode**
+
+```php
+// In wp-config.php
+define( 'WP_DEBUG', true );
+define( 'WP_DEBUG_LOG', true );
+define( 'WP_DEBUG_DISPLAY', false );
+define( 'SCRIPT_DEBUG', true );
+```
+
+2. **Clear Cache Frequently**
+
+Beaver Builder caches CSS and JS. Clear it while developing:
+
+```php
+FLBuilderModel::delete_asset_cache_for_all_posts();
+```
+
+3. **Use Partial Refresh**
+
+Enable partial refresh in your module to speed up development:
+
+```php
+public function __construct() {
+    parent::__construct(array(
+        'partial_refresh' => true,
+    ));
+}
+```
+
+### Debugging Tools
+
+<CodeGroup>
+```php Debug Module Settings
+// In your module class
+public function __construct() {
+    parent::__construct(array(
+        'name' => 'My Module',
+    ));
+    
+    // Debug settings
+    if ( WP_DEBUG ) {
+        error_log( print_r( $this->settings, true ) );
+    }
+}
+```
+
+```php Check If Builder Active
+if ( FLBuilderModel::is_builder_active() ) {
+    // Builder is active
+    echo 'Builder mode is ON';
+}
+```
+
+```php Get Current Layout Data
+$data = FLBuilderModel::get_layout_data();
+error_log( print_r( $data, true ) );
+```
+</CodeGroup>
+
+## Core Classes Reference
+
+<CardGroup cols={2}>
+  <Card title="FLBuilder" icon="layer-group">
+    Main class for registering modules and rendering layouts
+  </Card>
+  <Card title="FLBuilderModule" icon="cube">
+    Base class that all custom modules extend
+  </Card>
+  <Card title="FLBuilderModel" icon="database">
+    Handles data operations and layout management
+  </Card>
+  <Card title="FLBuilderCSS" icon="paintbrush">
+    Helper methods for generating CSS rules
+  </Card>
+</CardGroup>
+
+### Key File Locations
+
+```bash
+# Core module base class
+/classes/class-fl-builder-module.php
+
+# Module settings handling
+/includes/module-settings.php
+
+# Built-in modules (for reference)
+/modules/button/button.php
+/modules/heading/heading.php
+
+# CSS helper class
+/classes/class-fl-builder-css.php
+```
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Create Custom Modules" icon="cube" href="/developer/custom-modules">
+    Learn how to build your first custom module
+  </Card>
+  <Card title="Module Settings" icon="sliders" href="/developer/module-settings">
+    Configure settings forms and field types
+  </Card>
+  <Card title="Hooks & Filters" icon="code" href="/developer/hooks-filters">
+    Extend functionality with WordPress hooks
+  </Card>
+</CardGroup>

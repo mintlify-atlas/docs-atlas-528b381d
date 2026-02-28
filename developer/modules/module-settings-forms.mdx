@@ -1,0 +1,658 @@
+---
+title: Module Settings Forms
+description: Create powerful settings interfaces with tabs, sections, and field types
+---
+
+Module settings forms define the user interface for configuring your module. They consist of tabs, sections, and fields that provide a clean, organized settings experience.
+
+## Form Structure
+
+Settings forms are defined when registering your module:
+
+```php
+FLBuilder::register_module('MyModule', array(
+    'tab-key' => array(
+        'title'    => __( 'Tab Title', 'text-domain' ),
+        'sections' => array(
+            'section-key' => array(
+                'title'  => __( 'Section Title', 'text-domain' ),
+                'fields' => array(
+                    'field-key' => array(
+                        'type'  => 'text',
+                        'label' => __( 'Field Label', 'text-domain' ),
+                    ),
+                ),
+            ),
+        ),
+    ),
+));
+```
+
+### Hierarchy
+
+```
+Tabs (General, Style, Advanced)
+└── Sections (grouped settings)
+    └── Fields (individual inputs)
+```
+
+## Tabs, Sections, and Fields
+
+### Complete Example
+
+From the Button module:
+
+```php
+FLBuilder::register_module('FLButtonModule', array(
+    'general' => array(
+        'title'    => __( 'General', 'fl-builder' ),
+        'sections' => array(
+            'general' => array(
+                'title'  => '',
+                'fields' => array(
+                    'text' => array(
+                        'type'        => 'text',
+                        'label'       => __( 'Text', 'fl-builder' ),
+                        'default'     => __( 'Click Here', 'fl-builder' ),
+                        'preview'     => array(
+                            'type'     => 'text',
+                            'selector' => '.fl-button-text',
+                        ),
+                        'connections' => array( 'string' ),
+                    ),
+                    'icon' => array(
+                        'type'        => 'icon',
+                        'label'       => __( 'Icon', 'fl-builder' ),
+                        'show_remove' => true,
+                        'show'        => array(
+                            'fields' => array( 'icon_position', 'icon_animation' ),
+                        ),
+                    ),
+                    'icon_position' => array(
+                        'type'    => 'select',
+                        'label'   => __( 'Icon Position', 'fl-builder' ),
+                        'default' => 'before',
+                        'options' => array(
+                            'before' => __( 'Before Text', 'fl-builder' ),
+                            'after'  => __( 'After Text', 'fl-builder' ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+    ),
+    'style' => array(
+        'title'    => __( 'Style', 'fl-builder' ),
+        'sections' => array(
+            'colors' => array(
+                'title'  => __( 'Colors', 'fl-builder' ),
+                'fields' => array(
+                    'bg_color' => array(
+                        'type'       => 'color',
+                        'label'      => __( 'Background Color', 'fl-builder' ),
+                        'show_reset' => true,
+                        'show_alpha' => true,
+                    ),
+                ),
+            ),
+        ),
+    ),
+));
+```
+
+## Common Field Types
+
+### Text Fields
+
+<CodeGroup>
+```php Text
+'title' => array(
+    'type'        => 'text',
+    'label'       => __( 'Title', 'text-domain' ),
+    'default'     => '',
+    'placeholder' => __( 'Enter title...', 'text-domain' ),
+    'maxlength'   => 100,
+    'preview'     => array(
+        'type'     => 'text',
+        'selector' => '.my-title',
+    ),
+    'connections' => array( 'string' ),
+),
+```
+
+```php Textarea
+'description' => array(
+    'type'        => 'textarea',
+    'label'       => __( 'Description', 'text-domain' ),
+    'default'     => '',
+    'rows'        => 5,
+    'placeholder' => __( 'Enter description...', 'text-domain' ),
+    'connections' => array( 'string' ),
+),
+```
+
+```php Editor (WYSIWYG)
+'content' => array(
+    'type'        => 'editor',
+    'label'       => __( 'Content', 'text-domain' ),
+    'default'     => '',
+    'media_buttons' => true,
+    'wpautop'     => true,
+    'connections' => array( 'string' ),
+),
+```
+
+```php Code Editor
+'custom_css' => array(
+    'type'    => 'code',
+    'editor'  => 'css',  // css, html, javascript
+    'label'   => __( 'Custom CSS', 'text-domain' ),
+    'rows'    => 10,
+),
+```
+</CodeGroup>
+
+### Select Fields
+
+<CodeGroup>
+```php Select Dropdown
+'alignment' => array(
+    'type'    => 'select',
+    'label'   => __( 'Alignment', 'text-domain' ),
+    'default' => 'left',
+    'options' => array(
+        'left'   => __( 'Left', 'text-domain' ),
+        'center' => __( 'Center', 'text-domain' ),
+        'right'  => __( 'Right', 'text-domain' ),
+    ),
+),
+```
+
+```php Button Group
+'layout' => array(
+    'type'    => 'button-group',
+    'label'   => __( 'Layout', 'text-domain' ),
+    'default' => 'grid',
+    'options' => array(
+        'grid' => __( 'Grid', 'text-domain' ),
+        'list' => __( 'List', 'text-domain' ),
+    ),
+),
+```
+</CodeGroup>
+
+### Color Fields
+
+```php
+'text_color' => array(
+    'type'        => 'color',
+    'label'       => __( 'Text Color', 'text-domain' ),
+    'default'     => '',
+    'show_reset'  => true,
+    'show_alpha'  => true,
+    'responsive'  => true,
+    'preview'     => array(
+        'type'     => 'css',
+        'selector' => '.my-module',
+        'property' => 'color',
+    ),
+    'connections' => array( 'color' ),
+),
+```
+
+### Media Fields
+
+<CodeGroup>
+```php Photo
+'photo' => array(
+    'type'        => 'photo',
+    'label'       => __( 'Photo', 'text-domain' ),
+    'show_remove' => true,
+    'connections' => array( 'photo' ),
+),
+```
+
+```php Multiple Photos
+'gallery' => array(
+    'type'  => 'multiple-photos',
+    'label' => __( 'Gallery', 'text-domain' ),
+),
+```
+
+```php Video
+'video' => array(
+    'type'        => 'video',
+    'label'       => __( 'Video', 'text-domain' ),
+    'show_remove' => true,
+),
+```
+</CodeGroup>
+
+### Link Field
+
+```php
+'button_link' => array(
+    'type'          => 'link',
+    'label'         => __( 'Button Link', 'text-domain' ),
+    'placeholder'   => 'https://example.com',
+    'show_target'   => true,
+    'show_nofollow' => true,
+    'show_download' => true,
+    'preview'       => array(
+        'type' => 'none',
+    ),
+    'connections'   => array( 'url' ),
+),
+```
+
+### Icon Field
+
+```php
+'icon' => array(
+    'type'        => 'icon',
+    'label'       => __( 'Icon', 'text-domain' ),
+    'show_remove' => true,
+    'show'        => array(
+        'fields' => array( 'icon_size', 'icon_color' ),
+    ),
+),
+```
+
+### Measurement Fields
+
+<CodeGroup>
+```php Unit
+'width' => array(
+    'type'       => 'unit',
+    'label'      => __( 'Width', 'text-domain' ),
+    'default'    => '300',
+    'responsive' => true,
+    'slider'     => array(
+        'px' => array(
+            'min'  => 0,
+            'max'  => 1000,
+            'step' => 10,
+        ),
+    ),
+    'units'      => array( 'px', '%', 'vw' ),
+    'preview'    => array(
+        'type'     => 'css',
+        'selector' => '.my-module',
+        'property' => 'width',
+    ),
+),
+```
+
+```php Dimension (4-sided)
+'padding' => array(
+    'type'       => 'dimension',
+    'label'      => __( 'Padding', 'text-domain' ),
+    'responsive' => true,
+    'slider'     => true,
+    'units'      => array( 'px', 'em', '%' ),
+    'preview'    => array(
+        'type'     => 'css',
+        'selector' => '.my-module',
+        'property' => 'padding',
+    ),
+),
+```
+</CodeGroup>
+
+### Compound Fields
+
+<CodeGroup>
+```php Typography
+'heading_typography' => array(
+    'type'       => 'typography',
+    'label'      => __( 'Typography', 'text-domain' ),
+    'responsive' => true,
+    'preview'    => array(
+        'type'     => 'css',
+        'selector' => '.my-heading',
+    ),
+),
+```
+
+```php Border
+'border' => array(
+    'type'       => 'border',
+    'label'      => __( 'Border', 'text-domain' ),
+    'responsive' => true,
+    'preview'    => array(
+        'type'     => 'css',
+        'selector' => '.my-module',
+    ),
+),
+```
+
+```php Gradient
+'background_gradient' => array(
+    'type'    => 'gradient',
+    'label'   => __( 'Background Gradient', 'text-domain' ),
+    'preview' => array(
+        'type' => 'refresh',
+    ),
+),
+```
+</CodeGroup>
+
+## Conditional Logic
+
+### Show/Hide Fields
+
+Control field visibility based on other field values:
+
+```php
+'click_action' => array(
+    'type'    => 'select',
+    'label'   => __( 'Click Action', 'text-domain' ),
+    'default' => 'link',
+    'options' => array(
+        'link'     => __( 'Link', 'text-domain' ),
+        'lightbox' => __( 'Lightbox', 'text-domain' ),
+    ),
+    'toggle'  => array(
+        'link' => array(
+            'fields' => array( 'link_url' ),
+        ),
+        'lightbox' => array(
+            'fields'   => array( 'lightbox_content' ),
+            'sections' => array( 'lightbox_settings' ),
+        ),
+    ),
+),
+```
+
+### Field Dependencies
+
+Use the `show` parameter to display fields when another field has a value:
+
+```php
+'enable_icon' => array(
+    'type'    => 'select',
+    'label'   => __( 'Enable Icon', 'text-domain' ),
+    'default' => 'no',
+    'options' => array(
+        'yes' => __( 'Yes', 'text-domain' ),
+        'no'  => __( 'No', 'text-domain' ),
+    ),
+    'toggle'  => array(
+        'yes' => array(
+            'fields' => array( 'icon', 'icon_position' ),
+        ),
+    ),
+),
+```
+
+## Field Properties
+
+### Common Properties
+
+These properties work with most field types:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `type` | string | Field type (required) |
+| `label` | string | Field label |
+| `default` | mixed | Default value |
+| `help` | string | Help text below field |
+| `description` | string | Description text |
+| `placeholder` | string | Placeholder text |
+| `preview` | array | Live preview configuration |
+| `connections` | array | Themer connection types |
+| `responsive` | bool | Enable responsive editing |
+
+### Preview Configuration
+
+<CodeGroup>
+```php Refresh Preview
+'preview' => array(
+    'type' => 'refresh',
+),
+```
+
+```php No Preview
+'preview' => array(
+    'type' => 'none',
+),
+```
+
+```php CSS Preview
+'preview' => array(
+    'type'     => 'css',
+    'selector' => '.my-module',
+    'property' => 'background-color',
+),
+```
+
+```php Text Preview
+'preview' => array(
+    'type'     => 'text',
+    'selector' => '.my-heading',
+),
+```
+</CodeGroup>
+
+## Real-World Form Examples
+
+<Tabs>
+  <Tab title="Button Module">
+    ```php
+    FLBuilder::register_module('FLButtonModule', array(
+        'general' => array(
+            'title'    => __( 'General', 'fl-builder' ),
+            'sections' => array(
+                'general' => array(
+                    'title'  => '',
+                    'fields' => array(
+                        'text' => array(
+                            'type'        => 'text',
+                            'label'       => __( 'Text', 'fl-builder' ),
+                            'default'     => __( 'Click Here', 'fl-builder' ),
+                            'connections' => array( 'string' ),
+                        ),
+                        'click_action' => array(
+                            'type'    => 'select',
+                            'label'   => __( 'Click Action', 'fl-builder' ),
+                            'default' => 'link',
+                            'options' => array(
+                                'link'     => __( 'Link', 'fl-builder' ),
+                                'lightbox' => __( 'Lightbox', 'fl-builder' ),
+                            ),
+                            'toggle' => array(
+                                'link' => array(
+                                    'fields' => array( 'link' ),
+                                ),
+                                'lightbox' => array(
+                                    'sections' => array( 'lightbox' ),
+                                ),
+                            ),
+                        ),
+                        'link' => array(
+                            'type'          => 'link',
+                            'label'         => __( 'Link', 'fl-builder' ),
+                            'show_target'   => true,
+                            'show_nofollow' => true,
+                        ),
+                    ),
+                ),
+            ),
+        ),
+        'style' => array(
+            'title'    => __( 'Style', 'fl-builder' ),
+            'sections' => array(
+                'colors' => array(
+                    'title'  => __( 'Colors', 'fl-builder' ),
+                    'fields' => array(
+                        'text_color' => array(
+                            'type'       => 'color',
+                            'label'      => __( 'Text Color', 'fl-builder' ),
+                            'show_reset' => true,
+                            'show_alpha' => true,
+                        ),
+                        'bg_color' => array(
+                            'type'       => 'color',
+                            'label'      => __( 'Background Color', 'fl-builder' ),
+                            'show_reset' => true,
+                            'show_alpha' => true,
+                        ),
+                    ),
+                ),
+            ),
+        ),
+    ));
+    ```
+  </Tab>
+
+  <Tab title="Heading Module">
+    ```php
+    FLBuilder::register_module('FLHeadingModule', array(
+        'general' => array(
+            'title'    => __( 'General', 'fl-builder' ),
+            'sections' => array(
+                'general' => array(
+                    'title'  => '',
+                    'fields' => array(
+                        'heading' => array(
+                            'type'        => 'text',
+                            'label'       => __( 'Heading', 'fl-builder' ),
+                            'connections' => array( 'string' ),
+                        ),
+                        'tag' => array(
+                            'type'    => 'select',
+                            'label'   => __( 'HTML Tag', 'fl-builder' ),
+                            'default' => 'h2',
+                            'options' => array(
+                                'h1' => 'h1',
+                                'h2' => 'h2',
+                                'h3' => 'h3',
+                                'h4' => 'h4',
+                                'h5' => 'h5',
+                                'h6' => 'h6',
+                            ),
+                        ),
+                        'link' => array(
+                            'type'          => 'link',
+                            'label'         => __( 'Link', 'fl-builder' ),
+                            'show_target'   => true,
+                            'show_nofollow' => true,
+                        ),
+                    ),
+                ),
+            ),
+        ),
+        'style' => array(
+            'title'    => __( 'Style', 'fl-builder' ),
+            'sections' => array(
+                'colors' => array(
+                    'title'  => '',
+                    'fields' => array(
+                        'color' => array(
+                            'type'       => 'color',
+                            'label'      => __( 'Color', 'fl-builder' ),
+                            'show_reset' => true,
+                            'show_alpha' => true,
+                            'responsive' => true,
+                        ),
+                        'typography' => array(
+                            'type'       => 'typography',
+                            'label'      => __( 'Typography', 'fl-builder' ),
+                            'responsive' => true,
+                        ),
+                    ),
+                ),
+            ),
+        ),
+    ));
+    ```
+  </Tab>
+</Tabs>
+
+## Responsive Settings
+
+Many field types support responsive editing:
+
+```php
+'width' => array(
+    'type'       => 'unit',
+    'label'      => __( 'Width', 'text-domain' ),
+    'responsive' => true,  // Enable responsive breakpoints
+    'default'    => '100',
+),
+```
+
+Access responsive values in templates:
+
+```php
+// Desktop value
+$settings->width
+
+// Tablet value
+$settings->width_medium
+
+// Mobile value
+$settings->width_responsive
+```
+
+## Themer Connections
+
+Enable dynamic content with Themer:
+
+```php
+'title' => array(
+    'type'        => 'text',
+    'label'       => __( 'Title', 'text-domain' ),
+    'connections' => array( 'string', 'html' ),
+),
+
+'photo' => array(
+    'type'        => 'photo',
+    'label'       => __( 'Photo', 'text-domain' ),
+    'connections' => array( 'photo' ),
+),
+
+'link' => array(
+    'type'        => 'link',
+    'label'       => __( 'Link', 'text-domain' ),
+    'connections' => array( 'url' ),
+),
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Organization" icon="folder">
+    - Group related settings in sections
+    - Use clear, descriptive labels
+    - Order fields logically
+    - Keep tabs focused and concise
+  </Card>
+
+  <Card title="User Experience" icon="user">
+    - Provide sensible defaults
+    - Add helpful descriptions
+    - Use conditional logic to reduce clutter
+    - Enable live preview when possible
+  </Card>
+
+  <Card title="Performance" icon="gauge">
+    - Use 'none' preview for heavy operations
+    - Limit 'refresh' preview types
+    - Keep default values lightweight
+    - Avoid complex calculations in forms
+  </Card>
+
+  <Card title="Accessibility" icon="universal-access">
+    - Use clear, descriptive labels
+    - Provide help text for complex settings
+    - Ensure logical tab order
+    - Test with keyboard navigation
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<Card title="Frontend Rendering" icon="code" href="/developer/modules/frontend-rendering">
+  Learn how to use settings in your frontend templates
+</Card>

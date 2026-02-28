@@ -1,0 +1,555 @@
+---
+title: Rows and Columns
+description: Understanding Beaver Builder's flexible grid layout system
+---
+
+Beaver Builder uses a hierarchical grid system of rows and columns to create flexible, responsive layouts. This system provides the structure for arranging modules on your pages.
+
+## Layout Hierarchy
+
+The layout structure follows a nested hierarchy:
+
+```
+Layout (Post)
+└── Row
+    └── Column Group
+        └── Column
+            └── Module
+                └── Child Module (optional)
+```
+
+<Note>
+Each level in the hierarchy can contain multiple instances of the next level. For example, a row can contain multiple column groups, and each column group can contain multiple columns.
+</Note>
+
+## Rows
+
+**Location:** `includes/row-settings.php`
+
+Rows are the top-level containers in a Beaver Builder layout. They define horizontal sections of your page and control:
+
+### Row Settings
+
+<Tabs>
+  <Tab title="General">
+    - **Width** - Fixed (max-width) or Full Width
+    - **Content Width** - Fixed or Full Width (for full-width rows)
+    - **Height** - Default, Full Height, or Minimum Height
+    - **Vertical Alignment** - Top, Center, or Bottom
+  </Tab>
+  
+  <Tab title="Background">
+    - **Background Type** - Color, Gradient, Photo, Video, Slideshow, Parallax
+    - **Background Overlay** - Color or gradient overlay
+    - **Embed Code** - Custom HTML/JavaScript backgrounds
+  </Tab>
+  
+  <Tab title="Spacing">
+    - **Margins** - Responsive top/right/bottom/left margins
+    - **Padding** - Responsive top/right/bottom/left padding
+  </Tab>
+  
+  <Tab title="Advanced">
+    - **Visibility** - Show/hide on breakpoints
+    - **Animation** - Entrance animations
+    - **Container Element** - Semantic HTML5 elements
+    - **Custom ID/Class** - CSS targeting
+  </Tab>
+</Tabs>
+
+### Row Width Settings
+
+<CodeGroup>
+```php Row Width Configuration
+array(
+    'width' => array(
+        'type'    => 'select',
+        'label'   => __('Width', 'fl-builder'),
+        'default' => $global_settings->row_width_default,
+        'options' => array(
+            'fixed' => __('Fixed', 'fl-builder'),
+            'full'  => __('Full Width', 'fl-builder'),
+        ),
+    ),
+    'content_width' => array(
+        'type'    => 'select',
+        'label'   => __('Content Width', 'fl-builder'),
+        'default' => $global_settings->row_content_width_default,
+        'options' => array(
+            'fixed' => __('Fixed', 'fl-builder'),
+            'full'  => __('Full Width', 'fl-builder'),
+        ),
+    ),
+)
+```
+</CodeGroup>
+
+<Info>
+**Fixed Width** rows respect the global max-width setting, while **Full Width** rows span the entire browser window.
+</Info>
+
+### Row Height Options
+
+```php includes/row-settings.php:102
+array(
+    'full_height' => array(
+        'type'    => 'select',
+        'label'   => __('Height', 'fl-builder'),
+        'default' => 'default',
+        'options' => array(
+            'default' => __('Default', 'fl-builder'),
+            'full'    => __('Full Height', 'fl-builder'),
+            'custom'  => __('Minimum Height', 'fl-builder'),
+        ),
+    ),
+)
+```
+
+## Column Groups
+
+Column groups are containers within rows that hold columns. They manage the column structure and handle responsive stacking.
+
+### Purpose
+
+- Group columns together for layout organization
+- Control responsive behavior (stacking)
+- Enable nested column structures
+
+## Columns
+
+**Location:** `includes/column-settings.php`
+
+Columns are the containers that hold modules. They provide the grid structure for content placement.
+
+### Column Settings
+
+<Tabs>
+  <Tab title="General">
+    - **Width** - Percentage-based responsive width
+    - **Minimum Height** - Set minimum column height
+    - **Equalize Heights** - Make all columns same height
+    - **Vertical Alignment** - Align content within column
+  </Tab>
+  
+  <Tab title="Style">
+    - **Text Color** - Default text color
+    - **Link Colors** - Link and hover colors
+    - **Background** - Color, gradient, photo, or multiple backgrounds
+    - **Border** - Responsive border controls
+  </Tab>
+  
+  <Tab title="Spacing">
+    - **Margins** - Responsive spacing outside column
+    - **Padding** - Responsive spacing inside column
+  </Tab>
+  
+  <Tab title="Advanced">
+    - **Visibility** - Breakpoint visibility
+    - **Responsive Order** - Reverse column order on mobile
+    - **Animation** - Entrance animations
+  </Tab>
+</Tabs>
+
+### Column Width Control
+
+```php column-settings.php:12
+array(
+    'size' => array(
+        'type'       => 'unit',
+        'label'      => __('Width', 'fl-builder'),
+        'default'    => '',
+        'responsive' => true,
+        'slider'     => true,
+        'units'      => array('%'),
+        'preview'    => array(
+            'type' => 'refresh',
+        ),
+    ),
+)
+```
+
+## Row Layouts
+
+**Location:** `classes/class-fl-builder-model.php:18`
+
+Beaver Builder provides 9 predefined row layouts:
+
+<CodeGroup>
+```php FLBuilderModel::$row_layouts
+static public $row_layouts = array(
+    '1-col'              => array(100),
+    '2-cols'             => array(50, 50),
+    '3-cols'             => array(33.33, 33.33, 33.33),
+    '4-cols'             => array(25, 25, 25, 25),
+    '5-cols'             => array(20, 20, 20, 20, 20),
+    '6-cols'             => array(16.65, 16.65, 16.65, 16.65, 16.65, 16.65),
+    'left-sidebar'       => array(33.33, 66.66),
+    'right-sidebar'      => array(66.66, 33.33),
+    'left-right-sidebar' => array(25, 50, 25),
+);
+```
+</CodeGroup>
+
+### Visual Layout Guide
+
+<Tabs>
+  <Tab title="Equal Columns">
+    **1 Column**
+    ```
+    [        100%        ]
+    ```
+    
+    **2 Columns**
+    ```
+    [   50%   ][   50%   ]
+    ```
+    
+    **3 Columns**
+    ```
+    [ 33% ][ 33% ][ 33% ]
+    ```
+    
+    **4 Columns**
+    ```
+    [25%][25%][25%][25%]
+    ```
+  </Tab>
+  
+  <Tab title="Sidebar Layouts">
+    **Left Sidebar**
+    ```
+    [  33%  ][     66%     ]
+    ```
+    
+    **Right Sidebar**
+    ```
+    [     66%     ][  33%  ]
+    ```
+    
+    **Left & Right Sidebars**
+    ```
+    [25%][    50%    ][25%]
+    ```
+  </Tab>
+  
+  <Tab title="Custom">
+    You can create custom layouts by adjusting column widths:
+    
+    ```
+    [  40%  ][     60%     ]
+    [25%][ 25% ][ 25% ][25%]
+    [ 20% ][    80%     ]
+    ```
+  </Tab>
+</Tabs>
+
+## Nesting
+
+Rows, columns, and modules can be nested to create complex layouts:
+
+### Nested Rows Example
+
+```html
+<div class="fl-row">
+    <div class="fl-row-content">
+        <div class="fl-col-group">
+            <div class="fl-col">
+                <!-- Module content -->
+                
+                <!-- Nested Row -->
+                <div class="fl-row fl-row-nested">
+                    <div class="fl-row-content">
+                        <div class="fl-col-group">
+                            <div class="fl-col">...</div>
+                            <div class="fl-col">...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+```
+
+### Container Modules
+
+Some modules can contain child modules:
+
+- Accordion items
+- Tab content
+- Slideshow slides
+- Custom container modules
+
+<CodeGroup>
+```php Container Module Example
+class MyContainerModule extends FLBuilderModule {
+    
+    public $accepts = 'all'; // Accept all modules as children
+    // OR
+    public $accepts = array('heading', 'photo'); // Accept specific modules
+    
+    // Render child modules
+    public function render_children() {
+        $children = FLBuilderModel::get_nodes(null, $this);
+        foreach ($children as $child) {
+            FLBuilder::render_module($child);
+        }
+    }
+}
+```
+</CodeGroup>
+
+## Responsive Behavior
+
+Rows and columns adapt to different screen sizes automatically.
+
+### Default Responsive Breakpoints
+
+<Tabs>
+  <Tab title="Desktop">
+    **> 992px**
+    
+    - Columns display at specified widths
+    - All spacing and sizing applied
+    - Desktop-specific settings active
+  </Tab>
+  
+  <Tab title="Large">
+    **768px - 992px**
+    
+    - Large device settings applied
+    - Columns may stack based on width
+    - Large-specific responsive values
+  </Tab>
+  
+  <Tab title="Medium">
+    **601px - 768px**
+    
+    - Medium device settings applied
+    - Columns typically stack
+    - Reduced spacing
+  </Tab>
+  
+  <Tab title="Mobile">
+    **< 601px**
+    
+    - Mobile settings applied
+    - Columns always stack
+    - Minimal spacing for small screens
+  </Tab>
+</Tabs>
+
+### Responsive Settings
+
+Most spacing and sizing settings support responsive values:
+
+```php Responsive Field Example
+array(
+    'padding' => array(
+        'type'       => 'dimension',
+        'label'      => __('Padding', 'fl-builder'),
+        'responsive' => array(
+            'default'      => array(
+                'default'    => '',
+                'large'      => '',
+                'medium'     => '',
+                'responsive' => '',
+            ),
+            'placeholder' => array(
+                'default'    => array('top' => '0', 'right' => '0', 'bottom' => '0', 'left' => '0'),
+                'large'      => array('top' => '0', 'right' => '0', 'bottom' => '0', 'left' => '0'),
+                'medium'     => array('top' => '0', 'right' => '0', 'bottom' => '0', 'left' => '0'),
+                'responsive' => array('top' => '0', 'right' => '0', 'bottom' => '0', 'left' => '0'),
+            ),
+        ),
+    ),
+)
+```
+
+### Column Stacking
+
+Columns automatically stack on smaller screens:
+
+<Steps>
+  <Step title="Desktop">
+    ```
+    [ Col 1 ][ Col 2 ][ Col 3 ]
+    ```
+  </Step>
+  
+  <Step title="Medium">
+    ```
+    [ Col 1 ][ Col 2 ]
+    [      Col 3      ]
+    ```
+  </Step>
+  
+  <Step title="Mobile">
+    ```
+    [      Col 1      ]
+    [      Col 2      ]
+    [      Col 3      ]
+    ```
+  </Step>
+</Steps>
+
+### Reverse Column Order
+
+Change the order columns appear on mobile:
+
+```php column-settings.php:527
+array(
+    'responsive_order' => array(
+        'type'    => 'select',
+        'label'   => __('Reverse Column Order', 'fl-builder'),
+        'default' => '',
+        'options' => array(
+            ''              => __('Disabled', 'fl-builder'),
+            'mobile'        => __('Small', 'fl-builder'),
+            'medium'        => __('Medium', 'fl-builder'),
+            'mobile,medium' => __('Small and Medium', 'fl-builder'),
+        ),
+    ),
+)
+```
+
+## Working with Rows and Columns
+
+### Programmatically Add a Row
+
+<CodeGroup>
+```php Add Row with Columns
+// Add a new row
+$row = FLBuilderModel::add_row();
+
+// Get the columns that were automatically created
+$cols = FLBuilderModel::get_nodes('column', $row);
+
+// Get the first column
+$col = array_shift($cols);
+
+// Add a module to the column
+FLBuilderModel::add_module('heading', $settings, $col->node);
+```
+</CodeGroup>
+
+### Get Row Settings
+
+```php
+$row = FLBuilderModel::get_node($row_id);
+$settings = $row->settings;
+
+// Access specific settings
+$width = $settings->width; // 'fixed' or 'full'
+$bg_color = $settings->bg_color;
+```
+
+### Modify Column Width
+
+```php
+$col = FLBuilderModel::get_node($col_id);
+$col->settings->size = 50; // 50% width
+FLBuilderModel::update_node($col_id, $col);
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use Appropriate Layouts">
+    Choose layouts that match your content:
+    - **1 Column** for full-width content
+    - **2 Columns** for side-by-side content
+    - **3-4 Columns** for features or cards
+    - **Sidebar layouts** for content + sidebar
+  </Accordion>
+  
+  <Accordion title="Plan for Mobile">
+    - Test how columns stack on mobile
+    - Use reverse order when needed
+    - Adjust spacing for smaller screens
+    - Hide non-essential content on mobile
+  </Accordion>
+  
+  <Accordion title="Optimize Performance">
+    - Minimize nesting depth
+    - Use appropriate column counts
+    - Avoid excessive empty columns
+    - Leverage global settings for consistency
+  </Accordion>
+  
+  <Accordion title="Semantic HTML">
+    Use appropriate container elements:
+    ```php
+    'container_element' => array(
+        'type'    => 'select',
+        'options' => array(
+            'div'     => '<div>',
+            'section' => '<section>',
+            'article' => '<article>',
+            'aside'   => '<aside>',
+            'header'  => '<header>',
+            'footer'  => '<footer>',
+        ),
+    )
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Advanced Features
+
+### Equal Height Columns
+
+Force all columns in a group to match the tallest column:
+
+```php column-settings.php:47
+array(
+    'equal_height' => array(
+        'type'    => 'select',
+        'label'   => __('Equalize Heights', 'fl-builder'),
+        'default' => 'no',
+        'options' => array(
+            'no'  => __('No', 'fl-builder'),
+            'yes' => __('Yes', 'fl-builder'),
+        ),
+    ),
+)
+```
+
+### Full Height Rows
+
+Make rows fill the browser viewport:
+
+```css
+.fl-row-full-height {
+    display: flex;
+    align-items: center;
+    min-height: 100vh;
+}
+```
+
+### Custom Column Widths
+
+Create unique layouts by adjusting column widths:
+
+```
+[ 20% ][       80%        ]  # Narrow sidebar
+[  40%   ][      60%     ]  # 40/60 split
+[15%][    70%    ][15%]      # Content emphasis
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Responsive Design" icon="mobile" href="/concepts/responsive-design">
+    Learn about responsive breakpoints and settings
+  </Card>
+  <Card title="Global Settings" icon="globe" href="/settings/global-settings">
+    Configure default row and column settings
+  </Card>
+  <Card title="Custom Modules" icon="code" href="/developer/custom-modules">
+    Create modules that work with the grid
+  </Card>
+  <Card title="Templates" icon="file-code" href="/concepts/templates">
+    Use pre-built row templates
+  </Card>
+</CardGroup>

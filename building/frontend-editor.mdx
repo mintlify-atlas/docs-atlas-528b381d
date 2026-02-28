@@ -1,0 +1,230 @@
+---
+title: 'Frontend Editor'
+description: 'Learn how to use the Beaver Builder frontend editor to design pages visually'
+icon: 'pencil'
+---
+
+Beaver Builder's frontend editor allows you to design and build pages visually while seeing your changes in real-time.
+
+## Launching the Builder
+
+There are several ways to launch the Beaver Builder editor:
+
+### From WordPress Admin
+
+1. **Edit a Page/Post**: Click the "Beaver Builder" tab when editing
+2. **Admin Bar**: Click "Beaver Builder" in the WordPress admin bar
+3. **Page List**: Click "Beaver Builder" in the row actions
+
+### Editor Access
+
+<Note>
+Only users with appropriate permissions can access the builder. Administrators have full access by default.
+</Note>
+
+## Editor Interface Overview
+
+The frontend editor consists of several key components:
+
+### Top Bar
+
+The top bar provides essential controls:
+
+- **Done Button**: Save and exit the builder
+- **Preview Button**: Preview your changes
+- **Responsive Controls**: Switch between device sizes
+- **Tools Menu**: Access additional options
+
+```php
+// The top bar includes these actions
+'discard'  => __( 'Discard', 'fl-builder' )
+'draft'    => __( 'Save Draft', 'fl-builder' )
+'review'   => __( 'Submit for Review', 'fl-builder' )
+'publish'  => __( 'Publish', 'fl-builder' )
+```
+
+### Content Panel
+
+The content panel gives you access to:
+
+- **Modules**: Pre-built content modules
+- **Rows**: Layout structures
+- **Templates**: Saved layouts
+- **Saved**: Your saved modules and rows
+
+### Publishing Actions
+
+When you're ready to save your work:
+
+<Steps>
+  <Step title="Click Done">
+    Click the Done button in the top bar to open publishing options
+  </Step>
+  
+  <Step title="Choose Action">
+    Select from these options:
+    - **Discard**: Discard changes and exit
+    - **Save Draft**: Keep changes drafted and exit
+    - **Publish**: Publish changes and exit
+  </Step>
+  
+  <Step title="Confirm">
+    Your changes will be saved and you'll exit the builder
+  </Step>
+</Steps>
+
+## Drag and Drop Workflow
+
+Beaver Builder uses an intuitive drag-and-drop interface:
+
+### Adding Content
+
+1. **Open Content Panel**: Click the "+" icon or content panel
+2. **Select Item**: Choose a module, row, or template
+3. **Drag to Page**: Drag the item to your desired location
+4. **Drop**: Release to place the item
+
+<Tip>
+Look for blue drop zones that appear as you drag. These indicate valid placement areas.
+</Tip>
+
+### Moving Content
+
+- **Hover**: Hover over any module or row
+- **Drag Handle**: Click and hold the drag handle (⋮⋮)
+- **Move**: Drag to new location
+- **Drop**: Release to place
+
+### Duplicating Content
+
+- Hover over an element
+- Click the duplicate icon
+- The element and all its settings are copied
+
+### Deleting Content
+
+- Hover over an element
+- Click the delete icon (×)
+- Confirm deletion if prompted
+
+## Preview Modes
+
+Beaver Builder offers multiple preview modes to ensure your designs look great on all devices:
+
+### Responsive Preview
+
+Switch between device sizes to preview responsive designs:
+
+```php
+// Device preview modes from ui-bar.php
+'responsive' => 'Smartphone'  // Mobile devices
+'medium'     => 'Tablet'       // Tablet devices  
+'large'      => 'Laptop'       // Large devices
+'default'    => 'Desktop'      // Desktop devices
+```
+
+### Accessing Preview Mode
+
+<Steps>
+  <Step title="Click Preview Icon">
+    Click the eye icon in the top bar
+  </Step>
+  
+  <Step title="Select Device">
+    Choose a device size from the preview controls
+  </Step>
+  
+  <Step title="Review Design">
+    Check how your page looks at different sizes
+  </Step>
+  
+  <Step title="Continue Editing">
+    Click "Continue Editing" to return to the builder
+  </Step>
+</Steps>
+
+### Device Breakpoints
+
+Default breakpoint settings:
+
+- **Desktop**: Default (no max-width)
+- **Large**: 1200px and below
+- **Medium**: 992px and below (tablets)
+- **Small**: 768px and below (phones)
+
+<Note>
+Breakpoints can be customized in Global Settings to match your design needs.
+</Note>
+
+## Editing Workflow
+
+### Quick Edit
+
+For fast edits:
+
+1. **Click Element**: Click any text or image
+2. **Inline Edit**: Edit directly in place
+3. **Save**: Changes save automatically
+
+### Settings Panel
+
+For detailed configuration:
+
+1. **Click Settings**: Click the wrench icon on any element
+2. **Configure**: Adjust settings in the panel
+3. **Live Preview**: See changes in real-time
+4. **Save**: Click save to apply changes
+
+### Keyboard Shortcuts
+
+Speed up your workflow with keyboard shortcuts:
+
+- **Ctrl/Cmd + S**: Save draft
+- **Ctrl/Cmd + P**: Publish
+- **Ctrl/Cmd + Z**: Undo
+- **Ctrl/Cmd + Shift + Z**: Redo
+- **Escape**: Close panels
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Save Frequently">
+    Save your work often to avoid losing changes. Use the Save Draft option while working.
+  </Accordion>
+  
+  <Accordion title="Test Responsive Designs">
+    Always preview your designs on different device sizes before publishing.
+  </Accordion>
+  
+  <Accordion title="Use Templates">
+    Save commonly used layouts as templates for quick reuse.
+  </Accordion>
+  
+  <Accordion title="Organize Content">
+    Use rows and columns to create organized, maintainable layouts.
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+### Builder Won't Load
+
+- Clear your browser cache
+- Disable conflicting plugins
+- Check for JavaScript errors in browser console
+
+### Changes Not Saving
+
+- Check server permissions
+- Verify PHP memory limits
+- Review WordPress debug logs
+
+### Preview Not Working
+
+- Clear cache plugins
+- Check responsive settings in Global Settings
+- Verify breakpoint configuration
+
+<Card title="Next Steps" icon="arrow-right" href="/building/modules-guide">
+  Learn how to work with modules to add content to your pages
+</Card>

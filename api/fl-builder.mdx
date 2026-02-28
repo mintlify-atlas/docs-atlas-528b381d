@@ -1,0 +1,265 @@
+---
+title: FLBuilder class
+description: Main builder class for Beaver Builder plugin with UI and rendering methods
+---
+
+The `FLBuilder` class is the main entry point for the Beaver Builder plugin. It handles initialization, UI rendering, asset management, and WordPress integration.
+
+## Overview
+
+The `FLBuilder` class is defined in `classes/class-fl-builder.php` and serves as the core controller for:
+
+- Builder UI initialization
+- Content rendering
+- Asset enqueuing (CSS/JS)
+- WordPress hooks integration
+- Module loading and management
+
+## Class Properties
+
+### Public Properties
+
+<ParamField path="$post_rendering" type="int">
+  The ID of a post currently being rendered. Used to track rendering context.
+</ParamField>
+
+<ParamField path="$fa4_url" type="string">
+  Font Awesome 4 CDN URL (empty by default, can be set via filters)
+</ParamField>
+
+<ParamField path="$fa5_pro_url" type="string">
+  Font Awesome 5 Pro CDN URL: `https://pro.fontawesome.com/releases/v5.15.4/css/all.css`
+</ParamField>
+
+### Private Properties
+
+- `$template_dir` - Default directory for theme templates: `fl-builder/includes`
+- `$rendered_assets` - Tracks already-rendered asset paths
+- `$enqueued_global_assets` - Tracks enqueued global CSS/JS
+- `$inline_js` - Stores inline JavaScript to render in footer
+
+## Key Methods
+
+### init()
+
+Initializes all WordPress hooks and filters.
+
+```php
+FLBuilder::init();
+```
+
+This method registers:
+- Action hooks for UI, asset enqueuing, content rendering
+- Filter hooks for CSS/JS, body classes, editor integration
+- Module loading filters
+
+**Source:** `class-fl-builder.php:79`
+
+### render_content()
+
+Filters `the_content` to render Beaver Builder layouts.
+
+```php
+add_filter( 'the_content', 'FLBuilder::render_content' );
+```
+
+**Parameters:**
+- `$content` (string) - The post content
+
+**Returns:** (string) Rendered Beaver Builder layout or original content
+
+### is_builder_active()
+
+Checks if the builder is currently active for the current post.
+
+```php
+if ( FLBuilder::is_builder_active() ) {
+    // Builder is active
+}
+```
+
+**Returns:** (bool) Whether the builder is active
+
+### enqueue_ui_styles_scripts()
+
+Enqueues styles and scripts for the builder UI.
+
+```php
+do_action( 'fl_builder_ui_enqueue_scripts' );
+```
+
+**Action:** `fl_builder_ui_enqueue_scripts` - Fired when UI assets are enqueued
+
+**Source:** `class-fl-builder.php:85`
+
+### enqueue_all_layouts_styles_scripts()
+
+Enqueues assets for all Beaver Builder layouts on the current page.
+
+```php
+add_action( 'wp_enqueue_scripts', 'FLBuilder::enqueue_all_layouts_styles_scripts' );
+```
+
+**Source:** `class-fl-builder.php:87`
+
+### render_query()
+
+Renders a query loop for modules that display posts.
+
+```php
+FLBuilder::render_query( $settings );
+```
+
+**Parameters:**
+- `$settings` (object) - Module settings containing loop configuration
+
+### get_asset_url()
+
+Returns the URL for a builder asset (CSS or JS file).
+
+```php
+$url = FLBuilder::get_asset_url( 'css/my-style.css' );
+```
+
+**Parameters:**
+- `$path` (string) - Relative path to the asset
+
+**Returns:** (string) Full URL to the asset
+
+## Action Hooks
+
+The `FLBuilder` class registers these action hooks:
+
+<Accordion title="Core initialization hooks">
+
+- `plugins_loaded` - Loads plugin text domain
+- `wp` - Initializes UI at priority 11
+- `send_headers` - Adds no-cache headers when builder is active
+
+</Accordion>
+
+<Accordion title="Asset enqueuing hooks">
+
+- `fl_builder_ui_enqueue_scripts` - Enqueue UI assets (priority 11)
+- `wp_enqueue_scripts` - Enqueue layout assets (priority 11)
+- `wp_head` - Render custom CSS for editing (priority 999)
+
+</Accordion>
+
+<Accordion title="Rendering hooks">
+
+- `wp_footer` - Render UI markup
+- `admin_bar_menu` - Add builder menu to admin bar (priority 999)
+
+</Accordion>
+
+## Filter Hooks
+
+The `FLBuilder` class registers these filter hooks:
+
+<Accordion title="Content and CSS filters">
+
+- `fl_builder_render_css` - Modify rendered CSS (priority 9999)
+- `the_content` - Render builder layouts in post content
+- `body_class` - Add builder-specific body classes
+
+</Accordion>
+
+<Accordion title="Editor integration filters">
+
+- `wp_default_editor` - Set default editor (TinyMCE vs Text)
+- `mce_css` - Add custom CSS to TinyMCE editor
+- `mce_buttons` - Customize TinyMCE toolbar buttons
+- `mce_buttons_2` - Customize second TinyMCE toolbar
+- `mce_external_plugins` - Add external TinyMCE plugins
+- `tiny_mce_before_init` - Modify TinyMCE font sizes
+
+</Accordion>
+
+<Accordion title="Module loading filters">
+
+- `fl_builder_load_modules_paths` - Filter module paths (priority 9999)
+
+</Accordion>
+
+## Usage Examples
+
+### Check if Builder is Active
+
+```php
+if ( FLBuilder::is_builder_active() ) {
+    echo 'Builder is currently active!';
+}
+```
+
+### Get Rendering Post ID
+
+```php
+$post_id = FLBuilder::$post_rendering;
+if ( $post_id ) {
+    echo 'Currently rendering post: ' . $post_id;
+}
+```
+
+### Hook into Asset Enqueuing
+
+```php
+add_action( 'fl_builder_ui_enqueue_scripts', function() {
+    wp_enqueue_script(
+        'my-custom-script',
+        plugins_url( 'js/custom.js', __FILE__ ),
+        array( 'jquery' ),
+        '1.0',
+        true
+    );
+});
+```
+
+### Modify Rendered CSS
+
+```php
+add_filter( 'fl_builder_render_css', function( $css, $nodes, $global_settings, $include_global ) {
+    // Add custom CSS to all builder layouts
+    $css .= '.my-custom-class { color: red; }';
+    return $css;
+}, 10, 4 );
+```
+
+## Related Classes
+
+<CardGroup cols={2}>
+  <Card title="FLBuilderModel" icon="database" href="/api/fl-builder-model">
+    Data model for managing layouts and nodes
+  </Card>
+  <Card title="FLBuilderModule" icon="cube" href="/api/fl-builder-module">
+    Base class for creating custom modules
+  </Card>
+  <Card title="FLBuilderAJAX" icon="bolt" href="/api/fl-builder-ajax">
+    AJAX request handling for builder operations
+  </Card>
+  <Card title="Hooks Reference" icon="link" href="/api/hooks/actions">
+    Complete list of action and filter hooks
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+<Tip>
+Always check if the builder is active before running builder-specific code:
+
+```php
+if ( class_exists( 'FLBuilder' ) && FLBuilder::is_builder_active() ) {
+    // Your builder code here
+}
+```
+</Tip>
+
+<Warning>
+Do not directly modify private properties. Use provided methods and filters instead.
+</Warning>
+
+## Source Code Reference
+
+- **File:** `classes/class-fl-builder.php`
+- **Since:** Version 1.0
+- **Version:** 2.10.1.1

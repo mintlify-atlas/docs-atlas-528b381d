@@ -1,0 +1,459 @@
+---
+title: Theme Builder
+description: Create custom theme layouts with dynamic field connections
+---
+
+## Overview
+
+The Theme Builder extension (`fl-theme-builder-core`) provides the foundation for creating custom theme layouts including headers, footers, singular post templates, and archive pages. It includes powerful field connection capabilities that allow you to display dynamic content from posts, archives, and site data.
+
+<Info>
+  The Theme Builder core is included in Beaver Builder Pro and above. It provides essential functionality even when the full Theme Builder add-on is not installed.
+</Info>
+
+## Core Classes
+
+The Theme Builder extension consists of several key classes:
+
+### FLThemeBuilderFieldConnections
+
+Handles the base logic for connecting fields in the builder UI to dynamic data such as post titles, custom fields, and more.
+
+**Location**: `fl-theme-builder-core/classes/class-fl-theme-builder-field-connections.php:9`
+
+```php
+final class FLThemeBuilderFieldConnections {
+    static private $menu_data = array();
+    static private $connected_settings = array();
+    static private $page_data_object_keys = array();
+    static public $in_post_grid_loop = null;
+}
+```
+
+### FLPageData
+
+Manages all data related to the current page including posts, archives, and site information.
+
+**Location**: `fl-theme-builder-core/classes/class-fl-page-data.php:9`
+
+```php
+final class FLPageData {
+    static private $groups;          // Property groups
+    static private $properties;      // Registered properties
+    static private $values;          // Cached values
+    static private $settings = null; // Current property settings
+}
+```
+
+### FLThemeBuilderLayoutData
+
+Handles logic for theme layout data and determines which layouts apply to the current page.
+
+**Location**: `fl-theme-builder-core/classes/class-fl-theme-builder-layout-data.php:8`
+
+### FLThemeBuilderRulesLocation
+
+Handles location rule logic for determining where theme layouts should be displayed.
+
+**Location**: `fl-theme-builder-core/classes/class-fl-theme-builder-rules-location.php:8`
+
+## Field Connections
+
+Field connections allow you to connect module settings to dynamic data sources.
+
+### Supported Connection Types
+
+<Tabs>
+  <Tab title="Basic Types">
+    - `string` - Text content
+    - `photo` - Images and media
+    - `url` - Links and URLs
+    - `html` - Rich HTML content
+    - `color` - Color values
+  </Tab>
+  
+  <Tab title="Compound Types">
+    - `border` - Border settings
+    - `gradient` - Gradient definitions  
+    - `typography` - Typography settings
+    - `background` - Background properties
+  </Tab>
+</Tabs>
+
+### Supported Compound Fields
+
+Compound fields that support field connections (from `fl-theme-builder-core/classes/class-fl-theme-builder-field-connections.php:54`):
+
+```php
+static private $supported_compound_fields = array(
+    'border',
+    'gradient',
+    'typography',
+    'background',
+);
+```
+
+### Initializing Field Connections
+
+Field connections are initialized with hooks (from `fl-theme-builder-core/classes/class-fl-theme-builder-field-connections.php:67`):
+
+```php
+static public function init() {
+    // Actions
+    add_action( 'wp', __CLASS__ . '::connect_all_layout_settings' );
+    add_action( 'fl_builder_before_control', __CLASS__ . '::render_connection', 10, 4 );
+    
+    // Filters
+    add_filter( 'fl_builder_node_settings', __CLASS__ . '::connect_node_settings', 10, 2 );
+    add_filter( 'fl_builder_before_render_shortcodes', __CLASS__ . '::parse_shortcodes' );
+    
+    // Shortcodes
+    add_shortcode( 'wpbb', __CLASS__ . '::parse_shortcode' );
+    add_shortcode( 'wpbb-if', __CLASS__ . '::parse_conditional_shortcode' );
+}
+```
+
+## Creating Theme Templates
+
+### Layout Types
+
+Theme Builder supports several layout types:
+
+<CardGroup cols={2}>
+  <Card title="Singular" icon="file">
+    Templates for individual posts, pages, and custom post types
+  </Card>
+  
+  <Card title="Archive" icon="folder">
+    Templates for category, tag, and custom taxonomy archives
+  </Card>
+  
+  <Card title="Header" icon="arrow-up">
+    Custom header layouts (requires theme support)
+  </Card>
+  
+  <Card title="Footer" icon="arrow-down">
+    Custom footer layouts (requires theme support)
+  </Card>
+  
+  <Card title="Part" icon="puzzle-piece">
+    Reusable theme parts that can be hooked anywhere
+  </Card>
+  
+  <Card title="404" icon="exclamation-triangle">
+    Custom 404 error page templates
+  </Card>
+</CardGroup>
+
+### Checking Layout Support
+
+From `fl-theme-builder-core/classes/class-fl-theme-builder-layout-data.php:51`:
+
+```php
+static public function is_layout_supported( $post_id ) {
+    $type = get_post_meta( $post_id, '_fl_theme_layout_type', true );
+    
+    if ( ! $type ) {
+        return false;
+    } elseif ( 'header' == $type ) {
+        return get_theme_support( 'fl-theme-builder-headers' );
+    } elseif ( 'footer' == $type ) {
+        return get_theme_support( 'fl-theme-builder-footers' );
+    } elseif ( 'part' == $type ) {
+        return get_theme_support( 'fl-theme-builder-parts' );
+    }
+    
+    return true;
+}
+```
+
+## Working with Page Data
+
+### Property Groups
+
+Page data is organized into groups (from `fl-theme-builder-core/classes/class-fl-page-data.php:77`):
+
+```php
+self::$groups = array(
+    'general'  => array( 'label' => __( 'General', 'fl-builder' ) ),
+    'archives' => array( 'label' => __( 'Archives', 'fl-builder' ) ),
+    'posts'    => array( 'label' => __( 'Posts', 'fl-builder' ) ),
+    'comments' => array( 'label' => __( 'Comments', 'fl-builder' ) ),
+    'author'   => array( 'label' => __( 'Author', 'fl-builder' ) ),
+    'site'     => array( 'label' => __( 'Site', 'fl-builder' ) ),
+    'user'     => array( 'label' => __( 'User', 'fl-builder' ) ),
+    'advanced' => array( 'label' => __( 'Advanced', 'fl-builder' ) ),
+    'term'     => array( 'label' => __( 'Term', 'fl-builder' ) ),
+);
+```
+
+### Adding Custom Properties
+
+<CodeGroup>
+
+```php Post Property
+FLPageData::add_post_property( 'custom_field', array(
+    'label'  => __( 'Custom Field', 'textdomain' ),
+    'group'  => 'posts',
+    'type'   => 'string',
+    'getter' => function() {
+        return get_post_meta( get_the_ID(), 'custom_field_key', true );
+    },
+));
+```
+
+```php Site Property
+FLPageData::add_site_property( 'site_tagline', array(
+    'label'  => __( 'Site Tagline', 'textdomain' ),
+    'group'  => 'site',
+    'type'   => 'string',
+    'getter' => function() {
+        return get_bloginfo( 'description' );
+    },
+));
+```
+
+```php Archive Property
+FLPageData::add_archive_property( 'archive_title', array(
+    'label'  => __( 'Archive Title', 'textdomain' ),
+    'group'  => 'archives',
+    'type'   => 'string',
+    'getter' => function() {
+        return get_the_archive_title();
+    },
+));
+```
+
+</CodeGroup>
+
+### Property Settings Forms
+
+Add settings forms to properties for additional customization:
+
+```php
+FLPageData::add_post_property_settings_fields( 'custom_field', array(
+    'key' => array(
+        'type'  => 'text',
+        'label' => __( 'Field Key', 'textdomain' ),
+    ),
+    'default' => array(
+        'type'  => 'text',
+        'label' => __( 'Default Value', 'textdomain' ),
+    ),
+));
+```
+
+## Using Shortcodes
+
+### Basic Shortcode
+
+The `[wpbb]` shortcode connects to field data:
+
+```php
+// Display post title
+[wpbb post:title]
+
+// Display custom field
+[wpbb post:custom_field key='my_field']
+
+// Display with default
+[wpbb post:custom_field key='my_field' default='No value']
+
+// Display site info
+[wpbb site:title]
+```
+
+### Conditional Shortcode
+
+The `[wpbb-if]` shortcode for conditional display:
+
+```php
+// Show content if field exists
+[wpbb-if post:featured_image]
+    <img src="[wpbb post:featured_image]" />
+[/wpbb-if]
+
+// Show content if field doesn't exist
+[wpbb-if !post:custom_field]
+    Default content here
+[/wpbb-if]
+
+// With else clause
+[wpbb-if post:excerpt]
+    [wpbb post:excerpt]
+[wpbb-else]
+    No excerpt available.
+[/wpbb-if]
+```
+
+## CSS Variables
+
+Field connections can output as CSS variables (from `fl-theme-builder-core/classes/class-fl-theme-builder-field-connections.php:784`):
+
+```php
+// Connect field to CSS var
+static public function connect_css_var( $data ) {
+    $property = FLPageData::get_property( $data->object, $data->property );
+    
+    // Build CSS var key
+    $key = self::get_css_var_key( $data ); // e.g., --fl-post-title
+    $value = self::get_css_var_value( $data, $property );
+    
+    // Register the var
+    FLBuilderCSSVars::register( $key, $value );
+}
+```
+
+CSS variable format (from `fl-theme-builder-core/classes/class-fl-theme-builder-field-connections.php:814`):
+
+```php
+static public function get_css_var_key( $data ) {
+    $object   = $data->object;   // 'post', 'archive', 'site'
+    $property = $data->property; // 'title', 'excerpt', etc.
+    $suffix   = '';              // Additional identifier
+    
+    return str_replace( '_', '-', sanitize_key( "--fl-$object-$property$suffix" ) );
+}
+```
+
+## Performance & Caching
+
+### Connection Caching
+
+Connected settings are cached to prevent redundant processing (from `fl-theme-builder-core/classes/class-fl-theme-builder-field-connections.php:526`):
+
+```php
+// Return cached connections?
+if ( isset( self::$connected_settings[ $cache_key ] ) ) {
+    return self::$connected_settings[ $cache_key ];
+}
+
+// Connect the settings
+$settings = self::connect_settings( $settings );
+
+// Cache the connected settings
+self::$connected_settings[ $cache_key ] = $settings;
+```
+
+### Query Optimization
+
+Layout settings are connected before rendering (from `fl-theme-builder-core/classes/class-fl-theme-builder-field-connections.php:410`):
+
+```php
+// Connect all layout node settings before the page renders
+static public function connect_all_layout_settings() {
+    $layout_ids = FLThemeBuilderLayoutData::get_current_page_layout_ids();
+    
+    while ( have_posts() ) {
+        the_post();
+        
+        foreach ( $layout_ids as $layout_id ) {
+            $data = FLBuilderModel::get_layout_data( $node_status, $layout_id );
+            
+            foreach ( $data as $node ) {
+                FLBuilderModel::get_node_settings( $node );
+            }
+        }
+    }
+    
+    rewind_posts();
+}
+```
+
+## Hooks & Filters
+
+### Actions
+
+```php
+// Before connecting all layout settings
+do_action( 'fl_builder_before_render_ajax_layout' );
+
+// Add custom page data properties
+do_action( 'fl_page_data_add_properties' );
+
+// Before rendering a field connection
+do_action( 'fl_builder_before_control', $name, $value, $field, $settings );
+```
+
+### Filters
+
+```php
+// Modify connected node settings
+apply_filters( 'fl_builder_node_settings', $settings, $node );
+
+// Modify current page layouts
+apply_filters( 'fl_theme_builder_current_page_layouts', $layouts );
+
+// Modify cache key for connections
+apply_filters( 'fl_themer_builder_connect_node_settings_cache_key', $cache_key, $settings, $node );
+```
+
+<Warning>
+  When using the `fl_page_data_add_properties` hook, make sure to add properties on or after the `wp` action to ensure WordPress query variables are available.
+</Warning>
+
+## Examples
+
+### Complete Custom Property Example
+
+```php
+add_action( 'fl_page_data_add_properties', 'my_custom_properties' );
+
+function my_custom_properties() {
+    // Add property group
+    FLPageData::add_group( 'my_group', array(
+        'label' => __( 'My Properties', 'textdomain' ),
+    ));
+    
+    // Add post property
+    FLPageData::add_post_property( 'reading_time', array(
+        'label'  => __( 'Reading Time', 'textdomain' ),
+        'group'  => 'my_group',
+        'type'   => 'string',
+        'getter' => function() {
+            $content = get_the_content();
+            $word_count = str_word_count( strip_tags( $content ) );
+            $reading_time = ceil( $word_count / 200 );
+            return $reading_time . ' min read';
+        },
+    ));
+    
+    // Add settings form
+    FLPageData::add_post_property_settings_fields( 'reading_time', array(
+        'suffix' => array(
+            'type'    => 'text',
+            'label'   => __( 'Suffix', 'textdomain' ),
+            'default' => 'min read',
+        ),
+    ));
+}
+```
+
+### Connecting Settings Programmatically
+
+```php
+// Create a connection object
+$connection = (object) array(
+    'object'   => 'post',
+    'property' => 'title',
+    'field'    => 'text',
+);
+
+// Get the property
+$property = FLPageData::get_property( $connection->object, $connection->property );
+
+// Get the value
+$value = FLPageData::get_value( $connection->object, $connection->property );
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Cloud Templates" icon="cloud" href="/extensions/cloud-templates">
+    Learn about cloud template integration
+  </Card>
+  
+  <Card title="White Label" icon="tag" href="/extensions/white-label">
+    Customize branding for client sites
+  </Card>
+</CardGroup>

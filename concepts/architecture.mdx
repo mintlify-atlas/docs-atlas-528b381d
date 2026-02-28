@@ -1,0 +1,338 @@
+---
+title: Plugin Architecture
+description: Understanding Beaver Builder's system architecture and core components
+---
+
+Beaver Builder is built on a powerful, modular architecture that separates concerns between data management, rendering, and user interface. Understanding these core components will help you extend and customize the builder effectively.
+
+## Core Architecture Overview
+
+The plugin follows a classic MVC-inspired pattern with three primary layers:
+
+1. **Model Layer** (FLBuilderModel) - Handles all data operations
+2. **View Layer** (Rendering system) - Outputs HTML/CSS/JS
+3. **Controller Layer** (FLBuilder) - Coordinates UI and AJAX operations
+
+<img src="/images/architecture-diagram.png" alt="Beaver Builder Architecture" />
+
+## Core Classes
+
+### FLBuilder
+
+**Location:** `classes/class-fl-builder.php`
+
+The main controller class that orchestrates the builder interface and handles:
+
+- **UI Initialization** - Loads the builder editor interface
+- **Asset Management** - Enqueues CSS/JS files
+- **Module Registration** - Registers modules via `FLBuilder::register_module()`
+- **Template Registration** - Registers templates via `FLBuilder::register_templates()`
+- **AJAX Coordination** - Routes builder actions
+
+<CodeGroup>
+```php Key Methods
+// Enable the builder UI
+FLBuilder::init_ui();
+
+// Register a custom module
+FLBuilder::register_module('MyModule', $form);
+
+// Register templates
+FLBuilder::register_templates($path);
+
+// Enqueue layout assets
+FLBuilder::enqueue_layout_styles_scripts();
+```
+</CodeGroup>
+
+**Key Properties:**
+
+- `$post_rendering` - Current post being rendered
+- `$rendered_assets` - Tracks rendered assets to prevent duplicates
+- `$enqueued_global_assets` - Ensures global assets load once
+
+### FLBuilderModel
+
+**Location:** `classes/class-fl-builder-model.php`
+
+The data access layer that manages all builder content:
+
+<CodeGroup>
+```php Data Operations
+// Get layout data
+$data = FLBuilderModel::get_layout_data('published');
+
+// Get a single node
+$node = FLBuilderModel::get_node($node_id);
+
+// Get child nodes
+$children = FLBuilderModel::get_child_nodes($parent_id);
+
+// Get categorized nodes
+$nodes = FLBuilderModel::get_categorized_nodes();
+```
+</CodeGroup>
+
+**Key Properties:**
+
+- `$row_layouts` - Predefined row layout configurations
+- `$modules` - Array of registered module instances
+- `$settings_forms` - Registered settings forms
+
+**Row Layout Definitions:**
+
+```php FLBuilderModel::$row_layouts
+array(
+    '1-col'              => array(100),
+    '2-cols'             => array(50, 50),
+    '3-cols'             => array(33.33, 33.33, 33.33),
+    '4-cols'             => array(25, 25, 25, 25),
+    '5-cols'             => array(20, 20, 20, 20, 20),
+    '6-cols'             => array(16.65, 16.65, 16.65, 16.65, 16.65, 16.65),
+    'left-sidebar'       => array(33.33, 66.66),
+    'right-sidebar'      => array(66.66, 33.33),
+    'left-right-sidebar' => array(25, 50, 25),
+)
+```
+
+### FLBuilderModule
+
+**Location:** `classes/class-fl-builder-module.php`
+
+Base class that all modules extend:
+
+<CodeGroup>
+```php Module Structure
+class MyCustomModule extends FLBuilderModule {
+    
+    public function __construct() {
+        parent::__construct(array(
+            'name'            => __('My Module', 'my-plugin'),
+            'description'     => __('Description', 'my-plugin'),
+            'category'        => __('Basic', 'my-plugin'),
+            'icon'            => 'icon.svg',
+            'partial_refresh' => true,
+        ));
+    }
+    
+    // Enqueue scripts/styles
+    public function enqueue_scripts() {
+        $this->add_css('custom-css', $this->url . 'css/custom.css');
+        $this->add_js('custom-js', $this->url . 'js/custom.js');
+    }
+    
+    // Process settings before save
+    public function update($settings) {
+        // Sanitize or modify settings
+        return $settings;
+    }
+    
+    // Filter settings before render
+    public function filter_settings($settings, $helper) {
+        // Handle backwards compatibility
+        return $settings;
+    }
+}
+```
+</CodeGroup>
+
+**Key Properties:**
+
+- `$node` - Unique module ID
+- `$settings` - Module settings object  
+- `$slug` - Module directory name
+- `$dir` - Module directory path
+- `$url` - Module directory URL
+- `$accepts` - Child nodes this module accepts
+- `$partial_refresh` - Enable live preview
+
+## Data Model
+
+Beaver Builder uses a hierarchical node structure:
+
+```
+Layout
+└── Row (node_type: 'row')
+    └── Column Group (node_type: 'column-group')
+        └── Column (node_type: 'column')
+            └── Module (node_type: 'module')
+                └── Child Modules (optional)
+```
+
+### Node Structure
+
+Each node in the layout contains:
+
+```php Node Object
+stdClass Object(
+    [node] => '5f3a2b1c'        // Unique node ID
+    [type] => 'module'           // Node type
+    [parent] => '4e2b1a9d'      // Parent node ID
+    [position] => 0              // Order within parent
+    [settings] => stdClass()     // Node settings
+    [template_id] => null        // Global template ID (if applicable)
+    [template_node_id] => null   // Node ID in template
+)
+```
+
+### Data Storage
+
+Layout data is stored in WordPress post meta:
+
+- `_fl_builder_enabled` - Boolean, whether builder is active
+- `_fl_builder_data` - Published layout data (serialized)
+- `_fl_builder_draft` - Draft layout data (serialized)
+- `_fl_builder_data_settings` - Global layout settings
+
+## Rendering Pipeline
+
+The rendering process follows this flow:
+
+<Steps>
+  <Step title="Content Filter">
+    WordPress `the_content` filter triggers `FLBuilder::render_content()`
+  </Step>
+  
+  <Step title="Layout Check">
+    Check if builder is enabled for this post via `FLBuilderModel::is_builder_enabled()`
+  </Step>
+  
+  <Step title="Data Retrieval">
+    Load layout data: `FLBuilderModel::get_layout_data('published')`
+  </Step>
+  
+  <Step title="Node Rendering">
+    Iterate through nodes and render:
+    - `FLBuilder::render_row()`
+    - `FLBuilder::render_column_group()`  
+    - `FLBuilder::render_column()`
+    - `FLBuilder::render_module()`
+  </Step>
+  
+  <Step title="Asset Enqueue">
+    Enqueue CSS/JS assets via `FLBuilder::enqueue_layout_styles_scripts()`
+  </Step>
+</Steps>
+
+### Rendering Example
+
+```php Row Rendering (Simplified)
+// Get row data
+$row = FLBuilderModel::get_node($row_id);
+
+// Output wrapper
+echo '<div class="fl-row" data-node="' . $row->node . '">';
+
+// Render column groups
+$groups = FLBuilderModel::get_nodes('column-group', $row);
+foreach ($groups as $group) {
+    FLBuilder::render_column_group($group);
+}
+
+echo '</div>';
+```
+
+## Asset Management
+
+Beaver Builder uses a sophisticated caching system:
+
+### Cache Structure
+
+```
+wp-content/uploads/bb-plugin/cache/
+├── {post_id}-layout.css          # Published CSS
+├── {post_id}-layout-draft.css    # Draft CSS  
+├── {post_id}-layout.js           # Published JS
+└── {post_id}-layout-draft.js     # Draft JS
+```
+
+### Asset Generation
+
+<CodeGroup>
+```php CSS Generation
+// Render CSS for a layout
+FLBuilder::render_css();
+
+// Get asset paths
+$info = FLBuilderModel::get_asset_info();
+// Returns: css, css_url, js, js_url
+
+// Delete cached assets
+FLBuilderModel::delete_all_asset_cache($post_id);
+```
+</CodeGroup>
+
+### Global Assets
+
+Global CSS/JS is included once per page:
+
+- Global node styles (rows, columns, modules used globally)
+- Consolidated to reduce HTTP requests
+- Cached separately from layout-specific assets
+
+## Hooks & Filters
+
+Key extension points in the architecture:
+
+<CodeGroup>
+```php Actions
+// Before builder initializes
+do_action('fl_builder_init_ui');
+
+// After layout save
+do_action('fl_builder_after_save_layout', $post_id, $publish, $data, $settings);
+
+// Before module render
+do_action('fl_builder_before_render_module', $module);
+
+// After module render  
+do_action('fl_builder_after_render_module', $module);
+```
+
+```php Filters
+// Modify layout data
+$data = apply_filters('fl_builder_node_settings', $settings, $node);
+
+// Modify post types
+$types = apply_filters('fl_builder_post_types', $types);
+
+// Modify rendered content
+$content = apply_filters('fl_builder_render_content', $content, $post_id);
+```
+</CodeGroup>
+
+## Performance Considerations
+
+### Caching Strategy
+
+1. **Layout Cache** - CSS/JS files cached per post
+2. **Asset Deduplication** - Tracks rendered assets to prevent duplicates
+3. **Partial Refresh** - Live preview without full page reload
+4. **Lazy Loading** - Assets loaded only when needed
+
+### Database Optimization
+
+- Layout data stored as single serialized meta value
+- Node IDs generated with `uniqid()` for uniqueness
+- Efficient queries using `FLBuilderModel::get_nodes()`
+
+<Note>
+The architecture is designed to be extensible while maintaining backwards compatibility. Always use the provided API methods rather than accessing data directly.
+</Note>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Module System" icon="puzzle-piece" href="/concepts/modules">
+    Learn how modules work and how to create custom ones
+  </Card>
+  <Card title="Rows & Columns" icon="table-columns" href="/concepts/rows-and-columns">
+    Understand the layout grid system
+  </Card>
+  <Card title="Templates" icon="file-code" href="/concepts/templates">
+    Work with pre-built templates
+  </Card>
+  <Card title="Responsive Design" icon="mobile" href="/concepts/responsive-design">
+    Implement responsive layouts
+  </Card>
+</CardGroup>

@@ -1,122 +1,145 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Beaver Builder",
+  "theme": "maple",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#0066CC",
+    "light": "#3399FF",
+    "dark": "#004C99"
   },
-  "favicon": "/favicon.svg",
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/Danalbz/bb"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/Danalbz/bb"
+    }
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Getting Started",
             "pages": [
-              "index",
-              "quickstart",
-              "development"
+              "introduction",
+              "installation",
+              "quickstart"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Core Concepts",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "concepts/architecture",
+              "concepts/modules",
+              "concepts/rows-and-columns",
+              "concepts/templates",
+              "concepts/responsive-design"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Building Pages",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "building/frontend-editor",
+              "building/modules-guide",
+              "building/styling",
+              "building/layouts",
+              "building/global-settings"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Extensions",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "extensions/overview",
+              "extensions/theme-builder",
+              "extensions/cloud-templates",
+              "extensions/white-label"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "pages": [
+              "integrations/wordpress",
+              "integrations/woocommerce",
+              "integrations/email-services",
+              "integrations/third-party"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "Developer Guide",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Development",
             "pages": [
-              "api-reference/introduction"
+              "developer/getting-started",
+              "developer/custom-modules",
+              "developer/hooks-filters",
+              "developer/module-settings"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Module Development",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "developer/modules/creating-modules",
+              "developer/modules/module-structure",
+              "developer/modules/frontend-rendering",
+              "developer/modules/module-settings-forms"
+            ]
+          },
+          {
+            "group": "Advanced Topics",
+            "pages": [
+              "developer/advanced/custom-fields",
+              "developer/advanced/ajax-operations",
+              "developer/advanced/css-js-assets",
+              "developer/advanced/data-model"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Core Classes",
+            "pages": [
+              "api/fl-builder",
+              "api/fl-builder-model",
+              "api/fl-builder-module",
+              "api/fl-builder-ajax"
+            ]
+          },
+          {
+            "group": "Available Modules",
+            "pages": [
+              "api/modules/basic-modules",
+              "api/modules/layout-modules",
+              "api/modules/content-modules",
+              "api/modules/premium-modules"
+            ]
+          },
+          {
+            "group": "Hooks & Filters",
+            "pages": [
+              "api/hooks/actions",
+              "api/hooks/filters"
+            ]
+          },
+          {
+            "group": "Services",
+            "pages": [
+              "api/services/email-integrations",
+              "api/services/custom-services"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    ]
   }
 }

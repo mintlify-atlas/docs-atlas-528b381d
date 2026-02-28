@@ -1,0 +1,746 @@
+---
+title: 'Creating Layouts'
+description: 'Master rows, columns, nested layouts, and full-width sections in Beaver Builder'
+icon: 'table-layout'
+---
+
+Rows and columns form the foundation of your Beaver Builder layouts. Understanding how to structure content with these elements is essential for creating professional designs.
+
+## Row Configurations
+
+Rows are horizontal containers that hold columns and define the width of your content.
+
+### Adding Rows
+
+<Steps>
+  <Step title="Open Content Panel">
+    Click the "+" icon or "Add Content" button
+  </Step>
+  
+  <Step title="Select Rows Tab">
+    Click the "Rows" tab in the content panel
+  </Step>
+  
+  <Step title="Choose Layout">
+    Select a column layout (1 column, 2 columns, 3 columns, etc.)
+  </Step>
+  
+  <Step title="Add to Page">
+    Drag the row to your desired location and drop
+  </Step>
+</Steps>
+
+### Row Width Settings
+
+Control how your rows span the page:
+
+```php
+// Row width configuration from row-settings.php
+'width' => array(
+  'type'    => 'select',
+  'label'   => __( 'Width', 'fl-builder' ),
+  'options' => array(
+    'fixed' => __( 'Fixed', 'fl-builder' ),
+    'full'  => __( 'Full Width', 'fl-builder' ),
+  ),
+)
+```
+
+<Tabs>
+  <Tab title="Fixed Width">
+    **Fixed width** rows are constrained to the max width set in Global Settings (default: 1100px).
+    
+    Use for:
+    - Standard content sections
+    - Maintaining consistent margins
+    - Traditional page layouts
+  </Tab>
+  
+  <Tab title="Full Width">
+    **Full width** rows span from edge to edge of the browser window.
+    
+    Use for:
+    - Hero sections
+    - Full-width backgrounds
+    - Image galleries
+    - Call-to-action banners
+  </Tab>
+</Tabs>
+
+### Content Width
+
+For full-width rows, control the content width:
+
+```php
+'content_width' => array(
+  'type'    => 'select',
+  'label'   => __( 'Content Width', 'fl-builder' ),
+  'options' => array(
+    'fixed' => __( 'Fixed', 'fl-builder' ),
+    'full'  => __( 'Full Width', 'fl-builder' ),
+  ),
+)
+```
+
+<CardGroup cols={2}>
+  <Card title="Fixed Content" icon="arrows-left-right">
+    Content stays within max width while background extends full width
+  </Card>
+  
+  <Card title="Full Content" icon="maximize">
+    Both content and background extend edge to edge
+  </Card>
+</CardGroup>
+
+### Row Height Options
+
+Control vertical sizing:
+
+```php
+'full_height' => array(
+  'type'    => 'select',
+  'label'   => __( 'Height', 'fl-builder' ),
+  'options' => array(
+    'default' => __( 'Default', 'fl-builder' ),
+    'full'    => __( 'Full Height', 'fl-builder' ),
+    'custom'  => __( 'Minimum Height', 'fl-builder' ),
+  ),
+)
+```
+
+**Height Types:**
+
+- **Default**: Height determined by content
+- **Full Height**: Fill viewport height (100vh)
+- **Minimum Height**: Set custom minimum height
+
+<Tip>
+Use full height for hero sections and landing pages to create impactful above-the-fold content.
+</Tip>
+
+### Minimum Height
+
+Set a minimum row height:
+
+```php
+'min_height' => array(
+  'type'       => 'unit',
+  'label'      => __( 'Minimum Height', 'fl-builder' ),
+  'responsive' => true,
+  'units'      => array( 'px', 'vw', 'vh' ),
+)
+```
+
+**Responsive Values:**
+- Desktop: 600px
+- Large: 500px
+- Medium: 400px
+- Mobile: 300px
+
+### Vertical Alignment
+
+Align content vertically within rows:
+
+```php
+'content_alignment' => array(
+  'type'    => 'select',
+  'label'   => __( 'Vertical Alignment', 'fl-builder' ),
+  'options' => array(
+    'top'    => __( 'Top', 'fl-builder' ),
+    'center' => __( 'Center', 'fl-builder' ),
+    'bottom' => __( 'Bottom', 'fl-builder' ),
+  ),
+)
+```
+
+<Note>
+Vertical alignment is particularly useful in full-height rows or rows with minimum height.
+</Note>
+
+## Column Structures
+
+Columns divide rows horizontally to organize content side-by-side.
+
+### Common Column Layouts
+
+<Tabs>
+  <Tab title="1 Column">
+    **Single column**: Full width content
+    
+    ```
+    |------------ 100% ------------|
+    ```
+    
+    Use for:
+    - Full-width text
+    - Large images
+    - Featured content
+  </Tab>
+  
+  <Tab title="2 Columns">
+    **Two equal columns**: 50/50 split
+    
+    ```
+    |---- 50% ----|----- 50% ----|
+    ```
+    
+    Use for:
+    - Text + image
+    - Side-by-side content
+    - Feature comparisons
+  </Tab>
+  
+  <Tab title="3 Columns">
+    **Three equal columns**: 33.33% each
+    
+    ```
+    |- 33% -|- 33% -|- 33% -|
+    ```
+    
+    Use for:
+    - Feature lists
+    - Service offerings
+    - Team members
+  </Tab>
+  
+  <Tab title="Custom">
+    **Custom widths**: Any combination
+    
+    ```
+    |-- 25% --|---- 50% ----|-- 25% --|
+    |- 33% -|- 33% -|- 33% -|
+    |--- 66% ---|--- 33% ---|
+    ```
+    
+    Common patterns:
+    - 25/75 - Sidebar layout
+    - 33/66 - Asymmetric content
+    - 20/60/20 - Centered content
+  </Tab>
+</Tabs>
+
+### Predefined Column Layouts
+
+Beaver Builder includes common layouts:
+
+- 1 Column (100%)
+- 2 Columns (50/50)
+- 3 Columns (33/33/33)
+- 4 Columns (25/25/25/25)
+- 5 Columns (20/20/20/20/20)
+- 6 Columns (16.66% each)
+- Left Sidebar (25/75)
+- Right Sidebar (75/25)
+- Left/Right Sidebars (25/50/25)
+- And more...
+
+### Customizing Column Widths
+
+<Steps>
+  <Step title="Hover Over Column">
+    Hover between two columns
+  </Step>
+  
+  <Step title="Click Resize Handle">
+    Click and hold the resize handle that appears
+  </Step>
+  
+  <Step title="Drag to Resize">
+    Drag left or right to adjust column widths
+  </Step>
+  
+  <Step title="Release">
+    Release to set the new widths
+  </Step>
+</Steps>
+
+### Column Settings
+
+Access column-specific settings:
+
+1. Click the wrench icon on a column
+2. Configure:
+   - Background (color, gradient, image)
+   - Border and styling
+   - Spacing (margins, padding)
+   - Text colors
+   - Custom CSS classes
+
+### Responsive Column Behavior
+
+Columns automatically stack on small devices:
+
+**Desktop (default):**
+```
+|---- Col 1 ----|----- Col 2 ----|----- Col 3 ----|
+```
+
+**Mobile (< 768px):**
+```
+|-------------- Col 1 --------------|
+|-------------- Col 2 --------------|
+|-------------- Col 3 --------------|
+```
+
+<Tip>
+The small device breakpoint (default 768px) determines when columns stack. Adjust this in Global Settings if needed.
+</Tip>
+
+### Column Stacking Order
+
+Control how columns stack on mobile:
+
+1. Open row settings
+2. Go to Advanced → Responsive
+3. Set column order
+4. Columns stack in the specified order
+
+### Equal Heights
+
+Make columns the same height:
+
+1. Open row settings
+2. Enable "Equal Heights"
+3. Columns match the tallest column's height
+
+<Note>
+Equal heights only apply when columns are displayed side-by-side, not when stacked on mobile.
+</Note>
+
+## Nested Layouts
+
+Create complex layouts by nesting rows within columns.
+
+### Why Use Nested Rows
+
+Nested rows allow you to:
+
+- Create complex grid layouts
+- Have different column configurations within sections
+- Build intricate designs without custom code
+- Maintain responsive behavior
+
+### Adding Nested Rows
+
+<Steps>
+  <Step title="Add Parent Row">
+    Add a row with your desired column structure
+  </Step>
+  
+  <Step title="Add Content to Column">
+    Click the "+" icon inside a column
+  </Step>
+  
+  <Step title="Select Row">
+    Choose "Row" instead of a module
+  </Step>
+  
+  <Step title="Choose Layout">
+    Select a column layout for the nested row
+  </Step>
+  
+  <Step title="Add Content">
+    Add modules to the nested columns
+  </Step>
+</Steps>
+
+### Nested Row Example
+
+```
+Parent Row (2 columns: 33% / 66%)
+│
+├── Column 1 (33%)
+│   └── Module: Image
+│
+└── Column 2 (66%)
+    └── Nested Row (2 columns: 50% / 50%)
+        ├── Column A (50%)
+        │   └── Module: Heading
+        │   └── Module: Text
+        │
+        └── Column B (50%)
+            └── Module: Button
+            └── Module: List
+```
+
+### Nested Row Best Practices
+
+<AccordionGroup>
+  <Accordion title="Limit Nesting Depth">
+    Avoid nesting more than 2-3 levels deep. Excessive nesting can complicate maintenance and affect performance.
+  </Accordion>
+  
+  <Accordion title="Test Responsively">
+    Nested rows add complexity to responsive behavior. Always test on mobile devices.
+  </Accordion>
+  
+  <Accordion title="Use Consistent Spacing">
+    Maintain consistent padding and margins across nested structures for visual harmony.
+  </Accordion>
+  
+  <Accordion title="Consider Alternatives">
+    Sometimes a single row with more columns is simpler than nested rows.
+  </Accordion>
+</AccordionGroup>
+
+### Complex Grid Example
+
+Create a complex grid using nested rows:
+
+**Layout Goal:**
+```
+|---- A ----|---- B ----|---- C ----|
+|---------- D ----------|---- E ----|
+|---------- F ----------|---- G ----|
+```
+
+**Implementation:**
+
+1. **Row 1**: 3 equal columns (A, B, C)
+2. **Row 2**: 2 columns (66% / 33%)
+   - Column 1: Module D
+   - Column 2: Module E
+3. **Row 3**: 2 columns (66% / 33%)
+   - Column 1: Module F
+   - Column 2: Module G
+
+## Full-Width Sections
+
+Create impactful full-width designs:
+
+### Full-Width Row
+
+Basic full-width configuration:
+
+```php
+// Set row to full width
+'width' => 'full'
+```
+
+**Result:**
+- Background extends edge to edge
+- Content follows content width setting
+
+### Full-Width Content
+
+Make content span full width too:
+
+```php
+// Set both to full width
+'width'         => 'full',
+'content_width' => 'full'
+```
+
+**Result:**
+- Background extends edge to edge
+- Content extends edge to edge
+
+<Warning>
+Be cautious with full-width content. Text lines that are too long can be difficult to read. Consider using max-width on text modules.
+</Warning>
+
+### Full-Width with Background
+
+Common full-width patterns:
+
+#### Pattern 1: Full Background, Fixed Content
+
+```php
+'width'         => 'full',
+'content_width' => 'fixed',
+'bg_type'       => 'photo',
+'bg_image'      => 'hero-background.jpg'
+```
+
+**Use for:**
+- Hero sections
+- Image backgrounds
+- Colored sections
+
+#### Pattern 2: Full Background Video
+
+```php
+'width'         => 'full',
+'content_width' => 'fixed',
+'bg_type'       => 'video',
+'bg_video'      => 'background-video.mp4',
+'bg_overlay'    => 'rgba(0,0,0,0.5)'
+```
+
+**Use for:**
+- Dynamic hero sections
+- Landing pages
+- Engaging intros
+
+#### Pattern 3: Edge-to-Edge Gallery
+
+```php
+'width'         => 'full',
+'content_width' => 'full'
+// Add gallery module
+```
+
+**Use for:**
+- Photo galleries
+- Portfolio displays
+- Image sliders
+
+### Breakout Sections
+
+Create sections that break out of the standard width:
+
+1. Set default rows to fixed width (1100px)
+2. Add full-width rows for emphasis
+3. Alternate between fixed and full for visual interest
+
+**Example Layout:**
+```
+[Fixed Row - Header]
+[Full Width Row - Hero]
+[Fixed Row - Content]
+[Full Width Row - Features]
+[Fixed Row - Content]
+[Full Width Row - CTA]
+[Fixed Row - Footer]
+```
+
+## Spacing and Alignment
+
+Control spacing within your layouts:
+
+### Row Spacing
+
+Global default spacing:
+
+```php
+// From global-settings.php
+'row_margins' => array(
+  'default' => '0',
+  'unit'    => 'px',
+),
+'row_padding' => array(
+  'default' => '20',
+  'unit'    => 'px',
+)
+```
+
+### Column Spacing
+
+Space between and within columns:
+
+```php
+'column_margins' => array(
+  'default' => '',
+  'unit'    => 'px',
+),
+'column_padding' => array(
+  'default' => '',
+  'unit'    => 'px',
+)
+```
+
+### Custom Row Spacing
+
+Override global spacing per row:
+
+1. Open row settings
+2. Go to Advanced → Spacing
+3. Set custom margins/padding
+4. Use responsive values for different devices
+
+### Module Spacing
+
+Default spacing between modules:
+
+```php
+'module_margins' => array(
+  'default' => '20',
+  'unit'    => 'px',
+)
+```
+
+<Tip>
+Use consistent spacing throughout your site. Set global defaults and only override when necessary.
+</Tip>
+
+## Aspect Ratio
+
+Maintain consistent proportions:
+
+```php
+'aspect_ratio' => array(
+  'type'       => 'text',
+  'label'      => __( 'Aspect Ratio', 'fl-builder' ),
+  'help'       => 'Use the forward slash notation: width/height.',
+  'responsive' => true,
+)
+```
+
+**Common Ratios:**
+- `16/9` - Widescreen
+- `4/3` - Traditional
+- `1/1` - Square
+- `21/9` - Ultra-wide
+- `9/16` - Portrait (mobile)
+
+**Example:**
+```css
+/* Aspect ratio applied to row */
+.fl-row-content-wrap {
+  aspect-ratio: 16/9;
+}
+```
+
+## Layout Templates
+
+Save and reuse complex layouts:
+
+### Saving a Layout
+
+<Steps>
+  <Step title="Build Layout">
+    Create your row structure and add content
+  </Step>
+  
+  <Step title="Save as Template">
+    Click Tools → Save Template
+  </Step>
+  
+  <Step title="Name Template">
+    Give your template a descriptive name
+  </Step>
+  
+  <Step title="Save">
+    Click save to store the template
+  </Step>
+</Steps>
+
+### Using Saved Templates
+
+1. Open content panel
+2. Click "Templates" tab
+3. Find your saved template
+4. Drag to page
+
+### Template Types
+
+- **Page Templates**: Entire page layouts
+- **Row Templates**: Single row configurations
+- **Module Templates**: Configured modules
+
+<Note>
+Templates save the structure and settings but not the actual content (text, images). This allows you to reuse designs with different content.
+</Note>
+
+## Layout Examples
+
+### Landing Page Layout
+
+```
+Row 1: Full Width (100vh height)
+  └─ 1 Column - Hero content
+
+Row 2: Fixed Width
+  └─ 3 Columns - Feature boxes
+
+Row 3: Full Width (Colored background)
+  └─ 2 Columns (50/50) - Image + Text
+
+Row 4: Fixed Width
+  └─ 4 Columns - Testimonials
+
+Row 5: Full Width (Gradient background)
+  └─ 1 Column - CTA button
+```
+
+### Blog Post Layout
+
+```
+Row 1: Fixed Width
+  └─ 1 Column - Post title and meta
+
+Row 2: Fixed Width
+  └─ 1 Column - Featured image
+
+Row 3: Fixed Width
+  └─ 2 Columns (66/33)
+      ├─ Main content
+      └─ Sidebar (nested rows)
+          ├─ Author bio
+          ├─ Related posts
+          └─ Social sharing
+```
+
+### Portfolio Layout
+
+```
+Row 1: Full Width
+  └─ 1 Column - Portfolio header
+
+Row 2: Full Width
+  └─ 4 Columns - Portfolio grid
+      (Each column has image + overlay)
+
+Row 3: Fixed Width
+  └─ 2 Columns (40/60)
+      ├─ Project details
+      └─ Project images (nested gallery)
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Plan Your Layout">
+    Sketch your layout before building. Understanding the structure beforehand saves time.
+  </Accordion>
+  
+  <Accordion title="Use Consistent Widths">
+    Stick to your max-width setting. Consistency creates a professional appearance.
+  </Accordion>
+  
+  <Accordion title="Test Responsive Behavior">
+    Always preview your layout on mobile devices before publishing.
+  </Accordion>
+  
+  <Accordion title="Don't Over-nest">
+    Keep nesting to 2-3 levels maximum. Excessive nesting complicates maintenance.
+  </Accordion>
+  
+  <Accordion title="Use Semantic Structure">
+    Choose appropriate container elements (section, article, etc.) for better accessibility.
+  </Accordion>
+  
+  <Accordion title="Maintain Visual Hierarchy">
+    Use row backgrounds and spacing to create clear content sections.
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+### Columns Not Aligning
+
+- Check for custom margins/padding
+- Verify column widths add up correctly
+- Clear cache and reload
+
+### Content Overflowing
+
+- Check responsive settings
+- Reduce content or adjust column widths
+- Use responsive typography
+
+### Gaps Between Rows
+
+- Review row margin settings
+- Check global spacing defaults
+- Look for theme CSS conflicts
+
+### Mobile Stacking Issues
+
+- Verify breakpoint settings
+- Check column order settings
+- Test on actual devices
+
+<Card title="Next Steps" icon="arrow-right" href="/building/global-settings">
+  Learn how to configure global settings for consistent site-wide defaults
+</Card>

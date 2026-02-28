@@ -1,0 +1,527 @@
+---
+title: CSS & JavaScript Assets
+description: Generate, cache, and enqueue CSS and JavaScript assets in Beaver Builder
+---
+
+Beaver Builder provides a sophisticated asset management system that generates, caches, and enqueues CSS and JavaScript files for layouts and modules.
+
+## FLBuilderCSS Class
+
+The `FLBuilderCSS` class (class-fl-builder-css.php) provides a powerful API for generating CSS rules with responsive breakpoint support.
+
+### Basic CSS Rules
+
+Add CSS rules using the `rule()` method:
+
+```php
+FLBuilderCSS::rule( array(
+    'selector' => '.fl-node-' . $id . ' .my-element',
+    'props'    => array(
+        'color'      => $settings->text_color,
+        'font-size'  => array(
+            'value' => $settings->font_size,
+            'unit'  => 'px'
+        )
+    )
+) );
+```
+
+### Responsive Rules
+
+From class-fl-builder-css.php:83-199, responsive rules automatically generate CSS for all breakpoints:
+
+```php
+FLBuilderCSS::responsive_rule( array(
+    'settings'     => $settings,
+    'setting_name' => 'padding',
+    'selector'     => '.fl-node-' . $id,
+    'prop'         => 'padding',
+    'unit'         => 'px'
+) );
+```
+
+This generates:
+
+```css
+/* Default */
+.fl-node-123 { padding: 20px; }
+
+/* Large breakpoint */
+@media(max-width: 1024px) {
+    .fl-node-123 { padding: 15px; }
+}
+
+/* Medium breakpoint */
+@media(max-width: 768px) {
+    .fl-node-123 { padding: 10px; }
+}
+
+/* Responsive breakpoint */
+@media(max-width: 480px) {
+    .fl-node-123 { padding: 5px; }
+}
+```
+
+### Breakpoints
+
+From class-fl-builder-css.php:16:
+
+```php
+static private $breakpoints = array( '', 'large', 'medium', 'responsive' );
+```
+
+Access breakpoints:
+
+```php
+$breakpoints = FLBuilderCSS::get_breakpoints();
+// Returns: array( '', 'large', 'medium', 'responsive' )
+```
+
+### Compound Field Rules
+
+For complex fields like typography, border, and dimension:
+
+<AccordionGroup>
+  <Accordion title="Typography Field Rule">
+    From class-fl-builder-css.php:367-434:
+
+    ```php
+    FLBuilderCSS::typography_field_rule( array(
+        'settings'     => $settings,
+        'setting_name' => 'title_typography',
+        'selector'     => '.fl-node-' . $id . ' .my-title'
+    ) );
+    ```
+
+    This automatically generates CSS for:
+    - Font family and weight
+    - Font size with units
+    - Line height
+    - Letter spacing
+    - Text alignment
+    - Text transform
+    - Text decoration
+    - Font style and variant
+    - Text shadow
+  </Accordion>
+
+  <Accordion title="Border Field Rule">
+    From class-fl-builder-css.php:309-358:
+
+    ```php
+    FLBuilderCSS::border_field_rule( array(
+        'settings'     => $settings,
+        'setting_name' => 'border',
+        'selector'     => '.fl-node-' . $id . ' .my-element'
+    ) );
+    ```
+
+    Generates:
+    - Border style, color, and width (per side)
+    - Border radius (per corner)
+    - Box shadow
+  </Accordion>
+
+  <Accordion title="Dimension Field Rule">
+    From class-fl-builder-css.php:208-239:
+
+    ```php
+    FLBuilderCSS::dimension_field_rule( array(
+        'settings'     => $settings,
+        'setting_name' => 'padding',
+        'selector'     => '.fl-node-' . $id,
+        'unit'         => 'px',
+        'props'        => array(
+            'padding-top'    => 'padding_top',
+            'padding-right'  => 'padding_right',
+            'padding-bottom' => 'padding_bottom',
+            'padding-left'   => 'padding_left'
+        )
+    ) );
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Rendering CSS
+
+After adding rules, render them:
+
+```php
+FLBuilderCSS::render();
+```
+
+From class-fl-builder-css.php:443-514, this:
+1. Groups rules by breakpoint
+2. Combines rules with the same selector
+3. Outputs CSS wrapped in media queries
+4. Resets the rules array
+
+## Module CSS Generation
+
+Modules generate CSS in their PHP files using the `css` method pattern:
+
+```php
+class MyCustomModule extends FLBuilderModule {
+    
+    public function __construct() {
+        parent::__construct(array(
+            'name'        => __('My Module', 'my-plugin'),
+            'description' => __('A custom module', 'my-plugin'),
+            'category'    => __('Basic', 'my-plugin'),
+            'dir'         => MY_MODULE_DIR . 'my-module/',
+            'url'         => MY_MODULE_URL . 'my-module/',
+            'editor_export' => true,
+            'partial_refresh' => true,
+        ));
+    }
+}
+
+/**
+ * Register the module and its form settings.
+ */
+FLBuilder::register_module('MyCustomModule', array(
+    'general' => array(
+        'title' => __('General', 'my-plugin'),
+        'sections' => array(
+            'general' => array(
+                'title'  => '',
+                'fields' => array(
+                    'background_color' => array(
+                        'type'       => 'color',
+                        'label'      => __('Background Color', 'my-plugin'),
+                        'default'    => 'ffffff',
+                        'show_reset' => true,
+                        'show_alpha' => true,
+                        'preview'    => array(
+                            'type'     => 'css',
+                            'selector' => '.my-module-wrapper',
+                            'property' => 'background-color'
+                        )
+                    ),
+                    'padding' => array(
+                        'type'       => 'dimension',
+                        'label'      => __('Padding', 'my-plugin'),
+                        'responsive' => true,
+                        'units'      => array('px', 'em', '%'),
+                        'preview'    => array(
+                            'type'     => 'css',
+                            'selector' => '.my-module-wrapper',
+                            'property' => 'padding'
+                        )
+                    )
+                )
+            )
+        )
+    )
+));
+```
+
+Create `my-module/css.php`:
+
+```php
+<?php
+/**
+ * Module CSS
+ */
+
+// Background color
+if ( ! empty( $settings->background_color ) ) {
+    FLBuilderCSS::rule( array(
+        'selector' => ".fl-node-$id .my-module-wrapper",
+        'props'    => array(
+            'background-color' => '#' . $settings->background_color
+        )
+    ) );
+}
+
+// Padding
+FLBuilderCSS::dimension_field_rule( array(
+    'settings'     => $settings,
+    'setting_name' => 'padding',
+    'selector'     => ".fl-node-$id .my-module-wrapper",
+    'unit'         => 'px',
+    'props'        => array(
+        'padding-top'    => 'padding_top',
+        'padding-right'  => 'padding_right',
+        'padding-bottom' => 'padding_bottom',
+        'padding-left'   => 'padding_left'
+    )
+) );
+
+// Render
+FLBuilderCSS::render();
+```
+
+## Auto CSS System
+
+From class-fl-builder-css.php:670-919, Beaver Builder can automatically generate CSS from field preview configurations:
+
+```php
+'my_field' => array(
+    'type'    => 'color',
+    'label'   => __('Color', 'my-plugin'),
+    'preview' => array(
+        'type'     => 'css',
+        'auto'     => true,          // Enable auto CSS
+        'selector' => '.my-element',
+        'property' => 'color'
+    )
+)
+```
+
+This is handled automatically by:
+
+```php
+FLBuilderCSS::auto_css( $node );
+```
+
+## Asset Management
+
+From class-fl-builder-model.php (lines 992-1046), asset management handles caching and versioning.
+
+### Asset Info
+
+Get asset paths and URLs:
+
+```php
+$asset_info = FLBuilderModel::get_asset_info();
+
+// Returns:
+array(
+    'css'             => '/path/to/123-layout.css',
+    'css_url'         => 'https://site.com/path/123-layout.css',
+    'css_partial'     => '/path/to/123-layout-partial.css',
+    'css_partial_url' => 'https://site.com/path/123-layout-partial.css',
+    'js'              => '/path/to/123-layout.js',
+    'js_url'          => 'https://site.com/path/123-layout.js',
+    'js_partial'      => '/path/to/123-layout-partial.js',
+    'js_partial_url'  => 'https://site.com/path/123-layout-partial.js',
+)
+```
+
+### Asset Versioning
+
+From class-fl-builder-model.php:992-1002:
+
+```php
+static public function get_asset_version( $path = false ) {
+    $post_id = self::get_post_id();
+    $active  = self::is_builder_active();
+    $preview = self::is_builder_draft_preview();
+    
+    if ( $active || $preview ) {
+        // Random hash to prevent caching in builder
+        return md5( FLBuilderModel::uniqid() );
+    } else {
+        // Hash of file contents or post modified time
+        return $path ? md5( file_get_contents( $path ) ) : 
+               md5( get_post_modified_time( 'U', false, $post_id ) );
+    }
+}
+```
+
+### Enqueue Methods
+
+From class-fl-builder-model.php:1057-1064:
+
+```php
+static public function get_asset_enqueue_method() {
+    return apply_filters( 'fl_builder_render_assets_inline', false ) 
+           ? 'inline' 
+           : 'file';
+}
+```
+
+<Tabs>
+  <Tab title="File Method (Default)">
+    Assets are saved to cache files and enqueued:
+
+    ```php
+    add_filter( 'fl_builder_render_assets_inline', '__return_false' );
+    ```
+
+    - Better for production
+    - Utilizes browser caching
+    - Reduces page size
+  </Tab>
+  
+  <Tab title="Inline Method">
+    Assets are rendered directly in HTML:
+
+    ```php
+    add_filter( 'fl_builder_render_assets_inline', '__return_true' );
+    ```
+
+    - Better for development
+    - No cache file dependencies
+    - Easier debugging
+  </Tab>
+</Tabs>
+
+### Cache Management
+
+Delete asset cache when needed:
+
+```php
+// Delete current post's cache
+FLBuilderModel::delete_asset_cache();
+
+// Delete specific asset type
+FLBuilderModel::delete_asset_cache( 'css' );
+FLBuilderModel::delete_asset_cache( 'js' );
+
+// Delete all cache for a post
+FLBuilderModel::delete_all_asset_cache( $post_id );
+
+// Delete cache for all posts
+FLBuilderModel::delete_asset_cache_for_all_posts();
+```
+
+From class-fl-builder-model.php:1075-1128.
+
+## Module JavaScript
+
+Modules can include custom JavaScript by creating `js/frontend.js`:
+
+```javascript
+(function($) {
+    
+    /**
+     * MyCustomModule class
+     */
+    FLBuilderLayout.MyCustomModule = class MyCustomModule {
+        
+        constructor( settings ) {
+            this.settings = settings;
+            this.nodeClass = '.fl-node-' + settings.id;
+            this.node = $( this.nodeClass );
+            this._init();
+        }
+        
+        _init() {
+            // Initialize your module
+            this.node.find('.my-button').on('click', this._handleClick.bind(this));
+        }
+        
+        _handleClick( e ) {
+            e.preventDefault();
+            // Handle click
+            console.log('Button clicked!');
+        }
+    };
+    
+})(jQuery);
+```
+
+The module is automatically instantiated for each instance on the page.
+
+## Enqueuing Assets
+
+For custom module assets:
+
+```php
+class MyCustomModule extends FLBuilderModule {
+    
+    public function enqueue_scripts() {
+        // Only enqueue if module is on the page
+        if ( $this->is_enqueued() ) {
+            
+            // Enqueue CSS
+            $this->add_css( 'my-module-css', $this->url . 'css/module.css' );
+            
+            // Enqueue JS
+            $this->add_js( 'my-module-js', $this->url . 'js/module.js', array('jquery'), '', true );
+        }
+    }
+}
+```
+
+## Cache Directory
+
+From class-fl-builder-model.php:951-981:
+
+```php
+static public function get_cache_dir( $name = 'cache' ) {
+    $upload_info = self::get_upload_dir();
+    
+    $dir_info = array(
+        'path' => $upload_info['path'] . $name . '/',
+        'url'  => $upload_info['url'] . $name . '/',
+    );
+    
+    // Create cache directory if it doesn't exist
+    if ( ! file_exists( $dir_info['path'] ) ) {
+        mkdir( $dir_info['path'] );
+        file_put_contents( $dir_info['path'] . 'index.html', '' );
+    }
+    
+    return apply_filters( 'fl_builder_get_cache_dir', $dir_info );
+}
+```
+
+Default cache location: `wp-content/uploads/bb-plugin/cache/`
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Use Responsive Rules" icon="mobile">
+    Use `responsive_rule()` instead of manual breakpoint CSS for consistency.
+  </Card>
+  
+  <Card title="Leverage Auto CSS" icon="wand-magic-sparkles">
+    Enable auto CSS in field preview configs to reduce manual CSS code.
+  </Card>
+  
+  <Card title="Cache Smartly" icon="bolt">
+    Clear cache only when necessary to maintain performance.
+  </Card>
+  
+  <Card title="Namespace Selectors" icon="fingerprint">
+    Always prefix selectors with `.fl-node-$id` for specificity.
+  </Card>
+</CardGroup>
+
+## Performance Tips
+
+<Steps>
+  <Step title="Minimize CSS Rules">
+    Group related properties in single rules.
+  </Step>
+  
+  <Step title="Use Compound Fields">
+    Use built-in compound field rules (typography, border) instead of individual rules.
+  </Step>
+  
+  <Step title="Conditional CSS">
+    Only generate CSS when settings have values:
+    ```php
+    if ( ! empty( $settings->color ) ) {
+        FLBuilderCSS::rule(...);
+    }
+    ```
+  </Step>
+  
+  <Step title="Cache Awareness">
+    Remember cached CSS persists until cleared or post is updated.
+  </Step>
+</Steps>
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="Custom Fields" icon="input-text" href="/developer/advanced/custom-fields">
+    Learn about field types and preview system
+  </Card>
+  
+  <Card title="AJAX Operations" icon="arrows-rotate" href="/developer/advanced/ajax-operations">
+    Handle AJAX rendering and refreshes
+  </Card>
+  
+  <Card title="Data Model" icon="database" href="/developer/advanced/data-model">
+    Understand layout data structure
+  </Card>
+  
+  <Card title="Module Development" icon="puzzle-piece" href="/developer/custom-modules/overview">
+    Create custom modules with assets
+  </Card>
+</CardGroup>

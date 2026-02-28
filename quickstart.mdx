@@ -1,80 +1,315 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quick Start Guide
+description: Create your first page with Beaver Builder in minutes - a step-by-step walkthrough
 ---
 
-## Get started in three steps
+# Quick Start Guide
 
-Get your documentation site running locally and make your first customization.
+This guide will walk you through creating your first page with Beaver Builder. You'll learn the basics of the interface, how to add content modules, and how to publish your page.
 
-### Step 1: Set up your local environment
+<Info>
+Before starting, make sure you've [installed Beaver Builder](/installation) on your WordPress site.
+</Info>
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+## Creating Your First Page
 
-### Step 2: Deploy your changes
+<Steps>
+  <Step title="Create a New Page">
+    From your WordPress admin dashboard, go to **Pages > Add New**. Give your page a title (e.g., "My First Beaver Builder Page").
+  </Step>
+  
+  <Step title="Launch Beaver Builder">
+    Click the **Beaver Builder** button in the WordPress admin bar at the top of the screen, or click the Beaver Builder button on the page edit screen. The page will reload with the Beaver Builder interface.
+  </Step>
+  
+  <Step title="Understand the Interface">
+    You'll see several key elements:
+    - **Top Bar:** Contains tools, templates, and the Done button
+    - **Right Panel:** Shows available modules and content blocks
+    - **Canvas:** The main editing area where you'll build your page
+    - **Overlays:** Hover over elements to see editing options (gear icon, duplicate, delete)
+  </Step>
+</Steps>
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+## Understanding Rows and Columns
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+Beaver Builder uses a row and column layout system. Before adding content, you need to add rows and columns:
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+**Layout Structure:**
+- **Rows** are full-width containers that hold columns
+- **Columns** sit inside rows and hold your content modules
+- **Modules** are the actual content elements (text, images, buttons, etc.)
 </Note>
+
+### Adding Your First Row
+
+<Steps>
+  <Step title="Add a Row">
+    Click the **+** (plus) icon in the top right corner, or click anywhere on the empty canvas. Select **Add Row** from the options.
+  </Step>
+  
+  <Step title="Choose a Column Layout">
+    A panel will appear showing different column layouts (1 column, 2 columns, 3 columns, etc.). Click a layout to insert it. For this tutorial, select a **2 column** layout.
+  </Step>
+  
+  <Step title="View Your Row">
+    The row will appear on your page with two equal-width columns, indicated by dashed blue outlines.
+  </Step>
+</Steps>
+
+## Adding Content Modules
+
+Now let's add some content to your page using Beaver Builder's modules.
+
+### Adding a Heading Module
+
+<Steps>
+  <Step title="Open the Modules Panel">
+    Click the **+** icon in the top right, or click the **Modules** tab in the right panel.
+  </Step>
+  
+  <Step title="Find the Heading Module">
+    Scroll through the modules or use the search box. Look for the **Heading** module.
+  </Step>
+  
+  <Step title="Drag the Module">
+    Click and drag the **Heading** module into your left column. Drop it when you see a blue highlight.
+  </Step>
+  
+  <Step title="Configure the Heading">
+    The module settings panel will open automatically. Enter your heading text (e.g., "Welcome to My Website"). Choose a heading tag (H1 is good for main titles). Click **Save** in the top right of the settings panel.
+  </Step>
+</Steps>
+
+### Adding a Photo Module
+
+<Steps>
+  <Step title="Select the Photo Module">
+    From the Modules panel, find the **Photo** module.
+  </Step>
+  
+  <Step title="Add to Page">
+    Drag the Photo module into the right column next to your heading.
+  </Step>
+  
+  <Step title="Upload or Select an Image">
+    In the settings panel, click **Select Photo**. You can upload a new image or choose from your existing media library. Select an image and click **Save**.
+  </Step>
+</Steps>
+
+### Adding a Text Editor Module
+
+<Steps>
+  <Step title="Add Below the Heading">
+    Drag a **Text Editor** module and drop it below the Heading module in the left column.
+  </Step>
+  
+  <Step title="Enter Your Content">
+    The WordPress text editor will appear. Type or paste your content. You can format text, add links, and more using the editor toolbar.
+  </Step>
+  
+  <Step title="Save the Module">
+    Click **Save** to add the text to your page.
+  </Step>
+</Steps>
+
+### Adding a Button Module
+
+<Steps>
+  <Step title="Insert Button Module">
+    Drag a **Button** module below your text editor.
+  </Step>
+  
+  <Step title="Configure Button Settings">
+    - **Text:** Enter button text (e.g., "Learn More")
+    - **Link:** Add the URL you want the button to link to
+    - **Style:** Choose a button style from the Style tab
+    - Click **Save** when finished
+  </Step>
+</Steps>
+
+## Working with Your Layout
+
+### Moving Modules
+
+<Note>
+To move a module, hover over it and click the **⋮⋮** (drag) icon that appears in the module's toolbar. Drag it to a new position.
+</Note>
+
+### Editing Modules
+
+<Steps>
+  <Step title="Hover Over a Module">
+    Move your mouse over any module to reveal its toolbar.
+  </Step>
+  
+  <Step title="Click the Settings Icon">
+    Click the **⚙** (gear) icon to reopen the settings panel and make changes.
+  </Step>
+  
+  <Step title="Save Changes">
+    Remember to click **Save** after making edits.
+  </Step>
+</Steps>
+
+### Duplicating and Deleting
+
+- **Duplicate:** Hover over a module/row and click the **duplicate** icon to create a copy
+- **Delete:** Hover and click the **×** (X) icon to remove an element
+
+<Warning>
+Deleted elements cannot be recovered unless you use the History panel (undo/redo). Be careful when deleting content.
+</Warning>
+
+## Adding More Rows
+
+To create more complex layouts, add additional rows:
+
+<Steps>
+  <Step title="Click Between Rows">
+    Hover between existing rows or at the bottom of your page. A **+** icon will appear.
+  </Step>
+  
+  <Step title="Add Row">
+    Click the **+** icon and select your column layout.
+  </Step>
+  
+  <Step title="Populate with Modules">
+    Add modules to your new row just like before.
+  </Step>
+</Steps>
+
+## Row and Column Settings
+
+Customize the appearance of your rows and columns:
+
+### Row Settings
+
+<Steps>
+  <Step title="Access Row Settings">
+    Hover over a row and click the **⚙** (gear) icon in the row toolbar.
+  </Step>
+  
+  <Step title="Explore Options">
+    - **Style:** Set background colors, images, or videos
+    - **Advanced:** Add custom CSS, spacing, borders, and more
+    - **Responsive:** Control visibility on different devices
+  </Step>
+</Steps>
+
+### Column Settings
+
+<Note>
+Column settings work similarly - hover over a column and click its gear icon to adjust width, background, spacing, and alignment.
+</Note>
+
+## Previewing Your Page
+
+Before publishing, preview how your page will look to visitors:
+
+<Steps>
+  <Step title="Open Tools Menu">
+    Click **Tools** in the top bar (the hamburger menu icon).
+  </Step>
+  
+  <Step title="Select Preview Layout">
+    Choose **Preview Layout** from the menu.
+  </Step>
+  
+  <Step title="View Preview">
+    Your page will display without the Beaver Builder editing interface. Click the **×** to return to editing.
+  </Step>
+</Steps>
+
+## Responsive Editing
+
+Beaver Builder makes it easy to optimize your page for different screen sizes:
+
+<Steps>
+  <Step title="Enable Responsive Editing">
+    Click **Tools > Responsive Editing** or use the responsive icons in the top bar.
+  </Step>
+  
+  <Step title="Switch Device Views">
+    Toggle between desktop, tablet, and mobile views to see how your page appears on different devices.
+  </Step>
+  
+  <Step title="Make Device-Specific Changes">
+    Some settings (like spacing, font sizes, and visibility) can be customized per device.
+  </Step>
+</Steps>
+
+## Publishing Your Page
+
+When you're happy with your page, it's time to publish:
+
+<Steps>
+  <Step title="Save Your Work">
+    Click the **Done** button in the top right corner. Choose **Save** or **Publish**.
+  </Step>
+  
+  <Step title="Publish Layout">
+    If this is a new page, you may need to publish it from the WordPress edit screen. Click **Publish** in the WordPress editor.
+  </Step>
+  
+  <Step title="View Your Published Page">
+    Click **View Page** to see your published page live on your site.
+  </Step>
+</Steps>
+
+<Info>
+**The difference between Save and Publish:**
+- **Save** keeps your changes in draft mode
+- **Publish** makes your page live to visitors
+- You can work on draft changes without affecting the published version
+</Info>
+
+## Using Undo and Redo
+
+Made a mistake? Beaver Builder tracks your changes:
+
+- **Undo:** Press `Ctrl+Z` (Windows) or `Cmd+Z` (Mac)
+- **Redo:** Press `Ctrl+Shift+Z` (Windows) or `Cmd+Shift+Z` (Mac)
+- Access history through **Tools > Keyboard Shortcuts** to see all available shortcuts
+
+## Next Steps
+
+Congratulations! You've created your first page with Beaver Builder. Here's what to explore next:
+
+<CardGroup cols={2}>
+  <Card title="Explore More Modules" icon="puzzle-piece">
+    Try other modules like Callout, Call to Action, Icon, Number Counter, Video, and more.
+  </Card>
+  <Card title="Use Templates" icon="file">
+    Save time by using pre-built templates. Click **Templates** in the top bar to browse options.
+  </Card>
+  <Card title="Advanced Layouts" icon="layer-group">
+    Create complex layouts using nested columns, the Box module for flexbox/CSS grid, and custom spacing.
+  </Card>
+  <Card title="Global Settings" icon="globe">
+    Customize default colors, fonts, and styles that apply across all your Beaver Builder pages.
+  </Card>
+</CardGroup>
+
+## Tips for Success
+
+<Note>
+**Best Practices:**
+- Save your work frequently while editing
+- Use the preview function to check your page before publishing
+- Test your page on different devices and browsers
+- Keep your layout simple and focused on user experience
+- Use consistent spacing and styling throughout your page
+</Note>
+
+## Getting Help
+
+Need assistance as you build?
+
+- **Keyboard Shortcuts:** Press `?` while in the builder to see all shortcuts
+- **Community:** Join the [Beaver Builders Facebook Group](http://beaver.builders) for tips and support
+- **Documentation:** Visit [docs.wpbeaverbuilder.com](https://docs.wpbeaverbuilder.com/) for detailed guides
+- **Support:** Premium users get expert support from the Beaver Builder team
+
+Happy building! 🎉

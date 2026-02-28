@@ -1,0 +1,185 @@
+---
+title: Installation
+description: Install Beaver Builder on your WordPress site and configure it for your post types
+---
+
+# Installing Beaver Builder
+
+This guide will walk you through installing Beaver Builder on your WordPress site and configuring it to work with your content types.
+
+## System Requirements
+
+Before installing Beaver Builder, ensure your server meets these minimum requirements:
+
+<Info>
+- **WordPress Version:** 6.6 or higher (tested up to 6.9)
+- **PHP Version:** 7.2 or higher
+- **Recommended:** Modern WordPress installation with sufficient memory allocation
+</Info>
+
+## Installation Methods
+
+### Method 1: WordPress Plugin Directory
+
+<Steps>
+  <Step title="Access Plugin Screen">
+    Log in to your WordPress admin dashboard and navigate to **Plugins > Add New**.
+  </Step>
+  
+  <Step title="Search for Beaver Builder">
+    In the search box, type "Beaver Builder" and press Enter. Look for the plugin titled "Beaver Builder Plugin" by The Beaver Builder Team.
+  </Step>
+  
+  <Step title="Install the Plugin">
+    Click the **Install Now** button next to the Beaver Builder plugin.
+  </Step>
+  
+  <Step title="Activate the Plugin">
+    Once installation is complete, click the **Activate** button to enable Beaver Builder on your site.
+  </Step>
+</Steps>
+
+### Method 2: Manual Upload
+
+<Steps>
+  <Step title="Download the Plugin">
+    Download the Beaver Builder plugin ZIP file from the WordPress.org repository or from your account at wpbeaverbuilder.com (for premium versions).
+  </Step>
+  
+  <Step title="Upload to WordPress">
+    Navigate to **Plugins > Add New > Upload Plugin** in your WordPress admin. Click **Choose File** and select the downloaded ZIP file.
+  </Step>
+  
+  <Step title="Install and Activate">
+    Click **Install Now**, then click **Activate Plugin** after the installation completes.
+  </Step>
+</Steps>
+
+### Method 3: FTP Installation
+
+<Steps>
+  <Step title="Extract Plugin Files">
+    Extract the downloaded ZIP file to your computer.
+  </Step>
+  
+  <Step title="Upload via FTP">
+    Connect to your server via FTP and upload the extracted plugin folder to the `wp-content/plugins/` directory.
+  </Step>
+  
+  <Step title="Activate in WordPress">
+    Log in to your WordPress admin and navigate to **Plugins**. Find Beaver Builder in the list and click **Activate**.
+  </Step>
+</Steps>
+
+## Post-Installation Configuration
+
+After activating Beaver Builder, you'll need to configure which post types can use the page builder.
+
+<Steps>
+  <Step title="Navigate to Settings">
+    Go to **Settings > Beaver Builder** in your WordPress admin menu.
+  </Step>
+  
+  <Step title="Select Post Types">
+    Choose which post types you want Beaver Builder to work with:
+    - **Pages** - Enable for standard WordPress pages
+    - **Posts** - Enable for blog posts
+    - **Custom Post Types** - Enable for any registered custom post types
+  </Step>
+  
+  <Step title="Configure User Access">
+    Set which user roles can access the Beaver Builder editor. By default, Administrators and Editors have access.
+  </Step>
+  
+  <Step title="Save Settings">
+    Click **Save Settings** to apply your configuration.
+  </Step>
+</Steps>
+
+## Accessing Beaver Builder
+
+Once installed and configured, you can access Beaver Builder in several ways:
+
+### From the Admin Bar
+
+<Note>
+When viewing any page or post on the front end of your site, you'll see a **Beaver Builder** option in the WordPress Admin Bar at the top. Click it to launch the builder interface.
+</Note>
+
+### From the Edit Screen
+
+When editing a page or post in the WordPress admin, you'll see a **Beaver Builder** button near the top of the screen. Click it to switch to the Beaver Builder editor.
+
+### Launch Button Indicator
+
+The Beaver Builder button in the admin bar includes a status dot:
+- **Green dot** - Beaver Builder is enabled for this page
+- **Gray dot** - Beaver Builder is not currently being used on this page
+
+## Verifying Installation
+
+To verify Beaver Builder is installed correctly:
+
+<Steps>
+  <Step title="Create or Edit a Page">
+    Navigate to **Pages > Add New** or edit an existing page.
+  </Step>
+  
+  <Step title="Look for Beaver Builder Button">
+    You should see a **Beaver Builder** button in the WordPress admin bar or on the edit page screen.
+  </Step>
+  
+  <Step title="Launch the Builder">
+    Click the Beaver Builder button. The page should reload with the Beaver Builder interface visible.
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+### Beaver Builder Button Not Appearing
+
+<Warning>
+If you don't see the Beaver Builder button:
+1. Verify the plugin is activated under **Plugins**
+2. Check that your user role has permission to use Beaver Builder
+3. Confirm the current post type is enabled in **Settings > Beaver Builder**
+4. Try refreshing the page or clearing your browser cache
+</Warning>
+
+### Performance Considerations
+
+<Info>
+Beaver Builder automatically attempts to increase PHP memory limits when the editor is active. For optimal performance:
+- Ensure your server has at least 256MB of PHP memory
+- Keep WordPress, your theme, and all plugins up to date
+- Consider a quality hosting provider optimized for WordPress
+</Info>
+
+### Theme Compatibility
+
+Beaver Builder is designed to work with almost any WordPress theme. However, for best results:
+
+- Use a theme that follows WordPress coding standards
+- Avoid themes with heavy built-in page builders
+- Consider the official Beaver Builder Theme for maximum compatibility
+
+## Next Steps
+
+Now that Beaver Builder is installed, you're ready to start building!
+
+<CardGroup cols={2}>
+  <Card title="Quick Start Guide" icon="rocket" href="/quickstart">
+    Create your first page with our step-by-step quick start guide.
+  </Card>
+  <Card title="Introduction" icon="book" href="/introduction">
+    Learn more about Beaver Builder's features and capabilities.
+  </Card>
+</CardGroup>
+
+## Getting Help
+
+Need assistance? Here are your support options:
+
+- **Knowledge Base:** [docs.wpbeaverbuilder.com](https://docs.wpbeaverbuilder.com/)
+- **Community:** Join the [Beaver Builders Facebook Group](http://beaver.builders) or [Slack Channel](https://www.wpbeaverbuilder.com/go/beaver-builders-slack)
+- **Premium Support:** Available with [Beaver Builder Pro](https://www.wpbeaverbuilder.com/pricing/) licenses

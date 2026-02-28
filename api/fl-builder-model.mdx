@@ -1,0 +1,364 @@
+---
+title: FLBuilderModel class
+description: Data model class for managing Beaver Builder layouts, rows, columns, and modules
+---
+
+The `FLBuilderModel` class handles all database operations and data management for Beaver Builder. It provides methods for creating, retrieving, updating, and deleting layout data.
+
+## Overview
+
+The `FLBuilderModel` class is defined in `classes/class-fl-builder-model.php` and is responsible for:
+
+- Layout data storage and retrieval
+- Node (row, column, module) management
+- Template handling
+- Settings management
+- Module registration
+
+## Class Properties
+
+### Row Layouts
+
+<ParamField path="$row_layouts" type="array">
+  Predefined column sizes for each row layout type.
+</ParamField>
+
+```php
+FLBuilderModel::$row_layouts = array(
+    '1-col'              => array( 100 ),
+    '2-cols'             => array( 50, 50 ),
+    '3-cols'             => array( 33.33, 33.33, 33.33 ),
+    '4-cols'             => array( 25, 25, 25, 25 ),
+    '5-cols'             => array( 20, 20, 20, 20, 20 ),
+    '6-cols'             => array( 16.65, 16.65, 16.65, 16.65, 16.65, 16.65 ),
+    'left-sidebar'       => array( 33.33, 66.66 ),
+    'right-sidebar'      => array( 66.66, 33.33 ),
+    'left-right-sidebar' => array( 25, 50, 25 ),
+);
+```
+
+**Source:** `class-fl-builder-model.php:18-28`
+
+### Module Properties
+
+<ParamField path="$settings_forms" type="array">
+  Registered settings forms for modules, rows, and columns.
+</ParamField>
+
+<ParamField path="$modules" type="array">
+  Instances of all registered modules.
+</ParamField>
+
+<ParamField path="$module_aliases" type="array">
+  Module aliases with custom names and settings.
+</ParamField>
+
+## Key Methods
+
+### Layout Management
+
+#### get_layout_data()
+
+Retrieves the layout data for a post.
+
+```php
+$layout_data = FLBuilderModel::get_layout_data( 'published', $post_id );
+```
+
+<ParamField path="type" type="string" required>
+  Either `'published'` or `'draft'`
+</ParamField>
+
+<ParamField path="post_id" type="int">
+  The post ID. Defaults to current post.
+</ParamField>
+
+**Returns:** (array) Layout data with nodes keyed by node ID
+
+#### save_layout()
+
+Saves the current layout data.
+
+```php
+FLBuilderModel::save_layout( $publish = false, $exit = false );
+```
+
+<ParamField path="publish" type="bool">
+  Whether to publish the layout (true) or save as draft (false)
+</ParamField>
+
+<ParamField path="exit" type="bool">
+  Whether to exit the builder after saving
+</ParamField>
+
+**Actions:**
+- `fl_builder_before_save_layout` - Fires before layout is saved
+- `fl_builder_after_save_layout` - Fires after layout is saved
+
+**Source:** `class-fl-builder-model.php` (multiple methods)
+
+#### delete_all_asset_cache()
+
+Deletes all cached CSS and JS files for a post.
+
+```php
+FLBuilderModel::delete_all_asset_cache( $post_id );
+```
+
+<ParamField path="post_id" type="int">
+  The post ID. Defaults to current post.
+</ParamField>
+
+### Node Management
+
+#### get_node()
+
+Retrieves a specific node (row, column, or module) by ID.
+
+```php
+$node = FLBuilderModel::get_node( $node_id );
+```
+
+<ParamField path="node_id" type="string" required>
+  The unique node ID
+</ParamField>
+
+**Returns:** (object|null) Node object or null if not found
+
+#### delete_node()
+
+Deletes a node and all its children.
+
+```php
+FLBuilderModel::delete_node( $node_id );
+```
+
+<ParamField path="node_id" type="string" required>
+  The node ID to delete
+</ParamField>
+
+**Returns:** (array) Updated layout data
+
+#### move_node()
+
+Moves a node to a new parent and position.
+
+```php
+FLBuilderModel::move_node( $node_id, $new_parent, $position );
+```
+
+<ParamField path="node_id" type="string" required>
+  The node ID to move
+</ParamField>
+
+<ParamField path="new_parent" type="string" required>
+  The new parent node ID
+</ParamField>
+
+<ParamField path="position" type="int" required>
+  The position in the new parent (0-indexed)
+</ParamField>
+
+### Module Registration
+
+#### register_module()
+
+Registers a custom module class.
+
+```php
+FLBuilder::register_module( 'MyCustomModule', array(
+    'name'        => 'My Custom Module',
+    'description' => 'A custom module for Beaver Builder',
+    'category'    => 'Basic',
+    'dir'         => __DIR__ . '/modules/my-module/',
+    'url'         => plugins_url( 'modules/my-module/', __FILE__ ),
+));
+```
+
+<ParamField path="class" type="string" required>
+  The module class name
+</ParamField>
+
+<ParamField path="config" type="array" required>
+  Module configuration array
+</ParamField>
+
+**Filter:** `fl_builder_register_module` - Modify module registration
+
+### Settings Management
+
+#### get_global_settings()
+
+Retrieves the global builder settings.
+
+```php
+$settings = FLBuilderModel::get_global_settings();
+```
+
+**Returns:** (object) Global settings object
+
+**Filter:** `fl_builder_get_global_settings` - Modify global settings
+
+#### save_global_settings()
+
+Saves the global builder settings.
+
+```php
+FLBuilderModel::save_global_settings( $settings );
+```
+
+<ParamField path="settings" type="array" required>
+  Settings array to save
+</ParamField>
+
+**Action:** `fl_builder_global_settings_saved` - Fires after settings are saved
+
+#### get_enabled_modules()
+
+Retrieves the list of enabled modules.
+
+```php
+$enabled = FLBuilderModel::get_enabled_modules();
+```
+
+**Returns:** (array) Array of enabled module slugs, or `['all']` if all are enabled
+
+### Template Methods
+
+#### get_template_selector()
+
+Retrieves template data for the template selector.
+
+```php
+$templates = FLBuilderModel::get_template_selector();
+```
+
+**Returns:** (array) Array of template categories and templates
+
+#### apply_template()
+
+Applies a template to the current layout.
+
+```php
+FLBuilderModel::apply_template( $template_id, $append = false );
+```
+
+<ParamField path="template_id" type="string" required>
+  The template ID or path to .dat file
+</ParamField>
+
+<ParamField path="append" type="bool">
+  Whether to append (true) or replace (false) existing content
+</ParamField>
+
+## Layout Data Structure
+
+Layout data is stored as an array of node objects, keyed by node ID:
+
+```php
+array(
+    'row_id_123' => (object) array(
+        'node'     => 'row_id_123',
+        'parent'   => null,
+        'type'     => 'row',
+        'position' => 0,
+        'settings' => (object) array( /* row settings */ )
+    ),
+    'column_id_456' => (object) array(
+        'node'     => 'column_id_456',
+        'parent'   => 'row_id_123',
+        'type'     => 'column',
+        'position' => 0,
+        'settings' => (object) array( /* column settings */ )
+    ),
+    'module_id_789' => (object) array(
+        'node'     => 'module_id_789',
+        'parent'   => 'column_id_456',
+        'type'     => 'button',
+        'position' => 0,
+        'settings' => (object) array( /* module settings */ )
+    )
+)
+```
+
+## Usage Examples
+
+### Get Layout Data
+
+```php
+// Get published layout for current post
+$layout = FLBuilderModel::get_layout_data();
+
+// Get draft layout for specific post
+$draft = FLBuilderModel::get_layout_data( 'draft', 123 );
+
+// Loop through nodes
+foreach ( $layout as $node_id => $node ) {
+    echo $node->type . ': ' . $node_id . '<br>';
+}
+```
+
+### Check if Builder is Enabled
+
+```php
+if ( FLBuilderModel::is_builder_enabled( $post_id ) ) {
+    echo 'Beaver Builder is enabled for this post';
+}
+```
+
+### Get All Modules
+
+```php
+$modules = FLBuilderModel::$modules;
+foreach ( $modules as $slug => $module ) {
+    echo $module->name . ' (' . $slug . ')<br>';
+}
+```
+
+### Clear Cache for Post
+
+```php
+// Clear cache after programmatic changes
+FLBuilderModel::delete_all_asset_cache( $post_id );
+```
+
+## Related Classes
+
+<CardGroup cols={2}>
+  <Card title="FLBuilder" icon="hammer" href="/api/fl-builder">
+    Main builder class with UI and rendering
+  </Card>
+  <Card title="FLBuilderModule" icon="cube" href="/api/fl-builder-module">
+    Base class for module development
+  </Card>
+  <Card title="Data Model Guide" icon="database" href="/developer/advanced/data-model">
+    Learn about the layout data structure
+  </Card>
+  <Card title="Custom Modules" icon="code" href="/developer/custom-modules">
+    Create custom modules
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+<Tip>
+Always clear the cache after programmatic layout changes:
+
+```php
+FLBuilderModel::delete_all_asset_cache( $post_id );
+```
+</Tip>
+
+<Warning>
+Direct manipulation of layout data should be done carefully. Always validate node structure and relationships.
+</Warning>
+
+<Info>
+Use the provided AJAX methods through FLBuilderAJAX for operations in the builder UI. Direct model methods are for programmatic operations.
+</Info>
+
+## Source Code Reference
+
+- **File:** `classes/class-fl-builder-model.php`
+- **Since:** Version 1.0
+- **Version:** 2.10.1.1

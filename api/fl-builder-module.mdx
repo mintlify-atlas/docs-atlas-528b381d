@@ -1,0 +1,411 @@
+---
+title: FLBuilderModule class
+description: Base class for all Beaver Builder modules - extend this to create custom modules
+---
+
+The `FLBuilderModule` class is the foundation for all modules in Beaver Builder. Custom modules extend this class to inherit core functionality and integrate with the builder.
+
+## Overview
+
+The `FLBuilderModule` class is defined in `classes/class-fl-builder-module.php` and provides:
+
+- Module metadata and configuration
+- Settings form integration
+- Frontend rendering hooks
+- Asset management
+- Module lifecycle methods
+
+## Class Properties
+
+All module classes that extend `FLBuilderModule` have access to these properties:
+
+### Core Properties
+
+<ParamField path="$node" type="string">
+  Unique ID for the module instance (e.g., `'5a3d9f12345'`)
+</ParamField>
+
+<ParamField path="$parent" type="string">
+  Node ID of the parent column
+</ParamField>
+
+<ParamField path="$position" type="int">
+  Sort order within the parent column (0-indexed)
+</ParamField>
+
+<ParamField path="$name" type="string">
+  Display name for the module (e.g., `'Button'`)
+</ParamField>
+
+<ParamField path="$description" type="string">
+  Description shown in the module panel
+</ParamField>
+
+<ParamField path="$category" type="string">
+  Module category: `'Basic'`, `'Content'`, `'Layout'`, or custom
+</ParamField>
+
+<ParamField path="$slug" type="string">
+  Module folder name - must match the directory name
+</ParamField>
+
+<ParamField path="$dir" type="string">
+  Absolute path to the module directory
+</ParamField>
+
+<ParamField path="$url" type="string">
+  URL to the module directory
+</ParamField>
+
+### Settings and Configuration
+
+<ParamField path="$settings" type="object">
+  Module settings values from the user
+</ParamField>
+
+<ParamField path="$form" type="array">
+  Settings form configuration array
+</ParamField>
+
+<ParamField path="$enabled" type="bool">
+  Whether the module is enabled on the frontend (default: `true`)
+</ParamField>
+
+<ParamField path="$editor_export" type="bool">
+  Whether to export content to WordPress editor (default: `true`)
+</ParamField>
+
+<ParamField path="$partial_refresh" type="bool">
+  Enable partial refresh for live editing (default: `false`)
+</ParamField>
+
+### Asset Management
+
+<ParamField path="$css" type="array">
+  Additional CSS files to enqueue
+</ParamField>
+
+<ParamField path="$js" type="array">
+  Additional JS files to enqueue
+</ParamField>
+
+<ParamField path="$include_wrapper" type="bool">
+  Whether to include module wrapper divs (default: `true`)
+</ParamField>
+
+**Source:** `class-fl-builder-module.php:10-160`
+
+## Constructor
+
+Every custom module must call the parent constructor:
+
+```php
+class MyCustomModule extends FLBuilderModule {
+    public function __construct() {
+        parent::__construct(array(
+            'name'            => __( 'My Custom Module', 'my-textdomain' ),
+            'description'     => __( 'A custom module', 'my-textdomain' ),
+            'category'        => __( 'Basic', 'my-textdomain' ),
+            'dir'             => __DIR__,
+            'url'             => plugins_url( '', __FILE__ ),
+            'partial_refresh' => true,
+            'icon'            => 'button.svg',
+        ));
+    }
+}
+```
+
+### Constructor Parameters
+
+<ParamField path="name" type="string" required>
+  Module display name
+</ParamField>
+
+<ParamField path="description" type="string">
+  Module description
+</ParamField>
+
+<ParamField path="category" type="string">
+  Module category (default: `'Standard'`)
+</ParamField>
+
+<ParamField path="dir" type="string" required>
+  Absolute directory path (use `__DIR__`)
+</ParamField>
+
+<ParamField path="url" type="string" required>
+  Module directory URL
+</ParamField>
+
+<ParamField path="icon" type="string">
+  Icon filename (`.svg`) or inline SVG
+</ParamField>
+
+<ParamField path="editor_export" type="bool">
+  Export content to editor (default: `true`)
+</ParamField>
+
+<ParamField path="partial_refresh" type="bool">
+  Enable live preview (default: `false`)
+</ParamField>
+
+<ParamField path="enabled" type="bool">
+  Module enabled status (default: `true`)
+</ParamField>
+
+## Methods to Override
+
+### enqueue_scripts()
+
+Enqueue module-specific CSS and JavaScript files.
+
+```php
+public function enqueue_scripts() {
+    // Enqueue CSS
+    $this->add_css( 'my-module-css', $this->url . 'css/frontend.css' );
+    
+    // Enqueue JS
+    $this->add_js( 'my-module-js', $this->url . 'js/frontend.js', array( 'jquery' ), '', true );
+}
+```
+
+**Called:** When the module is rendered on the page
+
+### update( $settings )
+
+Process and validate settings before saving.
+
+```php
+public function update( $settings ) {
+    // Sanitize text field
+    $settings->my_text = sanitize_text_field( $settings->my_text );
+    
+    // Validate URL
+    if ( ! empty( $settings->my_url ) ) {
+        $settings->my_url = esc_url( $settings->my_url );
+    }
+    
+    return $settings;
+}
+```
+
+<ParamField path="$settings" type="object" required>
+  Module settings object to validate
+</ParamField>
+
+**Returns:** (object) Sanitized settings object
+
+### delete()
+
+Clean up when the module is deleted.
+
+```php
+public function delete() {
+    // Delete associated custom post
+    if ( ! empty( $this->settings->custom_post_id ) ) {
+        wp_delete_post( $this->settings->custom_post_id, true );
+    }
+}
+```
+
+**Called:** When the module instance is deleted
+
+### get_classname()
+
+Customize the CSS class for the module wrapper.
+
+```php
+public function get_classname() {
+    $classes = array( 'my-custom-class' );
+    
+    if ( ! empty( $this->settings->style ) ) {
+        $classes[] = 'my-module-' . $this->settings->style;
+    }
+    
+    return implode( ' ', $classes );
+}
+```
+
+**Returns:** (string) Space-separated CSS classes
+
+## Helper Methods
+
+### add_css()
+
+Enqueue a CSS file for the module.
+
+```php
+$this->add_css( 'handle', $url, $deps = array(), $version = FL_BUILDER_VERSION, $media = 'all' );
+```
+
+### add_js()
+
+Enqueue a JavaScript file for the module.
+
+```php
+$this->add_js( 'handle', $url, $deps = array(), $version = FL_BUILDER_VERSION, $in_footer = false );
+```
+
+### render_button()
+
+Render a button using Beaver Builder's button renderer.
+
+```php
+FLBuilder::render_module_html( 'button', $this->settings->my_button );
+```
+
+## Module Files Structure
+
+A typical module directory structure:
+
+```
+my-module/
+├── my-module.php           # Module class
+├── includes/
+│   ├── frontend.php        # Frontend HTML template
+│   ├── frontend.css.php    # Dynamic CSS
+│   └── frontend.js.php     # Dynamic JS (optional)
+├── css/
+│   └── frontend.css        # Static CSS (optional)
+├── js/
+│   └── frontend.js         # Static JS (optional)
+└── icon.svg                # Module icon
+```
+
+## Frontend Templates
+
+The `includes/frontend.php` file has access to:
+
+<ParamField path="$module" type="object">
+  The module instance (`FLBuilderModule` object)
+</ParamField>
+
+<ParamField path="$settings" type="object">
+  Module settings values
+</ParamField>
+
+<ParamField path="$id" type="string">
+  The module node ID
+</ParamField>
+
+```php
+<!-- includes/frontend.php -->
+<div class="my-module-content">
+    <h2><?php echo $settings->title; ?></h2>
+    <p><?php echo $settings->description; ?></p>
+</div>
+```
+
+## Usage Example
+
+Complete custom module:
+
+```php
+<?php
+
+class MyAlertModule extends FLBuilderModule {
+    
+    public function __construct() {
+        parent::__construct(array(
+            'name'            => __( 'Alert', 'my-textdomain' ),
+            'description'     => __( 'Display an alert message', 'my-textdomain' ),
+            'category'        => __( 'Basic', 'my-textdomain' ),
+            'dir'             => __DIR__,
+            'url'             => plugins_url( '', __FILE__ ),
+            'icon'            => 'alert.svg',
+            'partial_refresh' => true,
+        ));
+    }
+    
+    public function enqueue_scripts() {
+        $this->add_css( 'alert-css', $this->url . 'css/frontend.css' );
+    }
+    
+    public function update( $settings ) {
+        $settings->message = wp_kses_post( $settings->message );
+        return $settings;
+    }
+}
+
+FLBuilder::register_module( 'MyAlertModule', array(
+    'general' => array(
+        'title'    => __( 'General', 'my-textdomain' ),
+        'sections' => array(
+            'general' => array(
+                'title'  => '',
+                'fields' => array(
+                    'message' => array(
+                        'type'    => 'editor',
+                        'label'   => __( 'Message', 'my-textdomain' ),
+                        'default' => '',
+                    ),
+                    'type' => array(
+                        'type'    => 'select',
+                        'label'   => __( 'Type', 'my-textdomain' ),
+                        'default' => 'info',
+                        'options' => array(
+                            'info'    => __( 'Info', 'my-textdomain' ),
+                            'success' => __( 'Success', 'my-textdomain' ),
+                            'warning' => __( 'Warning', 'my-textdomain' ),
+                            'error'   => __( 'Error', 'my-textdomain' ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+    ),
+));
+```
+
+## Related Documentation
+
+<CardGroup cols={2}>
+  <Card title="Creating Modules" icon="plus" href="/developer/modules/creating-modules">
+    Step-by-step guide to building modules
+  </Card>
+  <Card title="Module Structure" icon="folder-tree" href="/developer/modules/module-structure">
+    Learn about module file structure
+  </Card>
+  <Card title="Frontend Rendering" icon="code" href="/developer/modules/frontend-rendering">
+    Render module output
+  </Card>
+  <Card title="Settings Forms" icon="sliders" href="/developer/modules/module-settings-forms">
+    Configure module settings
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+<Tip>
+Always sanitize and validate user input in the `update()` method:
+
+```php
+public function update( $settings ) {
+    $settings->text = sanitize_text_field( $settings->text );
+    $settings->html = wp_kses_post( $settings->html );
+    return $settings;
+}
+```
+</Tip>
+
+<Warning>
+The `$settings` property contains user input. Always escape output in templates:
+
+```php
+<h2><?php echo esc_html( $settings->title ); ?></h2>
+```
+</Warning>
+
+<Info>
+Enable `partial_refresh` for better user experience during live editing:
+
+```php
+'partial_refresh' => true,
+```
+</Info>
+
+## Source Code Reference
+
+- **File:** `classes/class-fl-builder-module.php`
+- **Since:** Version 1.0
+- **Version:** 2.10.1.1

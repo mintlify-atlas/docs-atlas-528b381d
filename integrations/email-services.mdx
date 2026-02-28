@@ -1,0 +1,558 @@
+---
+title: Email Marketing Services
+description: Connect Beaver Builder forms to popular email marketing services including MailChimp, ActiveCampaign, ConvertKit, and 25+ other providers.
+icon: envelope
+---
+
+Beaver Builder includes built-in integrations with over 25 email marketing services, allowing you to connect subscription forms directly to your email lists without any additional plugins.
+
+## Supported Services
+
+Beaver Builder supports the following email marketing services out of the box:
+
+<CardGroup cols={3}>
+  <Card title="ActiveCampaign" icon="at">
+    Marketing automation and CRM platform
+  </Card>
+  
+  <Card title="AWeber" icon="envelope">
+    Email marketing and automation
+  </Card>
+  
+  <Card title="Campaign Monitor" icon="paper-plane">
+    Email marketing software
+  </Card>
+  
+  <Card title="Campayn" icon="bullhorn">
+    Email marketing platform
+  </Card>
+  
+  <Card title="Constant Contact" icon="address-book">
+    Email and digital marketing
+  </Card>
+  
+  <Card title="Constant Contact v3" icon="address-book">
+    Latest Constant Contact API
+  </Card>
+  
+  <Card title="ConvertKit" icon="filter">
+    Email marketing for creators
+  </Card>
+  
+  <Card title="Drip" icon="droplet">
+    E-commerce CRM platform
+  </Card>
+  
+  <Card title="Email Address" icon="envelope-open-text">
+    Send to any email address
+  </Card>
+  
+  <Card title="Enormail" icon="mail-bulk">
+    Email marketing service
+  </Card>
+  
+  <Card title="GetResponse" icon="share">
+    Email marketing and automation
+  </Card>
+  
+  <Card title="GoDaddy Email Marketing" icon="globe">
+    Email marketing by GoDaddy
+  </Card>
+  
+  <Card title="Groundhogg" icon="earth">
+    WordPress CRM and marketing automation
+  </Card>
+  
+  <Card title="Hatchbuck" icon="egg">
+    Sales and marketing software
+  </Card>
+  
+  <Card title="iContact" icon="id-card">
+    Email marketing platform
+  </Card>
+  
+  <Card title="iContact Pro" icon="id-card-clip">
+    Advanced iContact integration
+  </Card>
+  
+  <Card title="Infusionsoft" icon="infinity">
+    Sales and marketing automation
+  </Card>
+  
+  <Card title="Mad Mimi" icon="face-smile">
+    Email marketing service
+  </Card>
+  
+  <Card title="MailChimp" icon="mailchimp" iconType="brands">
+    All-in-one marketing platform
+  </Card>
+  
+  <Card title="MailerLite" icon="feather">
+    Email marketing tools
+  </Card>
+  
+  <Card title="Mailjet" icon="jet-fighter">
+    Email service provider
+  </Card>
+  
+  <Card title="MailPoet" icon="dove">
+    WordPress email marketing
+  </Card>
+  
+  <Card title="MailRelay" icon="relay">
+    Email marketing service
+  </Card>
+  
+  <Card title="Mautic" icon="m">
+    Open source marketing automation
+  </Card>
+  
+  <Card title="Ontraport" icon="circle-o">
+    Business automation software
+  </Card>
+  
+  <Card title="Sendinblue" icon="paper-plane">
+    Marketing and transactional email
+  </Card>
+  
+  <Card title="Sendy" icon="send">
+    Self-hosted email newsletter app
+  </Card>
+</CardGroup>
+
+## Connecting a Service
+
+To use email marketing integrations, you first need to connect your account.
+
+<Steps>
+  <Step title="Access Email Marketing Settings">
+    Navigate to **Settings → Page Builder → Email Marketing**
+  </Step>
+  
+  <Step title="Choose Service">
+    Click on the service you want to connect from the list
+  </Step>
+  
+  <Step title="Enter API Credentials">
+    Enter your API key or credentials (found in your email service account)
+  </Step>
+  
+  <Step title="Test Connection">
+    Click **Connect** to test and save the connection
+  </Step>
+  
+  <Step title="Name Your Account">
+    Give your connection a name (useful if you have multiple accounts)
+  </Step>
+</Steps>
+
+<Tip>
+  You can connect multiple accounts for the same service, which is useful for agencies managing multiple clients.
+</Tip>
+
+## Subscribe Form Module
+
+Once connected, use the **Subscribe Form** module to add signup forms to your layouts.
+
+### Basic Setup
+
+<Tabs>
+  <Tab title="Add Module">
+    1. Open the Content Panel
+    2. Find the **Subscribe Form** module
+    3. Drag it to your layout
+  </Tab>
+  
+  <Tab title="Configure Service">
+    1. In the **Service** dropdown, select your connected account
+    2. Choose the email list you want to subscribe users to
+    3. Configure any additional service-specific options (tags, groups, etc.)
+  </Tab>
+  
+  <Tab title="Customize Form">
+    1. Add custom fields (name, email, custom fields)
+    2. Style the form to match your design
+    3. Set up success/error messages
+  </Tab>
+</Tabs>
+
+## Service-Specific Features
+
+Each email service has unique features and setup requirements.
+
+### MailChimp
+
+**Connection Settings:**
+
+<ParamField path="api_key" type="string" required>
+  Your MailChimp API key from **Account → Extras → API Keys**
+</ParamField>
+
+**Features:**
+
+- **Lists**: Subscribe to specific audience lists
+- **Groups**: Segment subscribers into groups
+- **Tags**: Apply tags for organization
+- **Double Opt-in**: Enable/disable with filter
+
+```php
+add_filter( 'fl_builder_mailchimp_double_option', '__return_true' );
+```
+
+**Name Handling:**
+
+```php class-fl-builder-service-mailchimp.php
+if ( $name ) {
+    $names = explode( ' ', $name );
+    if ( isset( $names[0] ) ) {
+        $data['FNAME'] = $names[0];
+        $data['LNAME'] = ltrim( str_replace( $names[0], '', $name ) );
+    }
+}
+```
+
+<Note>
+  MailChimp automatically splits full names into first and last name fields (FNAME and LNAME).
+</Note>
+
+### ActiveCampaign
+
+**Connection Settings:**
+
+<ParamField path="api_url" type="string" required>
+  Your ActiveCampaign API URL from **My Settings → Developer → API**
+</ParamField>
+
+<ParamField path="api_key" type="string" required>
+  Your ActiveCampaign API key from **My Settings → Developer → API**
+</ParamField>
+
+**Features:**
+
+- **Lists**: Subscribe to contact lists
+- **Forms**: Use ActiveCampaign's native forms
+- **Tags**: Apply tags for segmentation
+- **Type Selection**: Choose between List or Form subscription
+
+```php class-fl-builder-service-activecampaign.php
+$data['status'] = array(
+    $list_id => 1,  // Active status
+);
+$data['instantresponders'] = array(
+    $list_id => 1,  // Trigger autoresponders
+);
+```
+
+### ConvertKit
+
+**Connection Settings:**
+
+<ParamField path="api_key" type="string" required>
+  Your ConvertKit API key from **Account → Settings → API**
+</ParamField>
+
+**Features:**
+
+- **Forms**: Subscribe via ConvertKit forms
+- **Tags**: Apply tags to subscribers
+- **Sequences**: Add to email sequences
+
+<Info>
+  ConvertKit is particularly popular among bloggers and content creators for its simplicity and powerful automation features.
+</Info>
+
+### GetResponse
+
+**Connection Settings:**
+
+<ParamField path="api_key" type="string" required>
+  Your GetResponse API key from **My Account → API & OAuth**
+</ParamField>
+
+**Features:**
+
+- **Campaigns**: Subscribe to specific campaigns (lists)
+- **Custom Fields**: Map to GetResponse custom fields
+- **Autoresponders**: Trigger autoresponder sequences
+
+### Drip
+
+**Connection Settings:**
+
+<ParamField path="api_token" type="string" required>
+  Your Drip API token from **User Settings → API Tokens**
+</ParamField>
+
+<ParamField path="account_id" type="string" required>
+  Your Drip account ID from your account URL
+</ParamField>
+
+**Features:**
+
+- **Tags**: Apply tags for segmentation
+- **Custom Fields**: Send custom field data
+- **E-commerce Focus**: Ideal for online stores
+
+### Sendinblue (Brevo)
+
+**Connection Settings:**
+
+<ParamField path="api_key" type="string" required>
+  Your Sendinblue API key from **SMTP & API → API Keys**
+</ParamField>
+
+**Features:**
+
+- **Lists**: Subscribe to contact lists
+- **Attributes**: Send custom attributes
+- **SMS**: Optional SMS capabilities
+- **Transactional Emails**: Combine with transactional email features
+
+### MailerLite
+
+**Connection Settings:**
+
+<ParamField path="api_key" type="string" required>
+  Your MailerLite API key from **Integrations → Developer API**
+</ParamField>
+
+**Features:**
+
+- **Groups**: Subscribe to specific groups
+- **Fields**: Custom field mapping
+- **Simplicity**: Easy setup and configuration
+
+### Email Address (SMTP)
+
+The simplest option - send form submissions directly to an email address:
+
+<ParamField path="email" type="string" required>
+  The email address to receive form submissions
+</ParamField>
+
+<Warning>
+  Using "Email Address" sends plain emails and doesn't add subscribers to a managed list. For proper email marketing, use a dedicated service.
+</Warning>
+
+### Groundhogg (WordPress CRM)
+
+**Features:**
+
+- **Native Integration**: No API key needed (plugin-based)
+- **Lists**: Subscribe to Groundhogg lists
+- **Tags**: Apply tags within WordPress
+- **CRM Features**: Full CRM functionality within WordPress
+
+<Check>
+  Groundhogg is the only service that doesn't require external API credentials since it's a WordPress plugin.
+</Check>
+
+### MailPoet (WordPress Email)
+
+Another WordPress-native solution:
+
+**Features:**
+
+- **Native Integration**: No external API required
+- **Lists**: Subscribe to MailPoet lists
+- **WordPress Admin**: Manage everything in WordPress
+- **GDPR Friendly**: Built-in compliance tools
+
+## Integration Examples
+
+### Basic Newsletter Signup
+
+Create a simple newsletter signup form:
+
+<Steps>
+  <Step title="Add Subscribe Form">
+    Drag the Subscribe Form module to your page
+  </Step>
+  
+  <Step title="Configure Service">
+    - **Service**: Select your connected MailChimp account
+    - **List**: Choose your newsletter list
+  </Step>
+  
+  <Step title="Set Fields">
+    - **Show Name Field**: Yes
+    - **Email Field**: Enabled by default
+    - **Button Text**: "Subscribe Now"
+  </Step>
+  
+  <Step title="Style the Form">
+    Customize colors, spacing, and typography to match your brand
+  </Step>
+</Steps>
+
+### Lead Magnet with Tags
+
+Create a targeted lead magnet form with tagging:
+
+<Steps>
+  <Step title="Setup Form">
+    Add Subscribe Form module with your service
+  </Step>
+  
+  <Step title="Configure Tags">
+    - **ActiveCampaign**: Add tags like "Lead-Magnet-Download"
+    - **MailChimp**: Apply subscriber tags for segmentation
+  </Step>
+  
+  <Step title="Success Message">
+    Set a custom success message with download link:
+    
+    ```
+    Thank you! Check your email for the download link.
+    ```
+  </Step>
+</Steps>
+
+### Multi-Step Subscription
+
+Combine multiple forms for progressive profiling:
+
+1. **Step 1**: Basic email capture
+2. **Step 2**: Name and preferences (separate form)
+3. **Step 3**: Additional details (another form)
+
+Each form updates the same subscriber with additional information.
+
+## API Classes
+
+All email service integrations extend the base `FLBuilderService` class:
+
+```php
+final class FLBuilderServiceMailChimp extends FLBuilderService {
+    public $id = 'mailchimp';
+    
+    public function get_api( $api_key ) {
+        // Return API instance
+    }
+    
+    public function connect( $fields = array() ) {
+        // Test connection
+    }
+    
+    public function render_fields( $account, $settings ) {
+        // Render service-specific fields
+    }
+    
+    public function subscribe( $settings, $email, $name = false ) {
+        // Subscribe the email
+    }
+}
+```
+
+### Key Methods
+
+<ResponseField name="get_api" type="method">
+  Returns an instance of the service's API client
+</ResponseField>
+
+<ResponseField name="connect" type="method">
+  Tests API credentials and returns connection status
+</ResponseField>
+
+<ResponseField name="render_connect_settings" type="method">
+  Outputs HTML for connection settings form
+</ResponseField>
+
+<ResponseField name="render_fields" type="method">
+  Renders service-specific fields (lists, tags, groups)
+</ResponseField>
+
+<ResponseField name="subscribe" type="method">
+  Subscribes an email address to the service
+</ResponseField>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="API Key Not Working">
+    - Verify the API key is copied correctly (no spaces)
+    - Check that the API key has the necessary permissions
+    - Some services require API keys to be enabled in settings
+    - Try regenerating the API key in your service account
+  </Accordion>
+  
+  <Accordion title="Lists Not Appearing">
+    - Ensure you have created lists in your email service
+    - Refresh the builder panel to reload lists
+    - Check that your API key has permission to access lists
+    - Try disconnecting and reconnecting the account
+  </Accordion>
+  
+  <Accordion title="Subscribers Not Added">
+    - Check spam folders for confirmation emails (double opt-in)
+    - Verify the email address is valid
+    - Check your email service's activity log
+    - Ensure the list/form ID hasn't changed
+  </Accordion>
+  
+  <Accordion title="Double Opt-in Issues">
+    - Some services require double opt-in by default
+    - Use filters to disable double opt-in if needed
+    - Check confirmation email templates in your service
+    - Verify sender email is authorized
+  </Accordion>
+  
+  <Accordion title="Tags Not Applied">
+    - Ensure tags exist in your email service first
+    - Some services create tags automatically, others require pre-creation
+    - Check tag character limits and special character restrictions
+    - Verify API permissions include tag management
+  </Accordion>
+</AccordionGroup>
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="GDPR Compliance" icon="shield-check">
+    - Add GDPR checkbox for EU visitors
+    - Include privacy policy link
+    - Use double opt-in for explicit consent
+    - Document data processing activities
+  </Card>
+  
+  <Card title="List Hygiene" icon="broom">
+    - Regularly clean inactive subscribers
+    - Use double opt-in to ensure quality
+    - Segment lists for targeted campaigns
+    - Monitor bounce rates and complaints
+  </Card>
+  
+  <Card title="Form Optimization" icon="chart-line">
+    - Keep forms short (email only when possible)
+    - Use clear, compelling copy
+    - Offer value (lead magnets, discounts)
+    - Test different button text and colors
+  </Card>
+  
+  <Card title="Deliverability" icon="inbox">
+    - Authenticate your sending domain
+    - Avoid spam trigger words
+    - Maintain consistent sending schedule
+    - Monitor sender reputation scores
+  </Card>
+</CardGroup>
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="Subscribe Form Module" icon="rectangle-list" href="/modules/subscribe-form">
+    Detailed module documentation
+  </Card>
+  
+  <Card title="Contact Form" icon="message" href="/modules/contact-form">
+    General contact forms
+  </Card>
+  
+  <Card title="WordPress Integration" icon="wordpress" href="/integrations/wordpress">
+    Core WordPress features
+  </Card>
+  
+  <Card title="Third-Party Plugins" icon="plug" href="/integrations/third-party">
+    Other plugin integrations
+  </Card>
+</CardGroup>

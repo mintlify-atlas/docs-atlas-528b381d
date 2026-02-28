@@ -1,0 +1,524 @@
+---
+title: Template System
+description: Working with pre-built templates and creating reusable layouts
+---
+
+Beaver Builder's template system allows you to save and reuse layouts, rows, columns, and modules. This speeds up development and ensures consistency across your site.
+
+## What Are Templates?
+
+Templates are saved configurations of builder elements that can be reused:
+
+<CardGroup cols={2}>
+  <Card title="Layout Templates" icon="file">
+    Complete page layouts with all rows, columns, and modules
+  </Card>
+  <Card title="Row Templates" icon="table-rows">
+    Single rows with columns and modules
+  </Card>
+  <Card title="Column Templates" icon="table-columns">
+    Individual columns with their modules
+  </Card>
+  <Card title="Module Templates" icon="puzzle-piece">
+    Pre-configured module settings
+  </Card>
+</CardGroup>
+
+## Template Types
+
+### Built-in Templates
+
+**Location:** `~/workspace/source/data/`
+
+Beaver Builder ships with 70+ professionally designed templates:
+
+<Tabs>
+  <Tab title="Page Layouts (71)">
+    **Full page templates** including:
+    
+    - Home pages (2 layouts)
+    - Landing pages (2 layouts)  
+    - About pages (5 layouts)
+    - Services pages (3 layouts)
+    - Contact pages (7 layouts)
+    - Blog layouts (3 layouts)
+    - Pricing pages (2 layouts)
+    - Coming Soon / Maintenance
+    - And 40+ more...
+    
+    Each `.dat` file contains serialized layout data ready to import.
+  </Tab>
+  
+  <Tab title="Row Templates (93)">
+    **Reusable row sections** including:
+    
+    - Heroes (11 layouts)
+    - Call-to-Action (23 layouts)
+    - Features (8 layouts)
+    - Team sections (4 layouts)
+    - Testimonials (7 layouts)
+    - Lead generation forms (12 layouts)
+    - Content sections (22 layouts)
+    - Pricing tables (8 layouts)
+    - And more...
+  </Tab>
+  
+  <Tab title="Module Templates (65)">
+    **Pre-configured modules** including:
+    
+    - Callouts (17 variations)
+    - Hero sections (6 variations)
+    - Author bios (5 variations)
+    - Team members (8 variations)
+    - Testimonials (6 variations)
+    - CTAs (6 variations)
+    - Subscribe forms (6 variations)
+    - Content blocks (8 variations)
+    - Bento grid layouts (4 variations)
+  </Tab>
+  
+  <Tab title="Global Templates">
+    **Reusable components** that update everywhere when edited:
+    
+    - Headers
+    - Footers
+    - Sidebars
+    - Call-out boxes
+    - Any saved global template
+  </Tab>
+</Tabs>
+
+### Template Files
+
+Template data is stored in `.dat` files:
+
+```bash
+data/
+├── layout-00-Blank-lite.dat
+├── layout-01-Home.dat
+├── layout-02-Landing.dat
+├── layout-28-About.dat
+├── layout-29-Services.dat
+├── row-00-Profile-1.dat
+├── row-43-Cta-16.dat
+├── module-00-Callout-1.dat
+└── module-35-Bento-Testimonials.dat
+```
+
+## Saving Templates
+
+### Save a Layout Template
+
+<Steps>
+  <Step title="Open Layout">
+    Edit the page you want to save as a template
+  </Step>
+  
+  <Step title="Access Tools Menu">
+    Click the **Tools** menu in the top bar
+  </Step>
+  
+  <Step title="Save Template">
+    Select **Save Template** from the menu
+  </Step>
+  
+  <Step title="Name Template">
+    Enter a name and click **Save**
+  </Step>
+</Steps>
+
+### Save Row, Column, or Module
+
+<Steps>
+  <Step title="Select Element">
+    Click on the row, column, or module
+  </Step>
+  
+  <Step title="Save Template">
+    Click the **Save** icon or select **Save as Template**
+  </Step>
+  
+  <Step title="Name and Categorize">
+    Give it a name and select a category
+  </Step>
+</Steps>
+
+### Programmatic Template Creation
+
+<CodeGroup>
+```php Register Template Directory
+// Register a directory containing template .dat files
+FLBuilder::register_templates(
+    FL_CHILD_THEME_DIR . '/templates/',
+    array(
+        'group' => 'My Templates',
+    )
+);
+```
+
+```php Save Template Programmatically
+// Get layout data
+$data = FLBuilderModel::get_layout_data('published', $post_id);
+
+// Create template post
+$template_id = wp_insert_post(array(
+    'post_type'   => 'fl-builder-template',
+    'post_title'  => 'My Template',
+    'post_status' => 'publish',
+));
+
+// Save template data
+update_post_meta($template_id, '_fl_builder_data', $data);
+update_post_meta($template_id, '_fl_builder_enabled', true);
+```
+</CodeGroup>
+
+## Using Templates
+
+### Apply a Layout Template
+
+<Steps>
+  <Step title="Create New Page">
+    Create a new page or post
+  </Step>
+  
+  <Step title="Launch Builder">
+    Click **Launch Beaver Builder**
+  </Step>
+  
+  <Step title="Add Templates">
+    Click the **+** icon and select **Templates**
+  </Step>
+  
+  <Step title="Choose Template">
+    Browse templates and click to add
+  </Step>
+</Steps>
+
+### Insert Row or Module Template
+
+<Steps>
+  <Step title="Open Templates Panel">
+    Click **+** and go to **Templates** or **Saved**
+  </Step>
+  
+  <Step title="Select Type">
+    Choose **Rows**, **Columns**, or **Modules**
+  </Step>
+  
+  <Step title="Insert">
+    Click the template to insert it
+  </Step>
+</Steps>
+
+## Global Templates
+
+Global templates are linked across your site. When you edit a global template, the changes apply everywhere it's used.
+
+### Creating Global Templates
+
+<Steps>
+  <Step title="Save as Global">
+    When saving a template, check **Make this a global row/module**
+  </Step>
+  
+  <Step title="Use Globally">
+    The element becomes linked - edits affect all instances
+  </Step>
+</Steps>
+
+### Managing Global Templates
+
+<CodeGroup>
+```php Check if Node is Global
+$template_post_id = FLBuilderModel::is_node_global($node);
+
+if ($template_post_id) {
+    // This is a global template
+    echo 'Template Post ID: ' . $template_post_id;
+}
+```
+
+```php Get Global Template Data
+// For a global node, get its template data
+$template_post_id = FLBuilderModel::is_node_global($node);
+$template_data = FLBuilderModel::get_layout_data('published', $template_post_id);
+```
+
+```php Update Global Template
+// Changes will affect all instances
+FLBuilderModel::update_node($node_id, $node);
+FLBuilderModel::delete_all_asset_cache($template_post_id);
+```
+</CodeGroup>
+
+### Global Template Benefits
+
+<AccordionGroup>
+  <Accordion title="Consistent Branding">
+    Update headers, footers, or CTAs once and apply everywhere
+  </Accordion>
+  
+  <Accordion title="Easy Maintenance">
+    Make one edit instead of updating dozens of pages
+  </Accordion>
+  
+  <Accordion title="Team Collaboration">
+    Ensure team members use approved components
+  </Accordion>
+  
+  <Accordion title="Dynamic Content">
+    Link to a single source of truth for shared content
+  </Accordion>
+</AccordionGroup>
+
+## Template Library
+
+The template library provides an organized interface for browsing templates:
+
+### Template Categories
+
+- **All** - View all templates
+- **Landing** - Landing page layouts
+- **Saved** - Your saved templates
+- **My Templates** - User-created templates
+- **Core** - Beaver Builder templates
+- **User Templates** - Global templates
+
+### Template Organization
+
+<CodeGroup>
+```php Register Template Category
+FLBuilder::register_templates(
+    $template_path,
+    array(
+        'group' => __('My Category', 'my-plugin'),
+    )
+);
+```
+
+```php Filter Template Categories
+add_filter('fl_builder_template_groups', function($groups) {
+    $groups['my-group'] = __('My Templates', 'my-plugin');
+    return $groups;
+});
+```
+</CodeGroup>
+
+## Template Data Structure
+
+Template `.dat` files contain serialized PHP data:
+
+<CodeGroup>
+```php Template Data Format
+array(
+    'nodes' => array(
+        // Node data (rows, columns, modules)
+        'abc123' => stdClass Object(
+            'node'     => 'abc123',
+            'type'     => 'row',
+            'parent'   => null,
+            'position' => 0,
+            'settings' => stdClass Object(...),
+        ),
+    ),
+    'settings' => stdClass Object(
+        // Global layout settings
+        'row_width'    => 1100,
+        'row_padding' => 20,
+    ),
+)
+```
+
+```php Load Template Data
+// Read template file
+$file = file_get_contents($template_path);
+
+// Unserialize data
+$data = maybe_unserialize($file);
+
+// Access nodes
+$nodes = $data['nodes'];
+
+// Access settings
+$settings = isset($data['settings']) ? $data['settings'] : array();
+```
+</CodeGroup>
+
+## Creating Custom Templates
+
+### Template Development Workflow
+
+<Steps>
+  <Step title="Design in Builder">
+    Create your layout visually in the builder
+  </Step>
+  
+  <Step title="Export Template">
+    Use **Tools > Export** to download the template
+  </Step>
+  
+  <Step title="Save as .dat File">
+    Save the exported data as a `.dat` file
+  </Step>
+  
+  <Step title="Register Template">
+    Add to your plugin/theme templates directory
+    
+    ```php
+    FLBuilder::register_templates(
+        MY_PLUGIN_DIR . 'templates/'
+    );
+    ```
+  </Step>
+</Steps>
+
+### Template Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use Placeholders">
+    Include placeholder text and images that users can replace:
+    
+    ```php
+    'heading' => 'Replace with Your Heading',
+    'text'    => 'Add your content here...',
+    ```
+  </Accordion>
+  
+  <Accordion title="Optimize Images">
+    Use appropriately sized images to keep template files small
+  </Accordion>
+  
+  <Accordion title="Include Documentation">
+    Add a readme or comments explaining the template's purpose
+  </Accordion>
+  
+  <Accordion title="Test Responsiveness">
+    Ensure templates work well on all screen sizes
+  </Accordion>
+  
+  <Accordion title="Version Control">
+    Keep templates in version control for easy updates
+  </Accordion>
+</AccordionGroup>
+
+## Template Hooks
+
+Extend template functionality with hooks:
+
+<CodeGroup>
+```php Template Registration
+// Modify template data before registration
+add_filter('fl_builder_register_templates', function($templates) {
+    // Modify $templates array
+    return $templates;
+});
+
+// After template registered
+add_action('fl_builder_after_register_templates', function($templates) {
+    // Do something after registration
+});
+```
+
+```php Template Import
+// Before template import
+add_filter('fl_builder_before_apply_template', function($data, $post_id) {
+    // Modify template data before applying
+    return $data;
+}, 10, 2);
+
+// After template applied
+add_action('fl_builder_after_apply_template', function($data, $post_id) {
+    // Cleanup or additional processing
+}, 10, 2);
+```
+</CodeGroup>
+
+## Working with Template Data
+
+### Export Template
+
+<CodeGroup>
+```php Export Layout Data
+// Get layout data
+$data = FLBuilderModel::get_layout_data('published', $post_id);
+$settings = FLBuilderModel::get_layout_settings('published', $post_id);
+
+// Combine into template format
+$template = array(
+    'nodes'    => $data,
+    'settings' => $settings,
+);
+
+// Serialize
+$serialized = serialize($template);
+
+// Save to file
+file_put_contents('my-template.dat', $serialized);
+```
+</CodeGroup>
+
+### Import Template
+
+<CodeGroup>
+```php Import Template Data
+// Read template file
+$file = file_get_contents('my-template.dat');
+$template = maybe_unserialize($file);
+
+// Apply to post
+if (isset($template['nodes'])) {
+    update_post_meta($post_id, '_fl_builder_data', $template['nodes']);
+    update_post_meta($post_id, '_fl_builder_enabled', true);
+}
+
+if (isset($template['settings'])) {
+    update_post_meta($post_id, '_fl_builder_data_settings', $template['settings']);
+}
+
+// Clear cache
+FLBuilderModel::delete_all_asset_cache($post_id);
+```
+</CodeGroup>
+
+## Template Examples
+
+Here are some example template use cases:
+
+### Header Template
+
+```php
+// Save header as global template
+$header = FLBuilderModel::get_node($header_row_id);
+$header->settings->global = true;
+update_post_meta($template_post_id, '_fl_builder_template_type', 'row');
+```
+
+### Pricing Table Template
+
+```php
+// Create pricing template with multiple columns
+$row = FLBuilderModel::add_row('3-cols');
+$cols = FLBuilderModel::get_nodes('column', $row);
+
+foreach ($cols as $col) {
+    FLBuilderModel::add_module('pricing-table', $settings, $col->node);
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Template API" icon="code" href="/api/templates">
+    Complete template API reference
+  </Card>
+  <Card title="Custom Templates" icon="file-code" href="/developer/custom-templates">
+    Build custom template plugins
+  </Card>
+  <Card title="Global Styles" icon="palette" href="/settings/global-styles">
+    Configure global styling
+  </Card>
+  <Card title="Import/Export" icon="download" href="/guides/import-export">
+    Import and export layouts
+  </Card>
+</CardGroup>

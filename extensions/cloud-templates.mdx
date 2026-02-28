@@ -1,0 +1,475 @@
+---
+title: Cloud Templates
+description: Access and manage templates from Beaver Builder's cloud library
+---
+
+## Overview
+
+The Cloud Templates extension (`fl-builder-cloud`) provides integration with Beaver Builder's cloud library, allowing users to browse, import, and manage templates from the cloud. This extension is integrated with the Assistant interface for seamless template management.
+
+<Info>
+  The Cloud extension automatically loads the Assistant interface when available, providing a unified experience for template management and content creation.
+</Info>
+
+## Extension Structure
+
+### Directory Structure
+
+```
+fl-builder-cloud/
+├── fl-builder-cloud.php          # Main extension file
+└── assistant/                    # Assistant integration
+    ├── fl-assistant.php         # Assistant loader
+    └── backend/
+        ├── autoloader.php
+        └── src/
+            ├── Clients/Cloud/
+            │   ├── CloudClient.php
+            │   └── CloudLibraries.php
+            └── Controllers/
+                └── Cloud/Libraries/
+```
+
+### Extension Constants
+
+From `fl-builder-cloud/fl-builder-cloud.php:7`:
+
+```php
+define( 'FL_BUILDER_CLOUD_DIR', FL_BUILDER_DIR . 'extensions/fl-builder-cloud/' );
+define( 'FL_BUILDER_CLOUD_URL', FLBuilder::plugin_url() . 'extensions/fl-builder-cloud/' );
+```
+
+### Conditional Loading
+
+The extension checks if Assistant is already loaded (from `fl-builder-cloud/fl-builder-cloud.php:3`):
+
+```php
+if ( defined( 'FL_ASSISTANT_VERSION' ) ) {
+    return; // Already loaded
+}
+
+// Load Assistant if available
+if ( file_exists( FL_BUILDER_CLOUD_DIR . 'assistant/fl-assistant.php' ) ) {
+    define( 'FL_ASSISTANT_BB_EXTENSION', true );
+    require_once FL_BUILDER_CLOUD_DIR . 'assistant/fl-assistant.php';
+}
+```
+
+## Cloud Client
+
+The `CloudClient` class handles communication with Beaver Builder's cloud services.
+
+### CloudLibraries Class
+
+Handles library operations including creating, updating, and retrieving items.
+
+**Location**: `fl-builder-cloud/assistant/backend/src/Clients/Cloud/CloudLibraries.php:5`
+
+<Tabs>
+  <Tab title="Create Item">
+    ```php
+    public function create_item( $library_id, $data ) {
+        $remaining = $this->convert_media_to_chunks( $data );
+        $result = $this->client->post( "/libraries/$library_id/library-items", $data );
+        $this->upload_remaining_media_chunks( $result->id, $remaining );
+        return $result;
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Update Item">
+    ```php
+    public function update_item( $item_id, $data ) {
+        $data['_method'] = 'PUT';
+        $remaining = $this->convert_media_to_chunks( $data );
+        $result = $this->client->post( "/library-items/$item_id", $data );
+        $this->upload_remaining_media_chunks( $item_id, $remaining );
+        return $result;
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Get Item">
+    ```php
+    public function get_item( $item_id ) {
+        return $this->client->get( "/library-items/$item_id?include_post_data=1" );
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Template Categories
+
+Cloud templates are organized into categories for easy browsing:
+
+<CardGroup cols={2}>
+  <Card title="Pages" icon="file">
+    Complete page layouts ready to import
+  </Card>
+  
+  <Card title="Sections" icon="layer-group">
+    Reusable section templates for headers, heroes, etc.
+  </Card>
+  
+  <Card title="Rows" icon="grip-lines">
+    Pre-designed row layouts
+  </Card>
+  
+  <Card title="Modules" icon="puzzle-piece">
+    Individual module configurations
+  </Card>
+  
+  <Card title="Saved" icon="bookmark">
+    User-saved templates from their account
+  </Card>
+  
+  <Card title="Photos" icon="image">
+    Stock photos and images
+  </Card>
+</CardGroup>
+
+## Media Handling
+
+Cloud templates include sophisticated media handling for images and attachments.
+
+### Media Chunking
+
+From `fl-builder-cloud/assistant/backend/src/Clients/Cloud/CloudLibraries.php:66`:
+
+```php
+protected function convert_media_to_chunks( &$data ) {
+    $max_uploads = ini_get( 'max_file_uploads' );
+    $files = [];
+    
+    // Handle the post thumb - must come first
+    if ( isset( $data['media']['thumb'] ) ) {
+        if ( file_exists( $data['media']['thumb'] ) ) {
+            $files['media[thumb]'] = curl_file_create( $data['media']['thumb'] );
+        } else {
+            $files['media[thumb]'] = null;
+        }
+    }
+    
+    // Handle image file export
+    if ( isset( $data['media']['file'] ) ) {
+        if ( file_exists( $data['media']['file'] ) ) {
+            $files['media[file]'] = curl_file_create( $data['media']['file'] );
+        }
+    }
+    
+    // Handle post attachments
+    if ( isset( $data['media']['attachments'] ) ) {
+        foreach ( $data['media']['attachments'] as $i => $path ) {
+            if ( $path && file_exists( $path ) ) {
+                $files[ "media[attachments][$i]" ] = curl_file_create( $path );
+            }
+        }
+    }
+    
+    // Unset the original media array
+    unset( $data['media'] );
+    
+    // Return chunks for upload
+    return $this->chunk_files( $files, $max_uploads );
+}
+```
+
+### Upload Optimization
+
+Media files are uploaded in chunks to respect server limits (from `fl-builder-cloud/assistant/backend/src/Clients/Cloud/CloudLibraries.php:51`):
+
+```php
+public function upload_remaining_media_chunks( $item_id, $chunks ) {
+    for ( $i = 0; $i < count( $chunks ); $i++ ) {
+        $data = array_merge( $chunks[ $i ],
+            [
+                '_method' => 'PUT',
+                'preserve_media' => true,
+            ]
+        );
+        $this->client->post( "/library-items/$item_id", $data );
+    }
+}
+```
+
+## Library Item Controllers
+
+The extension includes specialized controllers for different content types:
+
+### Available Controllers
+
+<Tabs>
+  <Tab title="Images">
+    **LibraryItemImageController**
+    
+    Handles image uploads and optimization
+    
+    Location: `Controllers/Cloud/Libraries/LibraryItemImageController.php`
+  </Tab>
+  
+  <Tab title="Posts">
+    **LibraryItemPostController**
+    
+    Manages post content and templates
+    
+    Location: `Controllers/Cloud/Libraries/LibraryItemPostController.php`
+  </Tab>
+  
+  <Tab title="Documents">
+    **LibraryItemDocumentController**
+    
+    Handles document files and attachments
+    
+    Location: `Controllers/Cloud/Libraries/LibraryItemDocumentController.php`
+  </Tab>
+  
+  <Tab title="SVG">
+    **LibraryItemSvgController**
+    
+    Specialized SVG handling with sanitization
+    
+    Location: `Controllers/Cloud/Libraries/LibraryItemSvgController.php`
+  </Tab>
+  
+  <Tab title="Code">
+    **LibraryItemCodeController**
+    
+    Code snippets and custom scripts
+    
+    Location: `Controllers/Cloud/Libraries/LibraryItemCodeController.php`
+  </Tab>
+</Tabs>
+
+## Importing Templates
+
+Templates from the cloud can be imported directly into your site.
+
+### Import Process
+
+<Steps>
+  <Step title="Browse Templates">
+    Access the cloud library through the Beaver Builder interface
+  </Step>
+  
+  <Step title="Preview">
+    Preview templates before importing to ensure they fit your needs
+  </Step>
+  
+  <Step title="Import">
+    Click import to download template data and media files
+  </Step>
+  
+  <Step title="Media Processing">
+    Images and attachments are downloaded and added to media library
+  </Step>
+  
+  <Step title="Apply Template">
+    Template is applied to your current page or saved for later use
+  </Step>
+</Steps>
+
+### Import Filters
+
+```php
+// Filter template data before import
+apply_filters( 'fl_builder_cloud_template_data', $data, $template_id );
+
+// Filter imported media
+apply_filters( 'fl_builder_cloud_imported_media', $media, $template_id );
+
+// Modify template after import
+apply_filters( 'fl_builder_cloud_template_imported', $template, $template_id );
+```
+
+## Assistant Integration
+
+<Info>
+  When the Assistant is loaded, it provides a unified interface for managing templates, media, and content.
+</Info>
+
+### Assistant Detection
+
+```php
+// Check if Assistant is available
+if ( defined( 'FL_ASSISTANT_VERSION' ) ) {
+    // Assistant features available
+}
+
+// Check if loaded as BB extension
+if ( defined( 'FL_ASSISTANT_BB_EXTENSION' ) ) {
+    // Loaded through Beaver Builder
+}
+```
+
+### Assistant Features
+
+<CardGroup cols={2}>
+  <Card title="Quick Access" icon="bolt">
+    Access templates and tools from anywhere in WordPress
+  </Card>
+  
+  <Card title="Search" icon="search">
+    Search across local and cloud templates
+  </Card>
+  
+  <Card title="Collections" icon="folder">
+    Organize templates into custom collections
+  </Card>
+  
+  <Card title="Favorites" icon="star">
+    Mark frequently used templates as favorites
+  </Card>
+</CardGroup>
+
+## API Endpoints
+
+The cloud client communicates with these API endpoints:
+
+### Library Endpoints
+
+```bash
+# Create library item
+POST /libraries/{library_id}/library-items
+
+# Update library item
+PUT /library-items/{item_id}
+
+# Get library item
+GET /library-items/{item_id}?include_post_data=1
+
+# Delete library item
+DELETE /library-items/{item_id}
+```
+
+### Authentication
+
+Cloud requests require authentication:
+
+```php
+// Authentication handled by CloudClient
+$client = new CloudClient( $api_key, $api_secret );
+
+// Make authenticated request
+$response = $client->get( '/libraries' );
+```
+
+## Error Handling
+
+### Common Errors
+
+<AccordionGroup>
+  <Accordion title="Connection Failed">
+    **Error**: Cannot connect to cloud services
+    
+    **Solutions**:
+    - Check internet connectivity
+    - Verify API credentials
+    - Check for firewall or security plugin blocking requests
+  </Accordion>
+  
+  <Accordion title="Upload Size Limit">
+    **Error**: File too large to upload
+    
+    **Solutions**:
+    - Media is automatically chunked based on `max_file_uploads`
+    - Increase PHP upload limits if needed
+    - Use smaller images or compress before upload
+  </Accordion>
+  
+  <Accordion title="Media Import Failed">
+    **Error**: Could not download media files
+    
+    **Solutions**:
+    - Check write permissions on uploads directory
+    - Verify media URLs are accessible
+    - Check for security restrictions on remote file downloads
+  </Accordion>
+  
+  <Accordion title="Template Compatibility">
+    **Error**: Template uses features not available
+    
+    **Solutions**:
+    - Update Beaver Builder to latest version
+    - Check for required modules or add-ons
+    - Review template requirements
+  </Accordion>
+</AccordionGroup>
+
+## Best Practices
+
+<Tip>
+  **Performance Tips**:
+  - Import templates during off-peak hours
+  - Clear cache after importing templates
+  - Optimize images before saving to cloud
+  - Use collections to organize templates
+</Tip>
+
+### Template Organization
+
+```php
+// Create organized collections
+$collections = array(
+    'headers'  => array( /* template IDs */ ),
+    'footers'  => array( /* template IDs */ ),
+    'sections' => array( /* template IDs */ ),
+);
+
+// Tag templates for easy filtering
+$tags = array( 'business', 'dark-mode', 'animated' );
+```
+
+## Batch Operations
+
+The extension supports batch operations for efficiency:
+
+```php
+// Batch import multiple templates
+$template_ids = array( 123, 456, 789 );
+
+foreach ( $template_ids as $id ) {
+    $template = $cloud_client->get_item( $id );
+    // Process template
+}
+
+// Batch update metadata
+$updates = array(
+    'tags'     => array( 'featured', 'homepage' ),
+    'category' => 'hero-sections',
+);
+```
+
+## Security
+
+<Warning>
+  All cloud communications are encrypted and authenticated. Never expose API keys in client-side code.
+</Warning>
+
+### Secure Practices
+
+```php
+// Store credentials securely
+define( 'FL_CLOUD_API_KEY', getenv( 'FL_CLOUD_API_KEY' ) );
+define( 'FL_CLOUD_API_SECRET', getenv( 'FL_CLOUD_API_SECRET' ) );
+
+// Validate template data
+$data = $cloud_client->get_item( $id );
+if ( ! is_valid_template( $data ) ) {
+    wp_die( 'Invalid template data' );
+}
+
+// Sanitize imported content
+$sanitized = wp_kses_post( $template_content );
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="White Label" icon="tag" href="/extensions/white-label">
+    Customize branding for cloud templates
+  </Card>
+  
+  <Card title="Theme Builder" icon="paintbrush" href="/extensions/theme-builder">
+    Use cloud templates with theme layouts
+  </Card>
+</CardGroup>

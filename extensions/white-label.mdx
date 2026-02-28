@@ -1,0 +1,573 @@
+---
+title: White Label
+description: Customize Beaver Builder branding for client sites and agency workflows
+---
+
+## Overview
+
+The White Label extension (`fl-builder-white-label`) allows agencies and developers to rebrand Beaver Builder with custom names, icons, and branding throughout the WordPress admin interface. This is essential for client work where you want to present a cohesive branded experience.
+
+<Info>
+  White Label features are available in Beaver Builder Pro and Agency versions. All branding changes are stored in the database and survive plugin updates.
+</Info>
+
+## White Label Class
+
+The main class handles all branding customization.
+
+**Location**: `fl-builder-white-label/classes/class-fl-builder-white-label.php:8`
+
+```php
+final class FLBuilderWhiteLabel {
+    static public function init() {
+        add_filter( 'all_plugins', __CLASS__ . '::plugins_page' );
+        add_filter( 'wp_prepare_themes_for_js', __CLASS__ . '::themes_page' );
+        add_filter( 'all_themes', __CLASS__ . '::network_themes_page' );
+        add_filter( 'update_right_now_text', __CLASS__ . '::admin_dashboard_page' );
+        add_filter( 'fl_plugin_info_data', __CLASS__ . '::fl_plugin_info', 10, 2 );
+        add_action( 'customize_render_section', __CLASS__ . '::theme_customizer' );
+        add_action( 'admin_enqueue_scripts', __CLASS__ . '::updates_core' );
+        add_filter( 'fl_updater_icon', __CLASS__ . '::update_icon_branding', 11, 3 );
+    }
+}
+```
+
+## Branding Settings
+
+### Plugin Branding
+
+Customize the plugin name and icon:
+
+<Tabs>
+  <Tab title="Plugin Name">
+    Change the plugin name shown throughout WordPress:
+    
+    ```php
+    // Get current branding
+    $branding = FLBuilderWhiteLabel::get_branding();
+    
+    // Returns default if not set
+    // From fl-builder-white-label/classes/class-fl-builder-white-label.php:148
+    static public function get_branding() {
+        $value = FLBuilderModel::get_admin_settings_option( '_fl_builder_branding', false );
+        return ! $value ? self::get_default_branding() : stripcslashes( $value );
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Plugin Icon">
+    Upload a custom icon for the plugin:
+    
+    ```php
+    // Get branding icon URL
+    $icon = FLBuilderWhiteLabel::get_branding_icon();
+    
+    // From fl-builder-white-label/classes/class-fl-builder-white-label.php:170
+    static public function get_branding_icon() {
+        $value = FLBuilderModel::get_admin_settings_option( '_fl_builder_branding_icon', false );
+        
+        // Never been set - use default
+        if ( false === $value ) {
+            return self::get_default_branding_icon();
+        }
+        
+        // Setting has been blanked
+        if ( '' === $value ) {
+            if ( has_filter( 'fl_builder_default_branding_icon' ) ) {
+                return self::get_default_branding_icon();
+            }
+        }
+        
+        return $value;
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Check Status">
+    Check if white labeling is active:
+    
+    ```php
+    // From fl-builder-white-label/classes/class-fl-builder-white-label.php:122
+    static public function is_white_labeled() {
+        $defaults = array(
+            self::get_default_branding(),
+        );
+        
+        $is_white_labeled = ! in_array( self::get_branding(), $defaults );
+        
+        return apply_filters( 'fl_builder_is_white_labeled', $is_white_labeled );
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Theme Branding
+
+Customize Beaver Builder Theme branding:
+
+```php
+// Get theme branding data
+$theme_branding = FLBuilderWhiteLabel::get_theme_branding();
+
+// Returns array with:
+// - name: Theme name
+// - description: Theme description
+// - company_name: Company/developer name
+// - company_url: Company website URL
+// - screenshot_url: Custom theme screenshot URL
+```
+
+From `fl-builder-white-label/classes/class-fl-builder-white-label.php:192`:
+
+```php
+static public function get_theme_branding() {
+    $value    = FLBuilderModel::get_admin_settings_option( '_fl_builder_theme_branding', false );
+    $defaults = array(
+        'name'           => '',
+        'description'    => '',
+        'company_name'   => '',
+        'company_url'    => '',
+        'screenshot_url' => '',
+    );
+    
+    $value = wp_parse_args( $value, $defaults );
+    
+    foreach ( $value as $k => $v ) {
+        $value[ $k ] = wp_specialchars_decode( stripslashes( wp_strip_all_tags( $v ) ) );
+    }
+    
+    return apply_filters( 'fl_builder_theme_branding', $value );
+}
+```
+
+## Admin Interface Customization
+
+### Plugins Page
+
+Branding appears on the WordPress plugins page (from `fl-builder-white-label/classes/class-fl-builder-white-label.php:296`):
+
+```php
+static public function plugins_page( $plugins ) {
+    $branding = self::get_branding();
+    $key      = FLBuilderModel::plugin_basename();
+    
+    if ( isset( $plugins[ $key ] ) && $branding !== $plugins[ $key ]['Name'] && self::is_white_labeled() ) {
+        $plugins[ $key ]['Name']       = $branding;
+        $plugins[ $key ]['Title']      = $branding;
+        $plugins[ $key ]['Author']     = '';
+        $plugins[ $key ]['AuthorName'] = '';
+        $plugins[ $key ]['PluginURI']  = '';
+    }
+    
+    return $plugins;
+}
+```
+
+### Themes Page
+
+Customize theme information in the theme manager (from `fl-builder-white-label/classes/class-fl-builder-white-label.php:318`):
+
+```php
+static public function themes_page( $themes ) {
+    $theme_data = self::get_theme_branding();
+    
+    if ( isset( $themes['bb-theme'] ) ) {
+        if ( ! empty( $theme_data['name'] ) ) {
+            $themes['bb-theme']['name'] = $theme_data['name'];
+        }
+        if ( ! empty( $theme_data['description'] ) ) {
+            $themes['bb-theme']['description'] = $theme_data['description'];
+        }
+        if ( ! empty( $theme_data['company_name'] ) ) {
+            $company_url = empty( $theme_data['company_url'] ) ? '#' : $theme_data['company_url'];
+            $themes['bb-theme']['author'] = $theme_data['company_name'];
+            $themes['bb-theme']['authorAndUri'] = '<a href="' . $company_url . '">' . $theme_data['company_name'] . '</a>';
+        }
+        if ( ! empty( $theme_data['screenshot_url'] ) ) {
+            $themes['bb-theme']['screenshot'] = array( $theme_data['screenshot_url'] );
+        }
+    }
+    
+    return $themes;
+}
+```
+
+### Dashboard Widget
+
+Branding shows in the "At a Glance" dashboard widget (from `fl-builder-white-label/classes/class-fl-builder-white-label.php:428`):
+
+```php
+static public function admin_dashboard_page( $content ) {
+    $theme_data = self::get_theme_branding();
+    
+    if ( is_admin() && 'Beaver Builder Theme' == wp_get_theme() && ! empty( $theme_data['name'] ) ) {
+        return sprintf( $content, get_bloginfo( 'version', 'display' ), $theme_data['name'] );
+    }
+    
+    return $content;
+}
+```
+
+## Text Translation Hooks
+
+Use gettext filters to replace branded text (from `fl-builder-white-label/classes/class-fl-builder-white-label.php:445`):
+
+```php
+static public function theme_gettext( $text, $original, $domain ) {
+    if ( is_admin() && 'Beaver Builder Theme' == $original ) {
+        $theme_data = self::get_theme_branding();
+        
+        if ( ! empty( $theme_data['name'] ) ) {
+            $text = $theme_data['name'];
+        }
+    }
+    
+    return $text;
+}
+```
+
+Similarly for plugin branding (from `fl-builder-white-label/classes/class-fl-builder-white-label.php:465`):
+
+```php
+static public function plugin_gettext( $text, $original, $domain ) {
+    global $pagenow;
+    
+    if ( is_admin()
+        && 'update-core.php' == $pagenow
+        && 'Beaver Builder Plugin (Lite Version)' !== $original
+        && false !== strpos( $original, 'Beaver Builder Plugin' ) ) {
+        if ( self::is_white_labeled() ) {
+            $text = self::get_branding();
+        }
+    }
+    return $text;
+}
+```
+
+## Help Button Settings
+
+Customize the help button in the builder interface:
+
+<AccordionGroup>
+  <Accordion title="Enable/Disable Help Button">
+    ```php
+    $help_settings = FLBuilderWhiteLabel::get_help_button_settings();
+    
+    // Settings array includes:
+    // - enabled: Main help button on/off
+    // - tour: Builder tour feature
+    // - video: Help video
+    // - knowledge_base: Link to knowledge base
+    // - forums: Link to forums
+    ```
+  </Accordion>
+  
+  <Accordion title="Custom Help Video">
+    Embed your own help video:
+    
+    ```php
+    $settings['video_embed'] = '<iframe src="https://your-video-url.com" ...></iframe>';
+    ```
+  </Accordion>
+  
+  <Accordion title="Custom Links">
+    Point to your own documentation:
+    
+    ```php
+    $settings['knowledge_base_url'] = 'https://yourdocs.com';
+    $settings['forums_url'] = 'https://yourforum.com';
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Saving Help Button Settings
+
+From `fl-builder-white-label/classes/class-fl-builder-white-label.php:220`:
+
+```php
+static public function save_help_button_settings() {
+    if ( isset( $_POST['fl-help-button-nonce'] ) && wp_verify_nonce( $_POST['fl-help-button-nonce'], 'help-button' ) ) {
+        
+        $settings = FLBuilderModel::get_help_button_defaults();
+        $settings['enabled']        = isset( $_POST['fl-help-button-enabled'] ) ? true : false;
+        $settings['tour']           = isset( $_POST['fl-help-tour-enabled'] ) ? true : false;
+        $settings['video']          = isset( $_POST['fl-help-video-enabled'] ) ? true : false;
+        $settings['knowledge_base'] = isset( $_POST['fl-knowledge-base-enabled'] ) ? true : false;
+        $settings['forums']         = isset( $_POST['fl-forums-enabled'] ) ? true : false;
+        
+        // Clean the video embed
+        $video_embed = wp_kses( $_POST['fl-help-video-embed'], array(
+            'iframe' => array(
+                'src'                   => array(),
+                'frameborder'           => array(),
+                'webkitallowfullscreen' => array(),
+                'mozallowfullscreen'    => array(),
+                'allowfullscreen'       => array(),
+            ),
+        ));
+        
+        if ( ! empty( $video_embed ) ) {
+            $settings['video_embed'] = $video_embed;
+        }
+        
+        FLBuilderModel::update_admin_settings_option( '_fl_builder_help_button', $settings, false );
+    }
+}
+```
+
+## Update Branding
+
+Customize update notifications and icons (from `fl-builder-white-label/classes/class-fl-builder-white-label.php:517`):
+
+```php
+static public function update_icon_branding( $icons, $response, $settings ) {
+    if ( in_array( $settings['slug'], array( 'bb-plugin', 'bb-theme-builder' ) ) ) {
+        if ( self::is_white_labeled() ) {
+            $icons = array(
+                '1x'      => self::get_branding_icon(),
+                '2x'      => self::get_branding_icon(),
+                'default' => self::get_branding_icon(),
+            );
+        }
+    }
+    return $icons;
+}
+```
+
+### Core Updates Page
+
+Replace theme screenshots on the update-core.php page (from `fl-builder-white-label/classes/class-fl-builder-white-label.php:354`):
+
+```php
+static public function updates_core() {
+    global $pagenow;
+    
+    if ( 'update-core.php' == $pagenow ) {
+        $theme_data = self::get_theme_branding();
+        $theme_root = get_theme_root_uri();
+        $default    = sprintf( '%s/bb-theme/screenshot.png', $theme_root );
+        $branded    = $theme_data['screenshot_url'];
+        
+        if ( $branded ) {
+            wp_add_inline_script( 'updates', 
+                "var _fl_default = '$default', _fl_branded = '$branded';
+                jQuery('#update-themes-table .plugins tr').each(function(){
+                    img = jQuery(this).find('.updates-table-screenshot');
+                    if( img.attr('src') === _fl_default ) {
+                        img.attr('src', _fl_branded)
+                    }
+                })"
+            );
+        }
+    }
+}
+```
+
+## Saving Branding Settings
+
+From `fl-builder-white-label/classes/class-fl-builder-white-label.php:92`:
+
+```php
+static public function save_branding_settings() {
+    if ( isset( $_POST['fl-branding-nonce'] ) && wp_verify_nonce( $_POST['fl-branding-nonce'], 'branding' ) ) {
+        
+        // Get the plugin branding data
+        $branding      = wp_kses_post( $_POST['fl-branding'] );
+        $branding_icon = sanitize_text_field( $_POST['fl-branding-icon'] );
+        
+        // Get the theme branding data
+        $theme_data = array(
+            'name'           => wp_kses_post( $_POST['fl-theme-branding-name'] ),
+            'description'    => wp_kses_post( $_POST['fl-theme-branding-description'] ),
+            'company_name'   => wp_kses_post( $_POST['fl-theme-branding-company-name'] ),
+            'company_url'    => sanitize_text_field( $_POST['fl-theme-branding-company-url'] ),
+            'screenshot_url' => sanitize_text_field( $_POST['fl-theme-branding-screenshot-url'] ),
+        );
+        
+        // Save the data
+        FLBuilderModel::update_admin_settings_option( '_fl_builder_branding', $branding, false, true );
+        FLBuilderModel::update_admin_settings_option( '_fl_builder_branding_icon', $branding_icon, false, true );
+        FLBuilderModel::update_admin_settings_option( '_fl_builder_theme_branding', $theme_data, false, true );
+    }
+}
+```
+
+## Client-Facing Features
+
+<CardGroup cols={2}>
+  <Card title="Hidden Author Info" icon="user-slash">
+    Author and plugin URI are removed from plugins page
+  </Card>
+  
+  <Card title="Custom Icons" icon="image">
+    Upload custom icons for updates and admin areas
+  </Card>
+  
+  <Card title="Theme Customizer" icon="sliders">
+    Branding appears in WordPress Customizer
+  </Card>
+  
+  <Card title="Network Admin" icon="network-wired">
+    Works across WordPress multisite networks
+  </Card>
+</CardGroup>
+
+## Multisite Support
+
+White Label settings work on WordPress multisite:
+
+```php
+// Network admin settings
+add_filter( 'fl_builder_admin_settings_nav_items', function( $nav_items ) {
+    $nav_items['branding'] = array(
+        'title'    => __( 'Branding', 'fl-builder' ),
+        'show'     => is_network_admin() || ! FLBuilderAdminSettings::multisite_support(),
+        'priority' => 650,
+    );
+    return $nav_items;
+});
+```
+
+### Network Themes Page
+
+From `fl-builder-white-label/classes/class-fl-builder-white-label.php:375`:
+
+```php
+static public function network_themes_page( $themes ) {
+    if ( isset( $themes['bb-theme'] ) && is_network_admin() ) {
+        $theme_data = self::get_theme_branding();
+        $network_theme_data = array();
+        
+        if ( ! empty( $theme_data['name'] ) ) {
+            $network_theme_data['Name'] = $theme_data['name'];
+        }
+        if ( ! empty( $theme_data['description'] ) ) {
+            $network_theme_data['Description'] = $theme_data['description'];
+        }
+        if ( ! empty( $theme_data['company_name'] ) ) {
+            $company_url = empty( $theme_data['company_url'] ) ? '#' : $theme_data['company_url'];
+            $network_theme_data['Author']    = $theme_data['company_name'];
+            $network_theme_data['AuthorURI'] = $company_url;
+            $network_theme_data['ThemeURI']  = $company_url;
+        }
+        
+        // Use reflection to update theme headers
+        if ( count( $network_theme_data ) > 0 ) {
+            $reflectionobject = new ReflectionObject( $themes['bb-theme'] );
+            $headers = $reflectionobject->getProperty( 'headers' );
+            $headers->setAccessible( true );
+            $headers->setValue( $themes['bb-theme'], $network_theme_data );
+        }
+    }
+    return $themes;
+}
+```
+
+## Filters & Hooks
+
+### Branding Filters
+
+```php
+// Modify default branding
+apply_filters( 'fl_builder_default_branding', __( 'Beaver Builder', 'fl-builder' ) );
+
+// Modify default branding icon
+apply_filters( 'fl_builder_default_branding_icon', FLBuilder::plugin_url() . 'img/beaver.png' );
+
+// Check if white labeled
+apply_filters( 'fl_builder_is_white_labeled', $is_white_labeled );
+
+// Modify theme branding
+apply_filters( 'fl_builder_theme_branding', $value );
+
+// Modify help button defaults
+apply_filters( 'fl_builder_help_button_defaults', $defaults );
+```
+
+## Best Practices
+
+<Tip>
+  **Agency Tips**:
+  - Set up white labeling before delivering to clients
+  - Use consistent branding across all client sites
+  - Store branding assets in version control
+  - Document custom help resources for clients
+</Tip>
+
+### Recommended Settings
+
+```php
+// Example white label configuration
+$branding = array(
+    'plugin_name'        => 'Site Builder',
+    'plugin_icon'        => 'https://youragency.com/icon.png',
+    'theme_name'         => 'Client Theme',
+    'theme_description'  => 'Custom theme built for ClientName',
+    'company_name'       => 'Your Agency',
+    'company_url'        => 'https://youragency.com',
+    'screenshot_url'     => 'https://youragency.com/screenshot.png',
+);
+```
+
+## Security Considerations
+
+<Warning>
+  All input is sanitized before saving:
+  - `wp_kses_post()` for HTML content
+  - `sanitize_text_field()` for text fields
+  - `wp_strip_all_tags()` for display
+</Warning>
+
+```php
+// Sanitization example
+$branding = wp_kses_post( $_POST['fl-branding'] );
+$icon_url = sanitize_text_field( $_POST['fl-branding-icon'] );
+```
+
+## Programmatic Usage
+
+### Set Branding via Code
+
+```php
+// Set plugin branding
+FLBuilderModel::update_admin_settings_option( '_fl_builder_branding', 'My Builder', false, true );
+
+// Set icon
+FLBuilderModel::update_admin_settings_option( '_fl_builder_branding_icon', 'https://example.com/icon.png', false, true );
+
+// Set theme branding
+$theme_data = array(
+    'name'           => 'Custom Theme',
+    'description'    => 'A custom theme',
+    'company_name'   => 'Company Name',
+    'company_url'    => 'https://example.com',
+    'screenshot_url' => 'https://example.com/screenshot.png',
+);
+FLBuilderModel::update_admin_settings_option( '_fl_builder_theme_branding', $theme_data, false, true );
+```
+
+### Retrieve Branding Data
+
+```php
+// Get current branding
+$branding = FLBuilderWhiteLabel::get_branding();
+$icon = FLBuilderWhiteLabel::get_branding_icon();
+$theme_data = FLBuilderWhiteLabel::get_theme_branding();
+
+// Check if white labeled
+if ( FLBuilderWhiteLabel::is_white_labeled() ) {
+    // Custom logic for white labeled sites
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Extensions Overview" icon="arrow-left" href="/extensions/overview">
+    Return to extensions overview
+  </Card>
+  
+  <Card title="Theme Builder" icon="paintbrush" href="/extensions/theme-builder">
+    Learn about theme customization
+  </Card>
+</CardGroup>

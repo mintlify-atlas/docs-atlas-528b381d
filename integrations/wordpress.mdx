@@ -1,0 +1,234 @@
+---
+title: WordPress Integration
+description: Learn how Beaver Builder integrates with WordPress core features including themes, post types, widgets, and shortcodes.
+icon: wordpress
+---
+
+Beaver Builder seamlessly integrates with WordPress core functionality, providing native support for themes, custom post types, widgets, and shortcodes.
+
+## Theme Compatibility
+
+Beaver Builder works with virtually any WordPress theme through its comprehensive compatibility layer.
+
+### Automatic Theme Support
+
+The builder automatically detects and adapts to your active theme:
+
+- **Content Width**: Respects theme content width settings
+- **Color Schemes**: Inherits theme color palettes
+- **Typography**: Uses theme font settings by default
+- **Template Hierarchy**: Follows WordPress template structure
+
+### Theme-Specific Fixes
+
+The compatibility class (`FLBuilderCompatibility`) includes automatic fixes for popular themes:
+
+```php class-fl-builder-compatibility.php
+// Twenty Twenty theme video support
+public static function fix_twenty_twenty_video( $classes ) {
+    if ( 'twentytwenty' == get_option( 'template' ) ) {
+        $classes[] = 'intrinsic-ignore';
+    }
+    return $classes;
+}
+```
+
+<Note>
+  Beaver Builder includes compatibility fixes for dozens of popular WordPress themes, ensuring smooth operation regardless of your theme choice.
+</Note>
+
+## Post Types Support
+
+Beaver Builder can be enabled on any public post type in WordPress.
+
+### Built-in Post Types
+
+- **Posts**: Full builder support on blog posts
+- **Pages**: Complete page building capabilities
+- **Custom Post Types**: Enable builder on any custom post type
+
+### Enabling on Custom Post Types
+
+<Steps>
+  <Step title="Access Settings">
+    Navigate to **Settings → Page Builder → Post Types**
+  </Step>
+  
+  <Step title="Select Post Types">
+    Check the boxes for post types where you want to enable the builder
+  </Step>
+  
+  <Step title="Save Changes">
+    Click **Save Post Types** to apply your settings
+  </Step>
+</Steps>
+
+### Post Type Restrictions
+
+Some post types are intentionally restricted for compatibility:
+
+- Builder templates (`fl-builder-template`)
+- Theme layouts (`fl-theme-layout`)
+- BuddyPress pages (compatibility reasons)
+
+<Warning>
+  The builder automatically disables itself on BuddyPress pages to prevent conflicts with the BuddyPress content filter.
+</Warning>
+
+## Widget Support
+
+Beaver Builder includes a dedicated **WordPress Widgets** module that allows you to add any registered WordPress widget to your layouts.
+
+### Using WordPress Widgets
+
+1. Add a **WordPress Widgets** module to your layout
+2. Select the widget you want to use from the dropdown
+3. Configure the widget settings
+4. The widget will render with full functionality
+
+### Widget Compatibility
+
+The builder includes specific compatibility fixes for popular widget plugins:
+
+<CardGroup cols={2}>
+  <Card title="Event Calendar Widgets" icon="calendar">
+    Automatic asset loading for Tribe Events Pro widgets
+  </Card>
+  
+  <Card title="Google Reviews" icon="star">
+    Compatibility fixes for Google Reviews Business widget
+  </Card>
+  
+  <Card title="WooCommerce Widgets" icon="shopping-cart">
+    Full support for WooCommerce product widgets
+  </Card>
+  
+  <Card title="Custom Widgets" icon="puzzle-piece">
+    Support for any properly registered WordPress widget
+  </Card>
+</CardGroup>
+
+## Shortcode Support
+
+Beaver Builder fully supports WordPress shortcodes with several built-in features.
+
+### HTML Module Shortcodes
+
+Add any shortcode to the **HTML** module:
+
+```html
+[your-shortcode attribute="value"]
+```
+
+Shortcodes are automatically processed and rendered in the builder preview and on the frontend.
+
+### Builder Shortcode
+
+Insert builder layouts anywhere using the shortcode:
+
+```html
+[fl_builder_insert_layout slug="your-layout-slug"]
+```
+
+Or by ID:
+
+```html
+[fl_builder_insert_layout id="123"]
+```
+
+<Warning>
+  To prevent infinite loops, the builder prevents inserting a layout within itself when the shortcode is found in search results.
+</Warning>
+
+### Shortcode Compatibility Fixes
+
+The compatibility layer includes fixes for problematic shortcodes:
+
+- **ActiveMember360**: Removes duplicate rendering
+- **iMember360**: Prevents double execution
+- **Ninja Forms**: Ensures JS templates render correctly
+- **Tasty Recipes**: Prevents editor conflicts
+
+### Conflicting Shortcodes
+
+Some SEO plugins try to process shortcodes too early. The builder automatically handles this:
+
+```php class-fl-builder-compatibility.php
+// AIOSEO conflicting shortcodes
+public static function aioseo_conflicting_shortcodes( $shortcodes ) {
+    $shortcodes['Beaver Builder'] = '[fl_builder_insert_layout';
+    return $shortcodes;
+}
+```
+
+## Admin Bar Integration
+
+When the builder is active, additional options appear in the WordPress admin bar:
+
+- **Edit with Beaver Builder**: Quick access to builder mode
+- **Duplicate**: Clone pages/posts (with compatible plugins)
+- **Builder Admin**: Access builder settings
+
+<Tip>
+  In WordPress 6.4+, Beaver Builder includes automatic admin bar styling fixes to ensure proper display in the builder interface.
+</Tip>
+
+## Media Library Integration
+
+Beaver Builder integrates deeply with the WordPress media library:
+
+### Photo Cropping
+
+The builder includes built-in photo cropping with support for:
+
+- **TinyPNG**: Automatic compression of cropped images
+- **Jetpack Photon**: Compatibility fixes for circle-cropped images
+- **Custom Crop Sizes**: Define custom aspect ratios
+
+### CORS Fix for SSL
+
+If you have `FORCE_SSL_ADMIN` enabled but your frontend isn't SSL, the builder includes an automatic fix for upload errors:
+
+```php class-fl-builder-compatibility.php
+public static function admin_ssl_upload_fix() {
+    if ( defined( 'FORCE_SSL_ADMIN' ) && ! is_ssl() 
+         && is_admin() && FLBuilderAJAX::doing_ajax() ) {
+        if ( apply_filters( 'fl_admin_ssl_upload_fix', true ) ) {
+            force_ssl_admin( false );
+        }
+    }
+}
+```
+
+## REST API Support
+
+Beaver Builder layouts are accessible via the WordPress REST API:
+
+- Layout content renders automatically in REST responses
+- Builder data is included in post meta
+- Custom excerpt generation for builder content
+- Full compatibility with headless WordPress setups
+
+<Check>
+  Builder content automatically appears in REST API responses without any additional configuration required.
+</Check>
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="Getting Started" icon="rocket" href="/getting-started/introduction">
+    Learn the basics of Beaver Builder
+  </Card>
+  
+  <Card title="Modules" icon="grid" href="/modules/overview">
+    Explore available modules
+  </Card>
+  
+  <Card title="WooCommerce" icon="shopping-cart" href="/integrations/woocommerce">
+    WooCommerce integration guide
+  </Card>
+  
+  <Card title="Third-Party Plugins" icon="plug" href="/integrations/third-party">
+    Other plugin integrations
+  </Card>
+</CardGroup>

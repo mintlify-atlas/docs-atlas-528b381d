@@ -1,0 +1,603 @@
+---
+title: Custom Field Types
+description: Create and register custom field types for module settings in Beaver Builder
+---
+
+Beaver Builder provides a powerful field system that allows you to create custom field types for your modules. Fields are rendered using JavaScript templates and handle all aspects of user input.
+
+## Field Type System
+
+Fields in Beaver Builder are defined using configuration arrays in your module's settings and rendered using Underscore.js templates located in `includes/ui-field-*.php` files.
+
+### Field Configuration Structure
+
+```php
+'my_field' => array(
+    'type'        => 'text',           // Field type
+    'label'       => __( 'My Field', 'my-plugin' ),
+    'default'     => '',               // Default value
+    'placeholder' => '',               // Placeholder text
+    'help'        => '',               // Help text
+    'preview'     => array(            // Live preview settings
+        'type'     => 'css',
+        'selector' => '.my-selector',
+        'property' => 'color'
+    ),
+    'connections' => array( 'string' ) // Allowed connection types
+)
+```
+
+## Available Field Types
+
+Beaver Builder includes a comprehensive set of built-in field types:
+
+### Basic Input Fields
+
+<AccordionGroup>
+  <Accordion title="Text Field">
+    Simple text input with optional character limit:
+
+    ```php
+    'text_field' => array(
+        'type'        => 'text',
+        'label'       => __( 'Text', 'my-plugin' ),
+        'default'     => '',
+        'maxlength'   => 100,
+        'placeholder' => __( 'Enter text', 'my-plugin' ),
+        'connections' => array( 'string', 'html', 'url' )
+    )
+    ```
+
+    From class-fl-builder-ajax.php:85, text fields are commonly used for simple string inputs.
+  </Accordion>
+
+  <Accordion title="Textarea Field">
+    Multi-line text input:
+
+    ```php
+    'textarea_field' => array(
+        'type'        => 'textarea',
+        'label'       => __( 'Description', 'my-plugin' ),
+        'default'     => '',
+        'rows'        => 6,
+        'placeholder' => __( 'Enter description', 'my-plugin' )
+    )
+    ```
+  </Accordion>
+
+  <Accordion title="Editor Field">
+    WordPress TinyMCE editor:
+
+    ```php
+    'editor_field' => array(
+        'type'        => 'editor',
+        'label'       => __( 'Content', 'my-plugin' ),
+        'default'     => '',
+        'media_buttons' => true,
+        'wpautop'     => true,
+        'connections' => array( 'string', 'html' )
+    )
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Selection Fields
+
+<AccordionGroup>
+  <Accordion title="Select Field">
+    Dropdown select with single or multiple selection:
+
+    ```php
+    'select_field' => array(
+        'type'    => 'select',
+        'label'   => __( 'Choose Option', 'my-plugin' ),
+        'default' => 'option-1',
+        'options' => array(
+            'option-1' => __( 'Option 1', 'my-plugin' ),
+            'option-2' => __( 'Option 2', 'my-plugin' ),
+            'group-1' => array(
+                'label'   => __( 'Group 1', 'my-plugin' ),
+                'options' => array(
+                    'option-3' => __( 'Option 3', 'my-plugin' )
+                )
+            )
+        ),
+        'toggle' => array(
+            'option-1' => array(
+                'fields' => array( 'related_field' )
+            )
+        )
+    )
+    ```
+
+    The select field supports:
+    - Option groups (ui-field-select.php:145-180)
+    - Field toggling based on selection (ui-field-select.php:64)
+    - Multi-select mode (ui-field-select.php:53)
+  </Accordion>
+
+  <Accordion title="Button Group Field">
+    Visual button group for selection:
+
+    ```php
+    'button_group' => array(
+        'type'    => 'button-group',
+        'label'   => __( 'Layout', 'my-plugin' ),
+        'default' => 'grid',
+        'options' => array(
+            'grid'   => __( 'Grid', 'my-plugin' ),
+            'list'   => __( 'List', 'my-plugin' ),
+            'slider' => __( 'Slider', 'my-plugin' )
+        )
+    )
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Media Fields
+
+<AccordionGroup>
+  <Accordion title="Photo Field">
+    Image selector with size options:
+
+    ```php
+    'photo_field' => array(
+        'type'        => 'photo',
+        'label'       => __( 'Photo', 'my-plugin' ),
+        'show_remove' => true,
+        'connections' => array( 'photo' )
+    )
+    ```
+
+    The photo field provides:
+    - Media library integration (ui-field-photo.php:26-59)
+    - Image size selection (ui-field-photo.php:99-105)
+    - SVG support (ui-field-photo.php:80-89)
+    - External URL support (ui-field-photo.php:19-25)
+  </Accordion>
+
+  <Accordion title="Multiple Photos Field">
+    Multiple image selector:
+
+    ```php
+    'photos_field' => array(
+        'type'  => 'multiple-photos',
+        'label' => __( 'Gallery', 'my-plugin' )
+    )
+    ```
+  </Accordion>
+
+  <Accordion title="Video Field">
+    Video URL input:
+
+    ```php
+    'video_field' => array(
+        'type'        => 'video',
+        'label'       => __( 'Video', 'my-plugin' ),
+        'show_remove' => true
+    )
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Design Fields
+
+<AccordionGroup>
+  <Accordion title="Color Field">
+    Color picker with opacity support:
+
+    ```php
+    'color_field' => array(
+        'type'       => 'color',
+        'label'      => __( 'Color', 'my-plugin' ),
+        'default'    => 'ff0000',
+        'show_reset' => true,
+        'show_alpha' => true,
+        'preview'    => array(
+            'type'     => 'css',
+            'selector' => '.my-element',
+            'property' => 'color'
+        )
+    )
+    ```
+
+    The color field template (ui-field-color.php:1-27) shows:
+    - Alpha channel support (ui-field-color.php:3)
+    - Reset button option (ui-field-color.php:10-18)
+    - Deferred rendering for performance (ui-field-color.php:2)
+  </Accordion>
+
+  <Accordion title="Typography Field">
+    Complete typography control with responsive settings:
+
+    ```php
+    'typography_field' => array(
+        'type'       => 'typography',
+        'label'      => __( 'Typography', 'my-plugin' ),
+        'responsive' => true,
+        'preview'    => array(
+            'type'     => 'css',
+            'selector' => '.my-text'
+        )
+    )
+    ```
+
+    Typography includes (ui-field-typography.php:3-28):
+    - Font family and weight
+    - Font size with units (px, em, rem, vw, ch, %)
+    - Line height
+    - Letter spacing
+    - Text alignment
+    - Text transform
+    - Text decoration
+    - Font style and variant
+    - Text shadow
+  </Accordion>
+
+  <Accordion title="Border Field">
+    Border configuration:
+
+    ```php
+    'border_field' => array(
+        'type'       => 'border',
+        'label'      => __( 'Border', 'my-plugin' ),
+        'responsive' => true,
+        'preview'    => array(
+            'type'     => 'css',
+            'selector' => '.my-element'
+        )
+    )
+    ```
+  </Accordion>
+
+  <Accordion title="Dimension Field">
+    Four-sided dimension control (padding, margin):
+
+    ```php
+    'padding_field' => array(
+        'type'       => 'dimension',
+        'label'      => __( 'Padding', 'my-plugin' ),
+        'responsive' => true,
+        'default'    => '',
+        'units'      => array( 'px', 'em', '%' ),
+        'preview'    => array(
+            'type'     => 'css',
+            'selector' => '.my-element',
+            'property' => 'padding'
+        )
+    )
+    ```
+  </Accordion>
+
+  <Accordion title="Shadow Field">
+    Box or text shadow:
+
+    ```php
+    'shadow_field' => array(
+        'type'        => 'shadow',
+        'label'       => __( 'Shadow', 'my-plugin' ),
+        'show_spread' => true,
+        'preview'     => array(
+            'type'     => 'css',
+            'selector' => '.my-element',
+            'property' => 'box-shadow'
+        )
+    )
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Unit Fields
+
+```php
+'unit_field' => array(
+    'type'    => 'unit',
+    'label'   => __( 'Width', 'my-plugin' ),
+    'default' => '100',
+    'units'   => array( 'px', '%', 'vw' ),
+    'slider'  => array(
+        'min'  => 0,
+        'max'  => 1000,
+        'step' => 10
+    ),
+    'responsive' => true
+)
+```
+
+### Special Fields
+
+<AccordionGroup>
+  <Accordion title="Link Field">
+    Link configuration with target and nofollow:
+
+    ```php
+    'link_field' => array(
+        'type'          => 'link',
+        'label'         => __( 'Link', 'my-plugin' ),
+        'show_target'   => true,
+        'show_nofollow' => true,
+        'connections'   => array( 'url' )
+    )
+    ```
+  </Accordion>
+
+  <Accordion title="Icon Field">
+    Icon picker:
+
+    ```php
+    'icon_field' => array(
+        'type'        => 'icon',
+        'label'       => __( 'Icon', 'my-plugin' ),
+        'show_remove' => true
+    )
+    ```
+  </Accordion>
+
+  <Accordion title="Suggest Field">
+    Auto-suggest field:
+
+    ```php
+    'suggest_field' => array(
+        'type'    => 'suggest',
+        'label'   => __( 'Tags', 'my-plugin' ),
+        'action'  => 'fl_as_posts',
+        'data'    => 'post',
+        'limit'   => 10
+    )
+    ```
+  </Accordion>
+
+  <Accordion title="Post Type Field">
+    Post type selector:
+
+    ```php
+    'post_type_field' => array(
+        'type'    => 'post-type',
+        'label'   => __( 'Post Type', 'my-plugin' ),
+        'default' => 'post'
+    )
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Creating Custom Field Types
+
+To create a custom field type, you need two components:
+
+### 1. Register the Field Type
+
+```php
+function my_custom_field_assets() {
+    if ( class_exists( 'FLBuilder' ) && FLBuilder::is_builder_active() ) {
+        // Enqueue field JavaScript
+        wp_enqueue_script(
+            'my-custom-field',
+            MY_PLUGIN_URL . 'js/my-custom-field.js',
+            array( 'jquery' ),
+            '1.0',
+            true
+        );
+
+        // Enqueue field CSS
+        wp_enqueue_style(
+            'my-custom-field',
+            MY_PLUGIN_URL . 'css/my-custom-field.css',
+            array(),
+            '1.0'
+        );
+    }
+}
+add_action( 'wp_enqueue_scripts', 'my_custom_field_assets' );
+```
+
+### 2. Create Field Template
+
+Create a template file following the pattern in ui-field-*.php:
+
+```php
+<?php
+/**
+ * Custom field template
+ * File: includes/ui-field-custom.php
+ */
+?>
+<#
+// JavaScript template using Underscore.js
+var value = data.value ? data.value : '';
+var field = data.field;
+#>
+<div class="fl-custom-field<# if ( field.className ) { #> {{field.className}}<# } #>">
+    <input 
+        type="text" 
+        name="{{data.name}}" 
+        value="{{value}}" 
+        class="fl-custom-field-input"
+        <# if ( field.placeholder ) { #>placeholder="{{field.placeholder}}"<# } #>
+    />
+    <button class="fl-custom-field-button" type="button">
+        <?php _e( 'Custom Action', 'my-plugin' ); ?>
+    </button>
+</div>
+```
+
+### 3. Load Custom Template
+
+Tell Beaver Builder to load your custom field template:
+
+```php
+function my_load_custom_field_templates() {
+    $template_path = MY_PLUGIN_DIR . 'includes/ui-field-custom.php';
+    
+    if ( file_exists( $template_path ) ) {
+        include $template_path;
+    }
+}
+add_action( 'fl_builder_ui_enqueue_scripts', 'my_load_custom_field_templates' );
+```
+
+### 4. Add Field JavaScript
+
+Create the field behavior:
+
+```javascript
+(function($) {
+    /**
+     * Custom field class
+     */
+    FLBuilder.registerFieldClass( 'custom', {
+        
+        /**
+         * Initialize field
+         */
+        init: function() {
+            var field = this;
+            
+            field.$el = $( field.el );
+            field.$input = field.$el.find( '.fl-custom-field-input' );
+            field.$button = field.$el.find( '.fl-custom-field-button' );
+            
+            field.$button.on( 'click', field.onButtonClick.bind( field ) );
+        },
+        
+        /**
+         * Handle button click
+         */
+        onButtonClick: function( e ) {
+            e.preventDefault();
+            
+            var field = this;
+            var currentValue = field.$input.val();
+            
+            // Custom logic
+            field.$input.val( currentValue + ' modified' );
+            
+            // Trigger change for preview
+            field.$input.trigger( 'change' );
+        },
+        
+        /**
+         * Get field value
+         */
+        getValue: function() {
+            return this.$input.val();
+        },
+        
+        /**
+         * Set field value
+         */
+        setValue: function( value ) {
+            this.$input.val( value );
+        }
+    });
+    
+})(jQuery);
+```
+
+### 5. Use Custom Field
+
+```php
+'my_custom_setting' => array(
+    'type'    => 'custom',
+    'label'   => __( 'Custom Field', 'my-plugin' ),
+    'default' => '',
+    'preview' => array(
+        'type'     => 'css',
+        'selector' => '.my-element',
+        'property' => 'content'
+    )
+)
+```
+
+## Field Rendering Process
+
+Understanding how fields are rendered helps when creating custom fields:
+
+<Steps>
+  <Step title="Template Loading">
+    Field templates are loaded from `includes/ui-field-*.php` when the settings panel opens.
+  </Step>
+  
+  <Step title="Template Compilation">
+    Underscore.js compiles templates with the `data` object containing:
+    - `data.name` - Field name
+    - `data.value` - Current value
+    - `data.field` - Field configuration
+    - `data.settings` - All module settings
+  </Step>
+  
+  <Step title="Field Initialization">
+    JavaScript field classes initialize after rendering (FLBuilder.registerFieldClass).
+  </Step>
+  
+  <Step title="Value Binding">
+    Field values are bound to hidden inputs that sync with the settings form.
+  </Step>
+</Steps>
+
+## Field Preview System
+
+Fields can trigger live previews using the `preview` configuration:
+
+```php
+'preview' => array(
+    'type'     => 'css',           // 'css', 'text', 'refresh'
+    'selector' => '.my-element',   // CSS selector
+    'property' => 'color',         // CSS property or 'html'
+    'unit'     => 'px',            // Optional unit
+    'important' => true            // Add !important
+)
+```
+
+Related to FLBuilderCSS from class-fl-builder-css.php:722-738.
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Field Naming" icon="tag">
+    Use descriptive, unique field names to avoid conflicts:
+    ```php
+    'my_plugin_unique_field'
+    ```
+  </Card>
+  
+  <Card title="Defaults" icon="sliders">
+    Always provide sensible defaults:
+    ```php
+    'default' => ''
+    ```
+  </Card>
+  
+  <Card title="Validation" icon="shield-check">
+    Validate and sanitize field values:
+    ```php
+    'sanitize' => 'text'
+    ```
+  </Card>
+  
+  <Card title="Performance" icon="gauge-high">
+    Use deferred rendering for complex fields:
+    ```php
+    'deferRendering' => true
+    ```
+  </Card>
+</CardGroup>
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="Module Development" icon="puzzle-piece" href="/developer/custom-modules/overview">
+    Learn about creating custom modules
+  </Card>
+  
+  <Card title="AJAX Operations" icon="arrows-rotate" href="/developer/advanced/ajax-operations">
+    Handle AJAX in custom fields
+  </Card>
+  
+  <Card title="CSS Generation" icon="paintbrush" href="/developer/advanced/css-js-assets">
+    Generate CSS from field values
+  </Card>
+  
+  <Card title="Settings API" icon="gear" href="/developer/custom-modules/settings">
+    Module settings configuration
+  </Card>
+</CardGroup>

@@ -1,0 +1,925 @@
+---
+title: 'Module Settings'
+description: 'Create and configure settings forms for Beaver Builder modules'
+icon: 'sliders'
+---
+
+## Settings Form Registration
+
+Module settings are registered alongside the module using `FLBuilder::register_module()`. The settings define the configuration interface users see when editing a module.
+
+### Basic Structure
+
+Settings are organized into tabs, sections, and fields:
+
+```php
+FLBuilder::register_module('FLMyModule', array(
+    'general' => array(                    // Tab
+        'title'    => __( 'General', 'fl-builder' ),
+        'sections' => array(               // Sections within tab
+            'content' => array(            // Section
+                'title'  => __( 'Content', 'fl-builder' ),
+                'fields' => array(         // Fields within section
+                    'heading' => array(    // Field
+                        'type'  => 'text',
+                        'label' => __( 'Heading', 'fl-builder' ),
+                    ),
+                ),
+            ),
+        ),
+    ),
+    'style' => array(                      // Another tab
+        'title'    => __( 'Style', 'fl-builder' ),
+        'sections' => array(
+            // ...
+        ),
+    ),
+));
+```
+
+## Settings Structure
+
+### Tabs
+
+Tabs organize settings into logical groups:
+
+```php
+array(
+    'general' => array(
+        'title' => __( 'General', 'fl-builder' ),
+        'sections' => array( /* ... */ ),
+    ),
+    'style' => array(
+        'title' => __( 'Style', 'fl-builder' ),
+        'sections' => array( /* ... */ ),
+    ),
+    'advanced' => array(
+        'title' => __( 'Advanced', 'fl-builder' ),
+        'sections' => array( /* ... */ ),
+    ),
+)
+```
+
+<Note>
+The `advanced` tab is automatically added by Beaver Builder with spacing, visibility, animation, and HTML element settings.
+</Note>
+
+### Sections
+
+Sections group related fields within a tab:
+
+```php
+'sections' => array(
+    'content' => array(
+        'title'     => __( 'Content', 'fl-builder' ),
+        'collapsed' => false,  // Whether section starts collapsed
+        'fields'    => array( /* ... */ ),
+    ),
+    'styling' => array(
+        'title'     => __( 'Styling', 'fl-builder' ),
+        'collapsed' => true,
+        'fields'    => array( /* ... */ ),
+    ),
+)
+```
+
+### Fields
+
+Fields are the actual input controls:
+
+```php
+'fields' => array(
+    'field_name' => array(
+        'type'        => 'text',
+        'label'       => __( 'Label', 'fl-builder' ),
+        'default'     => 'Default Value',
+        'description' => __( 'Helper text', 'fl-builder' ),
+        'placeholder' => __( 'Placeholder text', 'fl-builder' ),
+        'help'        => __( 'Tooltip text', 'fl-builder' ),
+        'preview'     => array(
+            'type' => 'text',
+        ),
+    ),
+)
+```
+
+## Field Types
+
+Beaver Builder provides numerous field types for different input needs.
+
+### Text Fields
+
+#### text
+
+Basic single-line text input:
+
+```php
+'heading' => array(
+    'type'        => 'text',
+    'label'       => __( 'Heading', 'fl-builder' ),
+    'default'     => __( 'My Heading', 'fl-builder' ),
+    'maxlength'   => 50,
+    'placeholder' => __( 'Enter heading...', 'fl-builder' ),
+    'preview'     => array(
+        'type'     => 'text',
+        'selector' => '.my-heading',
+    ),
+    'connections' => array( 'string' ),  // Allow field connections
+),
+```
+
+From `~/workspace/source/modules/button/button.php:256`:
+
+```php
+'text' => array(
+    'type'        => 'text',
+    'label'       => __( 'Text', 'fl-builder' ),
+    'default'     => __( 'Click Here', 'fl-builder' ),
+    'preview'     => array(
+        'type'     => 'text',
+        'selector' => '.fl-button-text',
+    ),
+    'connections' => array( 'string' ),
+),
+```
+
+#### textarea
+
+Multi-line text input:
+
+```php
+'description' => array(
+    'type'        => 'textarea',
+    'label'       => __( 'Description', 'fl-builder' ),
+    'default'     => '',
+    'rows'        => 5,
+    'placeholder' => __( 'Enter description...', 'fl-builder' ),
+    'connections' => array( 'string' ),
+),
+```
+
+#### editor
+
+WYSIWYG rich text editor:
+
+```php
+'content' => array(
+    'type'        => 'editor',
+    'label'       => __( 'Content', 'fl-builder' ),
+    'default'     => '<p>Your content here.</p>',
+    'media_buttons' => true,
+    'wpautop'     => true,
+    'connections' => array( 'string' ),
+),
+```
+
+#### code
+
+Code editor with syntax highlighting:
+
+```php
+'custom_code' => array(
+    'type'    => 'code',
+    'editor'  => 'javascript',  // html, css, javascript, php
+    'label'   => __( 'Custom JavaScript', 'fl-builder' ),
+    'rows'    => 18,
+    'default' => '',
+),
+```
+
+From `~/workspace/source/modules/button/button.php:337`:
+
+```php
+'button' => array(
+    'type'    => 'code',
+    'editor'  => 'javascript',
+    'label'   => __( 'Button Code', 'fl-builder' ),
+    'rows'    => '18',
+    'help'    => __( 'Implement custom button functionality using JavaScript.', 'fl-builder' ),
+),
+```
+
+### Selection Fields
+
+#### select
+
+Dropdown select menu:
+
+```php
+'layout' => array(
+    'type'    => 'select',
+    'label'   => __( 'Layout', 'fl-builder' ),
+    'default' => 'grid',
+    'options' => array(
+        'grid' => __( 'Grid', 'fl-builder' ),
+        'list' => __( 'List', 'fl-builder' ),
+        'masonry' => __( 'Masonry', 'fl-builder' ),
+    ),
+    'toggle'  => array(
+        'grid' => array(
+            'fields' => array( 'columns' ),
+        ),
+        'list' => array(
+            'fields' => array( 'show_thumbnails' ),
+        ),
+    ),
+),
+```
+
+#### button-group
+
+Button group for selecting options:
+
+```php
+'alignment' => array(
+    'type'    => 'button-group',
+    'label'   => __( 'Alignment', 'fl-builder' ),
+    'default' => 'left',
+    'options' => array(
+        'left'   => __( 'Left', 'fl-builder' ),
+        'center' => __( 'Center', 'fl-builder' ),
+        'right'  => __( 'Right', 'fl-builder' ),
+    ),
+),
+```
+
+#### suggest
+
+Autocomplete field with suggestions:
+
+```php
+'post' => array(
+    'type'   => 'suggest',
+    'label'  => __( 'Post', 'fl-builder' ),
+    'action' => 'fl_as_posts',  // AJAX action for suggestions
+    'data'   => 'post',
+    'limit'  => 1,
+),
+```
+
+### Media Fields
+
+#### photo
+
+Image picker:
+
+```php
+'photo' => array(
+    'type'        => 'photo',
+    'label'       => __( 'Photo', 'fl-builder' ),
+    'show_remove' => true,
+    'connections' => array( 'photo' ),
+),
+```
+
+#### multiple-photos
+
+Multiple image picker:
+
+```php
+'photos' => array(
+    'type'  => 'multiple-photos',
+    'label' => __( 'Photos', 'fl-builder' ),
+),
+```
+
+#### video
+
+Video URL input:
+
+```php
+'video' => array(
+    'type'  => 'video',
+    'label' => __( 'Video', 'fl-builder' ),
+    'help'  => __( 'YouTube or Vimeo URL', 'fl-builder' ),
+),
+```
+
+#### icon
+
+Icon picker:
+
+```php
+'icon' => array(
+    'type'        => 'icon',
+    'label'       => __( 'Icon', 'fl-builder' ),
+    'show_remove' => true,
+    'show'        => array(
+        'fields' => array( 'icon_color' ),
+    ),
+),
+```
+
+From `~/workspace/source/modules/button/button.php:266`:
+
+```php
+'icon' => array(
+    'type'        => 'icon',
+    'label'       => __( 'Icon', 'fl-builder' ),
+    'show_remove' => true,
+    'show'        => array(
+        'fields' => array( 'icon_position', 'icon_animation' ),
+    ),
+),
+```
+
+### Styling Fields
+
+#### color
+
+Color picker:
+
+```php
+'text_color' => array(
+    'type'        => 'color',
+    'label'       => __( 'Text Color', 'fl-builder' ),
+    'default'     => '#333333',
+    'show_reset'  => true,
+    'show_alpha'  => true,
+    'responsive'  => true,
+    'preview'     => array(
+        'type'     => 'css',
+        'selector' => '.my-element',
+        'property' => 'color',
+    ),
+    'connections' => array( 'color' ),
+),
+```
+
+From `~/workspace/source/modules/button/button.php:471`:
+
+```php
+'text_color' => array(
+    'type'        => 'color',
+    'connections' => array( 'color' ),
+    'label'       => __( 'Text Color', 'fl-builder' ),
+    'default'     => '',
+    'show_reset'  => true,
+    'show_alpha'  => true,
+    'responsive'  => true,
+    'preview'     => array(
+        'type'      => 'css',
+        'selector'  => '.fl-button:is(a, button), .fl-button:is(a, button) *',
+        'property'  => 'color',
+        'important' => true,
+    ),
+),
+```
+
+#### gradient
+
+Gradient builder:
+
+```php
+'background' => array(
+    'type'  => 'gradient',
+    'label' => __( 'Background Gradient', 'fl-builder' ),
+),
+```
+
+#### typography
+
+Complete typography controls:
+
+```php
+'typography' => array(
+    'type'       => 'typography',
+    'label'      => __( 'Typography', 'fl-builder' ),
+    'responsive' => true,
+    'preview'    => array(
+        'type'     => 'css',
+        'selector' => '.my-text',
+    ),
+),
+```
+
+From `~/workspace/source/modules/heading/heading.php:214`:
+
+```php
+'typography' => array(
+    'type'       => 'typography',
+    'label'      => __( 'Typography', 'fl-builder' ),
+    'responsive' => true,
+    'preview'    => array(
+        'type'     => 'css',
+        'selector' => '{node}.fl-module-heading',
+    ),
+),
+```
+
+#### border
+
+Border style controls:
+
+```php
+'border' => array(
+    'type'       => 'border',
+    'label'      => __( 'Border', 'fl-builder' ),
+    'responsive' => true,
+    'preview'    => array(
+        'type'     => 'css',
+        'selector' => '.my-element',
+    ),
+),
+```
+
+#### shadow
+
+Box shadow controls:
+
+```php
+'shadow' => array(
+    'type'    => 'shadow',
+    'label'   => __( 'Shadow', 'fl-builder' ),
+    'preview' => array(
+        'type'     => 'css',
+        'selector' => '.my-element',
+        'property' => 'box-shadow',
+    ),
+),
+```
+
+### Dimension Fields
+
+#### dimension
+
+Top, right, bottom, left value inputs:
+
+```php
+'padding' => array(
+    'type'       => 'dimension',
+    'label'      => __( 'Padding', 'fl-builder' ),
+    'slider'     => true,
+    'units'      => array( 'px', 'em', '%' ),
+    'responsive' => true,
+    'preview'    => array(
+        'type'     => 'css',
+        'selector' => '.my-element',
+        'property' => 'padding',
+    ),
+),
+```
+
+#### unit
+
+Single value with unit selector:
+
+```php
+'width' => array(
+    'type'       => 'unit',
+    'label'      => __( 'Width', 'fl-builder' ),
+    'default'    => 200,
+    'responsive' => true,
+    'slider'     => array(
+        'px' => array(
+            'min'  => 0,
+            'max'  => 1000,
+            'step' => 10,
+        ),
+    ),
+    'units'      => array( 'px', '%', 'vw' ),
+    'preview'    => array(
+        'type'     => 'css',
+        'selector' => '.my-element',
+        'property' => 'width',
+    ),
+),
+```
+
+From `~/workspace/source/modules/button/button.php:420`:
+
+```php
+'custom_width' => array(
+    'type'       => 'unit',
+    'label'      => __( 'Custom Width', 'fl-builder' ),
+    'default'    => '200',
+    'responsive' => true,
+    'slider'     => array(
+        'px' => array(
+            'min'  => 0,
+            'max'  => 1000,
+            'step' => 10,
+        ),
+    ),
+    'units'      => array( 'px', 'vw', '%' ),
+    'preview'    => array(
+        'type'     => 'css',
+        'selector' => '.fl-button:is(a, button)',
+        'property' => 'width',
+    ),
+),
+```
+
+### Link & Navigation
+
+#### link
+
+URL input with target and rel options:
+
+```php
+'link' => array(
+    'type'          => 'link',
+    'label'         => __( 'Link', 'fl-builder' ),
+    'placeholder'   => 'https://www.example.com',
+    'show_target'   => true,
+    'show_nofollow' => true,
+    'show_download' => true,
+    'connections'   => array( 'url' ),
+),
+```
+
+From `~/workspace/source/modules/button/button.php:325`:
+
+```php
+'link' => array(
+    'type'          => 'link',
+    'label'         => __( 'Link', 'fl-builder' ),
+    'placeholder'   => 'https://www.example.com',
+    'show_target'   => true,
+    'show_nofollow' => true,
+    'show_download' => true,
+    'connections'   => array( 'url' ),
+),
+```
+
+### Other Fields
+
+#### align
+
+Alignment selector:
+
+```php
+'align' => array(
+    'type'       => 'align',
+    'label'      => __( 'Alignment', 'fl-builder' ),
+    'default'    => 'left',
+    'responsive' => true,
+    'preview'    => array(
+        'type'     => 'css',
+        'selector' => '.my-element',
+        'property' => 'text-align',
+    ),
+),
+```
+
+#### animation
+
+Animation effect picker:
+
+```php
+'animation' => array(
+    'type'    => 'animation',
+    'label'   => __( 'Animation', 'fl-builder' ),
+    'preview' => array(
+        'type'     => 'animation',
+        'selector' => '.my-element',
+    ),
+),
+```
+
+#### background
+
+Complete background controls:
+
+```php
+'background' => array(
+    'type'  => 'background',
+    'label' => __( 'Background', 'fl-builder' ),
+),
+```
+
+## Field Properties
+
+### Common Properties
+
+These properties work across most field types:
+
+<ParamField path="type" type="string" required>
+  The field type (text, select, color, etc.)
+</ParamField>
+
+<ParamField path="label" type="string">
+  Label text displayed above the field
+</ParamField>
+
+<ParamField path="default" type="mixed">
+  Default value for the field
+</ParamField>
+
+<ParamField path="description" type="string">
+  Help text displayed below the field
+</ParamField>
+
+<ParamField path="help" type="string">
+  Tooltip text on hover
+</ParamField>
+
+<ParamField path="placeholder" type="string">
+  Placeholder text for text inputs
+</ParamField>
+
+<ParamField path="responsive" type="boolean" default="false">
+  Enable responsive controls (different values per breakpoint)
+</ParamField>
+
+<ParamField path="connections" type="array">
+  Allow field connections to dynamic data
+</ParamField>
+
+### Preview Property
+
+Control how changes preview in real-time:
+
+```php
+'preview' => array(
+    'type'      => 'css',              // css, text, refresh, none
+    'selector'  => '.my-element',      // CSS selector to target
+    'property'  => 'color',            // CSS property to update
+    'important' => true,               // Add !important
+    'unit'      => 'px',              // Append unit
+),
+```
+
+### Toggle Property
+
+Show/hide fields based on this field's value:
+
+```php
+'show_option' => array(
+    'type'    => 'select',
+    'label'   => __( 'Show Option', 'fl-builder' ),
+    'default' => 'no',
+    'options' => array(
+        'yes' => __( 'Yes', 'fl-builder' ),
+        'no'  => __( 'No', 'fl-builder' ),
+    ),
+    'toggle'  => array(
+        'yes' => array(
+            'fields'   => array( 'option_value' ),  // Show these fields
+            'sections' => array( 'options_section' ), // Show these sections
+            'tabs'     => array( 'options_tab' ),   // Show these tabs
+        ),
+    ),
+),
+```
+
+From `~/workspace/source/modules/button/button.php:301`:
+
+```php
+'click_action' => array(
+    'type'    => 'select',
+    'label'   => __( 'Click Action', 'fl-builder' ),
+    'default' => 'link',
+    'options' => array(
+        'link'     => __( 'Link', 'fl-builder' ),
+        'button'   => __( 'Button', 'fl-builder' ),
+        'lightbox' => __( 'Lightbox', 'fl-builder' ),
+    ),
+    'toggle'  => array(
+        'link'     => array(
+            'fields' => array( 'link' ),
+        ),
+        'button'   => array(
+            'fields' => array( 'button' ),
+        ),
+        'lightbox' => array(
+            'sections' => array( 'lightbox' ),
+        ),
+    ),
+),
+```
+
+## Advanced Settings Form
+
+Every module automatically gets the Advanced tab with standard settings:
+
+<CodeGroup>
+```php Spacing Section
+// Margins and padding controls
+'margins' => array(
+    'title'  => __( 'Spacing', 'fl-builder' ),
+    'fields' => array(
+        'margin' => array(
+            'type'       => 'dimension',
+            'label'      => __( 'Margins', 'fl-builder' ),
+            'responsive' => true,
+        ),
+    ),
+),
+```
+
+```php Visibility Section
+// Display and user capability controls
+'visibility' => array(
+    'title'  => __( 'Visibility', 'fl-builder' ),
+    'fields' => array(
+        'responsive_display' => array(
+            'type'    => 'button-group',
+            'label'   => __( 'Breakpoint', 'fl-builder' ),
+            'default' => 'desktop,large,medium,mobile',
+        ),
+        'visibility_display' => array(
+            'type'    => 'select',
+            'options' => array(
+                ''           => __( 'Always', 'fl-builder' ),
+                'logged_out' => __( 'Logged Out User', 'fl-builder' ),
+                'logged_in'  => __( 'Logged In User', 'fl-builder' ),
+            ),
+        ),
+    ),
+),
+```
+
+```php HTML Element Section
+// Container element, ID, and class
+'css_selectors' => array(
+    'title'  => __( 'HTML Element', 'fl-builder' ),
+    'fields' => array(
+        'container_element' => array(
+            'type'    => 'select',
+            'label'   => __( 'Container Element', 'fl-builder' ),
+            'default' => 'div',
+            'options' => array(
+                'div'     => '&lt;div&gt;',
+                'section' => '&lt;section&gt;',
+                'article' => '&lt;article&gt;',
+            ),
+        ),
+        'id'    => array(
+            'type'  => 'text',
+            'label' => __( 'ID', 'fl-builder' ),
+        ),
+        'class' => array(
+            'type'  => 'text',
+            'label' => __( 'Class', 'fl-builder' ),
+        ),
+    ),
+),
+```
+</CodeGroup>
+
+From `~/workspace/source/includes/module-settings.php:5`:
+
+```php
+FLBuilder::register_settings_form('module_advanced', array(
+    'title'    => __( 'Advanced', 'fl-builder' ),
+    'sections' => array(
+        'margins'       => array( /* ... */ ),
+        'visibility'    => array( /* ... */ ),
+        'animation'     => array( /* ... */ ),
+        'css_selectors' => array( /* ... */ ),
+    ),
+));
+```
+
+## Complete Example
+
+Here's a complete settings form for a testimonial module:
+
+```php
+FLBuilder::register_module('FLTestimonialModule', array(
+    'general' => array(
+        'title'    => __( 'General', 'fl-builder' ),
+        'sections' => array(
+            'content' => array(
+                'title'  => __( 'Content', 'fl-builder' ),
+                'fields' => array(
+                    'testimonial' => array(
+                        'type'        => 'editor',
+                        'label'       => __( 'Testimonial', 'fl-builder' ),
+                        'default'     => '',
+                        'connections' => array( 'string' ),
+                    ),
+                    'name' => array(
+                        'type'        => 'text',
+                        'label'       => __( 'Name', 'fl-builder' ),
+                        'placeholder' => __( 'John Doe', 'fl-builder' ),
+                        'connections' => array( 'string' ),
+                    ),
+                    'position' => array(
+                        'type'        => 'text',
+                        'label'       => __( 'Position/Title', 'fl-builder' ),
+                        'placeholder' => __( 'CEO, Company', 'fl-builder' ),
+                    ),
+                    'photo' => array(
+                        'type'        => 'photo',
+                        'label'       => __( 'Photo', 'fl-builder' ),
+                        'show_remove' => true,
+                    ),
+                    'rating' => array(
+                        'type'    => 'select',
+                        'label'   => __( 'Rating', 'fl-builder' ),
+                        'default' => '5',
+                        'options' => array(
+                            '5' => '5 Stars',
+                            '4' => '4 Stars',
+                            '3' => '3 Stars',
+                            '2' => '2 Stars',
+                            '1' => '1 Star',
+                        ),
+                    ),
+                ),
+            ),
+        ),
+    ),
+    'style' => array(
+        'title'    => __( 'Style', 'fl-builder' ),
+        'sections' => array(
+            'layout' => array(
+                'title'  => __( 'Layout', 'fl-builder' ),
+                'fields' => array(
+                    'layout_style' => array(
+                        'type'    => 'select',
+                        'label'   => __( 'Layout', 'fl-builder' ),
+                        'default' => 'stacked',
+                        'options' => array(
+                            'stacked' => __( 'Stacked', 'fl-builder' ),
+                            'side'    => __( 'Side by Side', 'fl-builder' ),
+                        ),
+                    ),
+                    'alignment' => array(
+                        'type'       => 'align',
+                        'label'      => __( 'Alignment', 'fl-builder' ),
+                        'default'    => 'center',
+                        'responsive' => true,
+                    ),
+                ),
+            ),
+            'colors' => array(
+                'title'  => __( 'Colors', 'fl-builder' ),
+                'fields' => array(
+                    'testimonial_color' => array(
+                        'type'       => 'color',
+                        'label'      => __( 'Testimonial Color', 'fl-builder' ),
+                        'show_reset' => true,
+                        'show_alpha' => true,
+                        'preview'    => array(
+                            'type'     => 'css',
+                            'selector' => '.fl-testimonial-text',
+                            'property' => 'color',
+                        ),
+                    ),
+                    'name_color' => array(
+                        'type'       => 'color',
+                        'label'      => __( 'Name Color', 'fl-builder' ),
+                        'show_reset' => true,
+                        'preview'    => array(
+                            'type'     => 'css',
+                            'selector' => '.fl-testimonial-name',
+                            'property' => 'color',
+                        ),
+                    ),
+                    'bg_color' => array(
+                        'type'       => 'color',
+                        'label'      => __( 'Background Color', 'fl-builder' ),
+                        'show_reset' => true,
+                        'show_alpha' => true,
+                        'preview'    => array(
+                            'type'     => 'css',
+                            'selector' => '.fl-testimonial-wrap',
+                            'property' => 'background-color',
+                        ),
+                    ),
+                ),
+            ),
+            'typography' => array(
+                'title'  => __( 'Typography', 'fl-builder' ),
+                'fields' => array(
+                    'testimonial_typography' => array(
+                        'type'       => 'typography',
+                        'label'      => __( 'Testimonial Typography', 'fl-builder' ),
+                        'responsive' => true,
+                        'preview'    => array(
+                            'type'     => 'css',
+                            'selector' => '.fl-testimonial-text',
+                        ),
+                    ),
+                    'name_typography' => array(
+                        'type'       => 'typography',
+                        'label'      => __( 'Name Typography', 'fl-builder' ),
+                        'responsive' => true,
+                        'preview'    => array(
+                            'type'     => 'css',
+                            'selector' => '.fl-testimonial-name',
+                        ),
+                    ),
+                ),
+            ),
+        ),
+    ),
+));
+```
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Custom Modules" icon="cube" href="/developer/custom-modules">
+    Create your first module
+  </Card>
+  <Card title="Hooks & Filters" icon="code" href="/developer/hooks-filters">
+    Extend with WordPress hooks
+  </Card>
+  <Card title="Getting Started" icon="rocket" href="/developer/getting-started">
+    Development environment setup
+  </Card>
+</CardGroup>

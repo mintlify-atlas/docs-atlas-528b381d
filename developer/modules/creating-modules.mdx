@@ -1,0 +1,284 @@
+---
+title: Creating Modules
+description: Step-by-step guide to creating custom Beaver Builder modules
+---
+
+Custom modules allow you to extend Beaver Builder with your own content elements. This guide walks through the complete module creation workflow.
+
+## Prerequisites
+
+Before creating a module, ensure you have:
+
+- A WordPress site with Beaver Builder installed
+- A custom plugin or child theme for your code
+- Basic knowledge of PHP, HTML, and CSS
+- Access to your site's file system
+
+## Module Creation Workflow
+
+<Steps>
+  <Step title="Create Module Directory">
+    Create a folder for your module in your plugin or theme:
+
+    ```bash
+    wp-content/plugins/my-plugin/modules/my-module/
+    ```
+
+    The folder name should be lowercase with hyphens and will become your module's slug.
+  </Step>
+
+  <Step title="Create Main Module File">
+    Create `my-module.php` in your module directory:
+
+    ```php my-module/my-module.php
+    <?php
+    /**
+     * @class MyModuleClass
+     */
+    class MyModuleClass extends FLBuilderModule {
+
+        public function __construct() {
+            parent::__construct(array(
+                'name'            => __( 'My Module', 'my-plugin' ),
+                'description'     => __( 'A custom module description.', 'my-plugin' ),
+                'category'        => __( 'Basic', 'my-plugin' ),
+                'icon'            => 'button.svg',
+                'partial_refresh' => true,
+            ));
+        }
+    }
+    ```
+
+    <Note>
+      The class name should be unique and follow WordPress naming conventions. Use PascalCase with a descriptive suffix like `Module` or `Class`.
+    </Note>
+  </Step>
+
+  <Step title="Register Module Settings">
+    Add the module registration and settings form at the end of your main file:
+
+    ```php my-module/my-module.php
+    FLBuilder::register_module('MyModuleClass', array(
+        'general' => array(
+            'title'    => __( 'General', 'my-plugin' ),
+            'sections' => array(
+                'general' => array(
+                    'title'  => '',
+                    'fields' => array(
+                        'text' => array(
+                            'type'    => 'text',
+                            'label'   => __( 'Text', 'my-plugin' ),
+                            'default' => __( 'Default text', 'my-plugin' ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+    ));
+    ```
+  </Step>
+
+  <Step title="Create Frontend Template">
+    Create `includes/frontend.php` to render your module:
+
+    ```php my-module/includes/frontend.php
+    <?php
+    // Access module settings via $settings variable
+    ?>
+    <div class="my-module-wrapper">
+        <p><?php echo esc_html( $settings->text ); ?></p>
+    </div>
+    ```
+
+    <Warning>
+      The `$settings` variable is automatically available and contains all module settings. Always sanitize output appropriately.
+    </Warning>
+  </Step>
+
+  <Step title="Create CSS Template">
+    Create `includes/frontend.css.php` for dynamic styles:
+
+    ```php my-module/includes/frontend.css.php
+    <?php
+    // $id contains the module's unique node ID
+    // $settings contains module settings
+    ?>
+    .fl-node-<?php echo $id; ?> .my-module-wrapper {
+        padding: 20px;
+    }
+    ```
+  </Step>
+
+  <Step title="Register Your Module">
+    In your plugin's main file, register the module with Beaver Builder:
+
+    ```php my-plugin.php
+    function my_plugin_load_modules() {
+        if ( class_exists( 'FLBuilder' ) ) {
+            require_once 'modules/my-module/my-module.php';
+        }
+    }
+    add_action( 'init', 'my_plugin_load_modules' );
+    ```
+  </Step>
+
+  <Step title="Test Your Module">
+    1. Clear your WordPress cache
+    2. Open the Beaver Builder editor
+    3. Look for your module in the modules panel
+    4. Drag it onto the page and test its functionality
+  </Step>
+</Steps>
+
+## Complete Example
+
+Here's a minimal working module:
+
+<CodeGroup>
+```php button-simple/button-simple.php
+<?php
+class SimpleButtonModule extends FLBuilderModule {
+    public function __construct() {
+        parent::__construct(array(
+            'name'        => __( 'Simple Button', 'my-plugin' ),
+            'description' => __( 'A simple call to action button.', 'my-plugin' ),
+            'category'    => __( 'Basic', 'my-plugin' ),
+            'icon'        => 'button.svg',
+        ));
+    }
+}
+
+FLBuilder::register_module('SimpleButtonModule', array(
+    'general' => array(
+        'title'    => __( 'General', 'my-plugin' ),
+        'sections' => array(
+            'general' => array(
+                'title'  => '',
+                'fields' => array(
+                    'text' => array(
+                        'type'    => 'text',
+                        'label'   => __( 'Button Text', 'my-plugin' ),
+                        'default' => __( 'Click Here', 'my-plugin' ),
+                    ),
+                    'link' => array(
+                        'type'        => 'link',
+                        'label'       => __( 'Link', 'my-plugin' ),
+                        'show_target' => true,
+                    ),
+                ),
+            ),
+        ),
+    ),
+));
+```
+
+```php button-simple/includes/frontend.php
+<?php
+$link = ! empty( $settings->link ) ? $settings->link : '#';
+$target = ! empty( $settings->link_target ) ? $settings->link_target : '_self';
+?>
+<div class="simple-button-wrapper">
+    <a href="<?php echo esc_url( $link ); ?>" 
+       target="<?php echo esc_attr( $target ); ?>"
+       class="simple-button">
+        <?php echo esc_html( $settings->text ); ?>
+    </a>
+</div>
+```
+
+```php button-simple/includes/frontend.css.php
+.fl-node-<?php echo $id; ?> .simple-button {
+    display: inline-block;
+    padding: 12px 24px;
+    background-color: #0066cc;
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 4px;
+}
+
+.fl-node-<?php echo $id; ?> .simple-button:hover {
+    background-color: #0052a3;
+}
+```
+</CodeGroup>
+
+## Module Registration
+
+Load your module in your plugin's main file:
+
+```php my-plugin.php
+<?php
+/**
+ * Plugin Name: My Custom Modules
+ * Description: Custom Beaver Builder modules
+ */
+
+function my_plugin_load_modules() {
+    if ( class_exists( 'FLBuilder' ) ) {
+        // Load individual modules
+        require_once plugin_dir_path( __FILE__ ) . 'modules/button-simple/button-simple.php';
+    }
+}
+add_action( 'init', 'my_plugin_load_modules' );
+```
+
+## Common Issues
+
+<AccordionGroup>
+  <Accordion title="Module doesn't appear in builder">
+    - Verify your plugin is activated
+    - Check that the module class extends `FLBuilderModule`
+    - Ensure `FLBuilder::register_module()` is called
+    - Clear WordPress and Beaver Builder caches
+    - Check for PHP errors in debug log
+  </Accordion>
+
+  <Accordion title="Settings not saving">
+    - Verify field names match what you're accessing in templates
+    - Check that the settings array is properly structured
+    - Ensure default values are set for required fields
+    - Look for JavaScript errors in browser console
+  </Accordion>
+
+  <Accordion title="Styles not applying">
+    - Verify `frontend.css.php` is in the `includes/` directory
+    - Check that you're using the correct `$id` variable for selectors
+    - Clear browser cache and regenerate CSS
+    - Ensure CSS specificity is high enough
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Module Structure" icon="folder-tree" href="/developer/modules/module-structure">
+    Learn about module file organization and required files
+  </Card>
+  <Card title="Frontend Rendering" icon="code" href="/developer/modules/frontend-rendering">
+    Discover how to render module output and dynamic CSS
+  </Card>
+  <Card title="Settings Forms" icon="sliders" href="/developer/modules/module-settings-forms">
+    Explore available field types and form configuration
+  </Card>
+  <Card title="Module API" icon="book" href="/developer/modules/api">
+    Reference the complete module API documentation
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+- **Use unique class names** to avoid conflicts with other modules
+- **Sanitize and escape all output** for security
+- **Provide sensible defaults** for all settings
+- **Support responsive design** with responsive field types
+- **Test thoroughly** across different themes and page layouts
+- **Follow WordPress coding standards** for consistency
+- **Document your code** to help future maintainers
+- **Use translation functions** for all user-facing text
+
+## Resources
+
+- [Module Structure Reference](/developer/modules/module-structure)
+- [Available Field Types](/developer/modules/module-settings-forms#field-types)
+- [FLBuilderModule Class Reference](/developer/classes/fl-builder-module)
+- [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/)

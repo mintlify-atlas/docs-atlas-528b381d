@@ -1,0 +1,691 @@
+---
+title: Data Model
+description: Understand Beaver Builder's layout data structure and the FLBuilderModel class
+---
+
+Beaver Builder stores layouts as hierarchical node data. The `FLBuilderModel` class (class-fl-builder-model.php) provides methods for creating, reading, updating, and deleting layout nodes.
+
+## Node Types
+
+Layouts consist of four node types:
+
+<CardGroup cols={2}>
+  <Card title="Rows" icon="grip-lines">
+    Top-level containers that define horizontal sections of a layout.
+  </Card>
+  
+  <Card title="Column Groups" icon="table-columns">
+    Container for columns within a row, defining the column structure.
+  </Card>
+  
+  <Card title="Columns" icon="rectangle-vertical">
+    Vertical containers within column groups that hold modules.
+  </Card>
+  
+  <Card title="Modules" icon="puzzle-piece">
+    Content elements (text, images, forms, etc.) placed within columns.
+  </Card>
+</CardGroup>
+
+## Layout Data Structure
+
+Layouts are stored as serialized arrays of node objects in post meta with the key `_fl_builder_data`.
+
+### Node Object Structure
+
+```php
+stdClass Object (
+    [node]     => '5a1b2c3d4e5f',        // Unique node ID
+    [parent]   => '1a2b3c4d5e6f',        // Parent node ID (null for rows)
+    [position] => 0,                     // Position among siblings
+    [type]     => 'module',              // Node type
+    [settings] => stdClass Object (       // Node settings
+        [type] => 'photo',
+        [photo] => 123,
+        [caption] => 'My photo',
+        // ... module-specific settings
+    )
+)
+```
+
+### Example Layout Structure
+
+```php
+array(
+    // Row
+    'abc123' => stdClass Object (
+        [node]     => 'abc123',
+        [parent]   => null,
+        [position] => 0,
+        [type]     => 'row',
+        [settings] => stdClass Object (
+            [width] => 'full',
+            [content_width] => 'fixed',
+            // ... row settings
+        )
+    ),
+    
+    // Column Group
+    'def456' => stdClass Object (
+        [node]     => 'def456',
+        [parent]   => 'abc123',
+        [position] => 0,
+        [type]     => 'column-group',
+        [settings] => stdClass Object ()
+    ),
+    
+    // Column
+    'ghi789' => stdClass Object (
+        [node]     => 'ghi789',
+        [parent]   => 'def456',
+        [position] => 0,
+        [type]     => 'column',
+        [settings] => stdClass Object (
+            [size] => 50,  // Column width percentage
+            // ... column settings
+        )
+    ),
+    
+    // Module
+    'jkl012' => stdClass Object (
+        [node]     => 'jkl012',
+        [parent]   => 'ghi789',
+        [position] => 0,
+        [type]     => 'module',
+        [settings] => stdClass Object (
+            [type] => 'heading',
+            [heading] => 'My Heading',
+            [tag] => 'h2',
+            // ... module settings
+        )
+    )
+)
+```
+
+## FLBuilderModel Class
+
+The `FLBuilderModel` class provides the API for working with layout data.
+
+### Getting Layout Data
+
+From class-fl-builder-model.php:
+
+```php
+// Get published layout data
+$layout = FLBuilderModel::get_layout_data();
+
+// Get draft layout data
+$draft = FLBuilderModel::get_layout_data( 'draft' );
+
+// Get data for specific post
+$layout = FLBuilderModel::get_layout_data( 'published', $post_id );
+```
+
+### Working with Nodes
+
+<AccordionGroup>
+  <Accordion title="Get Single Node">
+    From class-fl-builder-model.php:1216-1238:
+
+    ```php
+    /**
+     * Get a single node by ID
+     *
+     * @param string $node_id Node ID or node object
+     * @param string $status 'draft' or 'published'
+     * @return object Node object with merged settings
+     */
+    $node = FLBuilderModel::get_node( $node_id );
+    $node = FLBuilderModel::get_node( $node_id, 'draft' );
+    
+    // Node object includes merged default settings
+    echo $node->node;                    // Node ID
+    echo $node->parent;                  // Parent node ID
+    echo $node->type;                    // Node type
+    echo $node->position;                // Position
+    echo $node->settings->type;          // Module type (for modules)
+    ```
+  </Accordion>
+
+  <Accordion title="Get Multiple Nodes">
+    From class-fl-builder-model.php:1240-1292:
+
+    ```php
+    /**
+     * Get nodes of a specific type
+     *
+     * @param string $type Node type (row, column-group, column, module)
+     * @param string $parent_id Parent node ID
+     * @param string $status 'draft' or 'published'
+     * @return array Array of node objects
+     */
+    
+    // Get all rows
+    $rows = FLBuilderModel::get_nodes( 'row' );
+    
+    // Get columns in a specific column group
+    $columns = FLBuilderModel::get_nodes( 'column', $group_id );
+    
+    // Get all modules in a column
+    $modules = FLBuilderModel::get_nodes( 'module', $column_id );
+    
+    // Get all nodes
+    $all_nodes = FLBuilderModel::get_nodes();
+    ```
+  </Accordion>
+
+  <Accordion title="Get Child Nodes">
+    From class-fl-builder-model.php:1420-1455:
+
+    ```php
+    /**
+     * Get direct children of a node
+     *
+     * @param string $parent_id Parent node ID or object
+     * @param string $status 'draft' or 'published'
+     * @return array Array of child nodes
+     */
+    $children = FLBuilderModel::get_child_nodes( $parent_id );
+    
+    // For a row, returns column groups
+    // For a column group, returns columns
+    // For a column, returns modules
+    ```
+  </Accordion>
+
+  <Accordion title="Get Nested Nodes">
+    From class-fl-builder-model.php:1457-1489:
+
+    ```php
+    /**
+     * Get all nested children (recursive)
+     *
+     * @param string $parent_id Parent node ID
+     * @return array Array of all descendant nodes
+     */
+    $nested = FLBuilderModel::get_nested_nodes( $row_id );
+    
+    // Returns all groups, columns, and modules in a row
+    ```
+  </Accordion>
+
+  <Accordion title="Get Categorized Nodes">
+    From class-fl-builder-model.php:1491-1574:
+
+    ```php
+    /**
+     * Get all nodes categorized by type
+     *
+     * @return array Array with keys: rows, groups, columns, modules
+     */
+    $nodes = FLBuilderModel::get_categorized_nodes();
+    
+    foreach ( $nodes['rows'] as $row ) {
+        // Process rows
+    }
+    
+    foreach ( $nodes['modules'] as $module ) {
+        // Process modules
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Node Settings
+
+From class-fl-builder-model.php:1576-1654:
+
+```php
+/**
+ * Get node settings merged with defaults
+ *
+ * @param object $node Node object or node ID
+ * @param bool $filter Whether to apply filters
+ * @return object Settings object
+ */
+$settings = FLBuilderModel::get_node_settings( $node );
+
+// Settings are automatically merged with defaults
+echo $settings->type;           // Module type
+echo $settings->custom_setting; // Custom module setting
+```
+
+### Creating Nodes
+
+<Tabs>
+  <Tab title="Add Row">
+    ```php
+    /**
+     * Add a new row
+     *
+     * @param string $cols Column layout (1-col, 2-cols, etc.)
+     * @param int $position Row position
+     * @param string $module Optional module ID to move into row
+     * @return object Row node object
+     */
+    $row = FLBuilderModel::add_row( '2-cols', 0 );
+    
+    // Available column layouts
+    $layouts = FLBuilderModel::$row_layouts;
+    // array(
+    //     '1-col'              => array( 100 ),
+    //     '2-cols'             => array( 50, 50 ),
+    //     '3-cols'             => array( 33.33, 33.33, 33.33 ),
+    //     '4-cols'             => array( 25, 25, 25, 25 ),
+    //     'left-sidebar'       => array( 33.33, 66.66 ),
+    //     'right-sidebar'      => array( 66.66, 33.33 ),
+    //     'left-right-sidebar' => array( 25, 50, 25 ),
+    // )
+    ```
+  </Tab>
+  
+  <Tab title="Add Column">
+    ```php
+    /**
+     * Add columns to a row
+     *
+     * @param string $node_id Column to insert before/after
+     * @param string $insert 'before' or 'after'
+     * @param string $type Column type
+     * @param bool $nested Whether nested
+     * @param string $module Optional module to move
+     * @return object Column group object
+     */
+    $group = FLBuilderModel::add_cols(
+        $column_id,
+        'after',
+        'column',
+        false
+    );
+    ```
+  </Tab>
+  
+  <Tab title="Add Module">
+    ```php
+    /**
+     * Add a module
+     *
+     * @param string $type Module type
+     * @param object $settings Module settings
+     * @param string $parent_id Parent column ID
+     * @param int $position Module position
+     * @param string $template Template file to use
+     * @return object Module node object
+     */
+    $settings = new stdClass();
+    $settings->type = 'heading';
+    $settings->heading = 'My Heading';
+    $settings->tag = 'h2';
+    
+    $module = FLBuilderModel::add_module(
+        'heading',
+        $settings,
+        $column_id,
+        0
+    );
+    ```
+  </Tab>
+</Tabs>
+
+### Updating Nodes
+
+```php
+/**
+ * Save node settings
+ *
+ * @param string $node_id Node ID
+ * @param object $settings Settings object
+ * @return array Response data
+ */
+$settings = new stdClass();
+$settings->heading = 'Updated Heading';
+
+$response = FLBuilderModel::save_settings( $node_id, $settings );
+```
+
+### Deleting Nodes
+
+```php
+/**
+ * Delete a node and its children
+ *
+ * @param string $node_id Node ID to delete
+ * @return array Response data
+ */
+FLBuilderModel::delete_node( $node_id );
+
+/**
+ * Delete a column (adjusts sibling widths)
+ *
+ * @param string $node_id Column ID
+ * @param float $new_width New width for remaining columns
+ * @return array Response data
+ */
+FLBuilderModel::delete_col( $column_id, 50 );
+```
+
+### Moving and Reordering
+
+```php
+/**
+ * Reorder a node among siblings
+ *
+ * @param string $node_id Node to reorder
+ * @param int $position New position
+ * @return array Response data
+ */
+FLBuilderModel::reorder_node( $node_id, 2 );
+
+/**
+ * Move node to new parent
+ *
+ * @param string $node_id Node to move
+ * @param string $new_parent New parent ID
+ * @param int $position Position in new parent
+ * @return array Response data
+ */
+FLBuilderModel::move_node( $node_id, $new_parent_id, 0 );
+```
+
+## Node IDs
+
+From class-fl-builder-model.php:1166-1213:
+
+```php
+/**
+ * Generate unique node ID
+ *
+ * @return string 13-character unique ID
+ */
+$node_id = FLBuilderModel::generate_node_id();
+// Returns: '5f8a3b2c1d0e9'
+
+/**
+ * Generate new IDs for node array
+ *
+ * @param array $data Array of node objects
+ * @return array Array with new node IDs
+ */
+$new_nodes = FLBuilderModel::generate_new_node_ids( $old_nodes );
+```
+
+Node IDs are generated using:
+```php
+static public function uniqid() {
+    return uniqid();
+}
+```
+
+## Draft vs Published Data
+
+Beaver Builder maintains separate draft and published layout data:
+
+<Tabs>
+  <Tab title="Draft Data">
+    ```php
+    // Stored in: _fl_builder_draft post meta
+    // Used when: Builder is active
+    // Purpose: Allow editing without affecting live site
+    
+    $draft = FLBuilderModel::get_layout_data( 'draft' );
+    ```
+  </Tab>
+  
+  <Tab title="Published Data">
+    ```php
+    // Stored in: _fl_builder_data post meta
+    // Used when: Viewing published post
+    // Purpose: Display live, published layout
+    
+    $published = FLBuilderModel::get_layout_data( 'published' );
+    ```
+  </Tab>
+</Tabs>
+
+### Node Status
+
+From class-fl-builder-model.php:804-818:
+
+```php
+/**
+ * Get the appropriate status for node operations
+ *
+ * @return string 'draft' or 'published'
+ */
+$status = FLBuilderModel::get_node_status();
+
+// Returns 'draft' if builder is active
+// Returns 'published' otherwise
+```
+
+### Saving Layouts
+
+```php
+/**
+ * Save layout (draft to published)
+ *
+ * @param bool $publish Whether to publish
+ * @param bool $exit Whether to exit after saving
+ * @return array Response data
+ */
+FLBuilderModel::save_layout( true, false );
+
+/**
+ * Save draft layout
+ *
+ * @return array Response data
+ */
+FLBuilderModel::save_draft();
+
+/**
+ * Clear draft layout
+ *
+ * @return array Response data
+ */
+FLBuilderModel::clear_draft_layout();
+```
+
+## Global Settings
+
+Global settings control default values for all layouts:
+
+```php
+/**
+ * Get global settings
+ *
+ * @return object Global settings object
+ */
+$settings = FLBuilderModel::get_global_settings();
+
+echo $settings->row_width;              // Default row width
+echo $settings->row_padding;            // Default row padding
+echo $settings->column_padding;         // Default column padding
+echo $settings->module_margins;         // Default module margins
+echo $settings->responsive_enabled;     // Responsive breakpoints enabled
+echo $settings->responsive_breakpoint;  // Mobile breakpoint
+echo $settings->medium_breakpoint;      // Tablet breakpoint
+echo $settings->large_breakpoint;       // Desktop breakpoint
+```
+
+## Layout Settings
+
+Layout-specific settings override global defaults:
+
+```php
+/**
+ * Get layout settings for current post
+ *
+ * @param string $status 'draft' or 'published'
+ * @return object Layout settings object
+ */
+$settings = FLBuilderModel::get_layout_settings();
+
+echo $settings->type;            // Layout type
+echo $settings->template;        // Page template
+echo $settings->row_width;       // Custom row width
+```
+
+## Post Meta Keys
+
+Beaver Builder uses these post meta keys:
+
+<table>
+  <thead>
+    <tr>
+      <th>Meta Key</th>
+      <th>Description</th>
+      <th>Data Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>`_fl_builder_enabled`</td>
+      <td>Whether builder is enabled for post</td>
+      <td>Boolean (1/0)</td>
+    </tr>
+    <tr>
+      <td>`_fl_builder_data`</td>
+      <td>Published layout node data</td>
+      <td>Serialized array</td>
+    </tr>
+    <tr>
+      <td>`_fl_builder_draft`</td>
+      <td>Draft layout node data</td>
+      <td>Serialized array</td>
+    </tr>
+    <tr>
+      <td>`_fl_builder_data_settings`</td>
+      <td>Published layout settings</td>
+      <td>Serialized object</td>
+    </tr>
+    <tr>
+      <td>`_fl_builder_draft_settings`</td>
+      <td>Draft layout settings</td>
+      <td>Serialized object</td>
+    </tr>
+  </tbody>
+</table>
+
+## Working with Templates
+
+Node templates (global rows, columns, modules):
+
+```php
+/**
+ * Apply node template
+ *
+ * @param int $template_id Template post ID
+ * @param string $parent_id Parent node ID
+ * @param int $position Position
+ * @param object $template Optional template data
+ * @return object Root node of applied template
+ */
+$node = FLBuilderModel::apply_node_template(
+    $template_id,
+    $parent_id,
+    0
+);
+
+/**
+ * Check if node is global
+ *
+ * @param object $node Node object
+ * @return int Template post ID or false
+ */
+$template_id = FLBuilderModel::is_node_global( $node );
+
+if ( $template_id ) {
+    echo 'This is a global node from template: ' . $template_id;
+}
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Use Helpers" icon="hands-helping">
+    Use `get_nodes()` instead of parsing layout data manually.
+  </Card>
+  
+  <Card title="Check Status" icon="circle-check">
+    Always consider draft vs published status when working with data.
+  </Card>
+  
+  <Card title="Validate IDs" icon="fingerprint">
+    Verify node IDs exist before performing operations.
+  </Card>
+  
+  <Card title="Respect Hierarchy" icon="sitemap">
+    Maintain proper parent-child relationships when creating nodes.
+  </Card>
+</CardGroup>
+
+## Programmatic Layout Creation
+
+Example: Create a layout programmatically
+
+```php
+function create_custom_layout( $post_id ) {
+    // Set post context
+    FLBuilderModel::set_post_id( $post_id );
+    
+    // Enable builder
+    FLBuilderModel::enable();
+    
+    // Create row with 2 columns
+    $row = FLBuilderModel::add_row( '2-cols' );
+    
+    // Get columns
+    $groups = FLBuilderModel::get_nodes( 'column-group', $row->node );
+    $group = array_shift( $groups );
+    $columns = FLBuilderModel::get_nodes( 'column', $group->node );
+    
+    // Add heading to first column
+    $heading_settings = new stdClass();
+    $heading_settings->type = 'heading';
+    $heading_settings->heading = 'Welcome';
+    $heading_settings->tag = 'h1';
+    
+    $heading = FLBuilderModel::add_module(
+        'heading',
+        $heading_settings,
+        $columns[0]->node
+    );
+    
+    // Add text to second column
+    $text_settings = new stdClass();
+    $text_settings->type = 'rich-text';
+    $text_settings->text = '<p>This is some text.</p>';
+    
+    $text = FLBuilderModel::add_module(
+        'rich-text',
+        $text_settings,
+        $columns[1]->node
+    );
+    
+    // Save layout
+    FLBuilderModel::save_layout( true, false );
+    
+    // Reset post context
+    FLBuilderModel::reset_post_id();
+}
+```
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="AJAX Operations" icon="arrows-rotate" href="/developer/advanced/ajax-operations">
+    Learn about AJAX data operations
+  </Card>
+  
+  <Card title="CSS & JS Assets" icon="file-code" href="/developer/advanced/css-js-assets">
+    Asset generation from layout data
+  </Card>
+  
+  <Card title="Custom Modules" icon="puzzle-piece" href="/developer/custom-modules/overview">
+    Create modules that work with the data model
+  </Card>
+  
+  <Card title="Hooks Reference" icon="link" href="/developer/hooks-reference/filters">
+    Filter hooks for data manipulation
+  </Card>
+</CardGroup>

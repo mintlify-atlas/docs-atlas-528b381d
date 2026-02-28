@@ -1,0 +1,556 @@
+---
+title: Module System
+description: Understanding how Beaver Builder modules work and how to create custom ones
+---
+
+Modules are the building blocks of Beaver Builder layouts. They're self-contained components that can be dragged into columns to add functionality like headings, buttons, images, forms, and more.
+
+## What Are Modules?
+
+A module is a PHP class that extends `FLBuilderModule` and provides:
+
+- **Settings Form** - User interface for configuration
+- **Frontend Output** - HTML template for display
+- **CSS Styling** - Module-specific styles
+- **JavaScript** - Optional frontend behavior
+- **Backend Logic** - Data processing and validation
+
+<Note>
+Modules live in the `modules/` directory and follow a specific file structure for organization.
+</Note>
+
+## Module Categories
+
+Beaver Builder includes 42+ built-in modules organized into categories:
+
+### Basic Modules
+
+Everyday content elements:
+
+<CardGroup cols={3}>
+  <Card title="Heading" icon="heading">
+    Page titles and headings with custom typography
+  </Card>
+  <Card title="Photo" icon="image">
+    Single images with linking and effects
+  </Card>
+  <Card title="Button" icon="square">
+    Call-to-action buttons with icons
+  </Card>
+  <Card title="Rich Text" icon="align-left">
+    WordPress editor with full formatting
+  </Card>
+  <Card title="Video" icon="video">
+    YouTube, Vimeo, or self-hosted videos
+  </Card>
+  <Card title="Audio" icon="volume">
+    Audio players for MP3 files
+  </Card>
+  <Card title="Icon" icon="icons">
+    Font icons with customization
+  </Card>
+  <Card title="Separator" icon="minus">
+    Visual content dividers
+  </Card>
+  <Card title="HTML" icon="code">
+    Custom HTML/JavaScript code
+  </Card>
+</CardGroup>
+
+### Advanced Modules
+
+Complex interactive components:
+
+<CardGroup cols={3}>
+  <Card title="Gallery" icon="images">
+    Photo galleries with lightbox
+  </Card>
+  <Card title="Slideshow" icon="presentation">
+    Image slideshows with transitions
+  </Card>
+  <Card title="Slider" icon="sliders">
+    Content sliders with multiple slides
+  </Card>
+  <Card title="Accordion" icon="list">
+    Collapsible content sections
+  </Card>
+  <Card title="Tabs" icon="folder">
+    Tabbed content interface
+  </Card>
+  <Card title="Contact Form" icon="envelope">
+    Customizable contact forms
+  </Card>
+  <Card title="Subscribe Form" icon="paper-plane">
+    Email subscription forms
+  </Card>
+  <Card title="Login Form" icon="user">
+    WordPress login interface
+  </Card>
+  <Card title="Search" icon="search">
+    Site search functionality
+  </Card>
+</CardGroup>
+
+### Content Modules
+
+<CardGroup cols={3}>
+  <Card title="Callout" icon="megaphone">
+    Promotional callout boxes
+  </Card>
+  <Card title="CTA" icon="bullhorn">
+    Call-to-action sections
+  </Card>
+  <Card title="Pricing Table" icon="dollar-sign">
+    Product pricing displays
+  </Card>
+  <Card title="Testimonials" icon="quote-left">
+    Customer testimonials slider
+  </Card>
+  <Card title="Numbers" icon="hashtag">
+    Animated number counters
+  </Card>
+  <Card title="Star Rating" icon="star">
+    Visual rating display
+  </Card>
+  <Card title="Icon Group" icon="icons">
+    Multiple icons in a row
+  </Card>
+  <Card title="Button Group" icon="square">
+    Multiple buttons together
+  </Card>
+  <Card title="List" icon="list-ul">
+    Styled lists with icons
+  </Card>
+</CardGroup>
+
+### Post Modules
+
+<CardGroup cols={3}>
+  <Card title="Post Grid" icon="grid">
+    Blog post grid layouts
+  </Card>
+  <Card title="Post Carousel" icon="images">
+    Rotating post carousel
+  </Card>
+  <Card title="Post Slider" icon="sliders">
+    Post content slider
+  </Card>
+</CardGroup>
+
+### WordPress Modules
+
+<CardGroup cols={3}>
+  <Card title="Menu" icon="bars">
+    WordPress navigation menus
+  </Card>
+  <Card title="Sidebar" icon="sidebar">
+    WordPress sidebar areas
+  </Card>
+  <Card title="Widget" icon="puzzle-piece">
+    Any WordPress widget
+  </Card>
+  <Card title="Social Buttons" icon="share-nodes">
+    Social media sharing
+  </Card>
+</CardGroup>
+
+### Additional Modules
+
+<CardGroup cols={3}>
+  <Card title="Map" icon="map">
+    Google Maps integration
+  </Card>
+  <Card title="Countdown" icon="clock">
+    Event countdown timer
+  </Card>
+  <Card title="Box" icon="box">
+    Container with background
+  </Card>
+  <Card title="WooCommerce" icon="shopping-cart">
+    eCommerce integration
+  </Card>
+  <Card title="BigCommerce" icon="shopping-bag">
+    BigCommerce products
+  </Card>
+</CardGroup>
+
+## Complete Module List
+
+Here's the full list of 42+ modules available:
+
+<Accordion title="View All Modules">
+  
+**Basic:** Heading, Photo, Button, Rich Text, Video, Audio, Icon, Separator, HTML
+
+**Advanced:** Gallery, Slideshow, Content Slider, Accordion, Tabs, Contact Form, Subscribe Form, Login Form, Search, Menu
+
+**Content:** Callout, CTA, Pricing Table, Testimonials, Numbers, Star Rating, Icon Group, Button Group, List
+
+**Post:** Post Grid, Post Carousel, Post Slider
+
+**WordPress:** Sidebar, Widget, Social Buttons
+
+**Other:** Map, Countdown, Box, WooCommerce, BigCommerce, ACF Block, Reusable Block, North Commerce
+
+</Accordion>
+
+## Module Lifecycle
+
+Understanding the module lifecycle helps you know when to hook into different events:
+
+<Steps>
+  <Step title="Registration">
+    Module class is instantiated and registered via `FLBuilder::register_module()`
+    
+    ```php
+    FLBuilder::register_module('FLHeadingModule', $form_settings);
+    ```
+  </Step>
+  
+  <Step title="Settings Loaded">
+    When editing, module settings are loaded and defaults merged
+    
+    ```php
+    public function filter_settings($settings, $helper) {
+        // Handle backwards compatibility
+        return $settings;
+    }
+    ```
+  </Step>
+  
+  <Step title="Settings Saved">
+    User submits settings form, `update()` method processes data
+    
+    ```php
+    public function update($settings) {
+        // Sanitize settings
+        $settings->text = wp_kses_post($settings->text);
+        return $settings;
+    }
+    ```
+  </Step>
+  
+  <Step title="Frontend Render">
+    Module HTML is generated from PHP template file
+    
+    ```php
+    // includes/frontend.php
+    <div class="fl-module-heading">
+        <<?php echo $settings->tag; ?>><?php echo $settings->heading; ?></<?php echo $settings->tag; ?>>
+    </div>
+    ```
+  </Step>
+  
+  <Step title="CSS Generated">
+    Module CSS is compiled from `frontend.css.php` and cached
+  </Step>
+  
+  <Step title="JS Executed">
+    Module JavaScript runs on page load if `frontend.js` exists
+  </Step>
+  
+  <Step title="Module Deleted">
+    When removed, `delete()` method cleans up resources
+    
+    ```php
+    public function delete() {
+        // Delete cached photos, etc.
+    }
+    ```
+  </Step>
+</Steps>
+
+## Creating a Custom Module
+
+### Basic Module Structure
+
+<CodeGroup>
+```php my-module.php
+<?php
+/**
+ * @class MyCustomModule
+ */
+class MyCustomModule extends FLBuilderModule {
+    
+    /**
+     * Constructor
+     */
+    public function __construct() {
+        parent::__construct(array(
+            'name'            => __('My Custom Module', 'my-plugin'),
+            'description'     => __('A custom module example', 'my-plugin'),
+            'category'        => __('Basic', 'my-plugin'),
+            'icon'            => 'text.svg',
+            'partial_refresh' => true,
+        ));
+    }
+    
+    /**
+     * Enqueue scripts and styles
+     */
+    public function enqueue_scripts() {
+        $this->add_css('my-custom-css', $this->url . 'css/frontend.css');
+        $this->add_js('my-custom-js', $this->url . 'js/frontend.js', array('jquery'));
+    }
+}
+
+// Register the module
+FLBuilder::register_module('MyCustomModule', array(
+    'general' => array(
+        'title'    => __('General', 'my-plugin'),
+        'sections' => array(
+            'general' => array(
+                'title'  => '',
+                'fields' => array(
+                    'text' => array(
+                        'type'    => 'text',
+                        'label'   => __('Text', 'my-plugin'),
+                        'default' => 'Hello World',
+                    ),
+                ),
+            ),
+        ),
+    ),
+));
+```
+
+```php includes/frontend.php
+<div class="fl-module-my-custom">
+    <p><?php echo esc_html($settings->text); ?></p>
+</div>
+```
+
+```css css/frontend.css
+.fl-module-my-custom {
+    padding: 20px;
+    background: #f5f5f5;
+}
+
+.fl-module-my-custom p {
+    margin: 0;
+    font-size: 16px;
+}
+```
+</CodeGroup>
+
+### Directory Structure
+
+```
+my-module/
+├── my-module.php          # Module class
+├── icon.svg               # Module icon
+├── includes/
+│   ├── frontend.php       # HTML template
+│   └── frontend.css.php   # Dynamic CSS (optional)
+├── css/
+│   └── frontend.css       # Static CSS
+└── js/
+    └── frontend.js        # Frontend JavaScript
+```
+
+### Module Settings Form
+
+The settings form defines the UI for module configuration:
+
+<CodeGroup>
+```php Form Structure
+array(
+    'general' => array(
+        'title'    => __('General', 'my-plugin'),
+        'sections' => array(
+            'content' => array(
+                'title'  => __('Content', 'my-plugin'),
+                'fields' => array(
+                    'heading' => array(
+                        'type'    => 'text',
+                        'label'   => __('Heading', 'my-plugin'),
+                        'default' => 'My Heading',
+                        'preview' => array(
+                            'type'     => 'text',
+                            'selector' => '.my-heading',
+                        ),
+                    ),
+                    'photo' => array(
+                        'type'  => 'photo',
+                        'label' => __('Photo', 'my-plugin'),
+                    ),
+                    'color' => array(
+                        'type'       => 'color',
+                        'label'      => __('Color', 'my-plugin'),
+                        'default'    => '333333',
+                        'show_reset' => true,
+                        'show_alpha' => true,
+                        'preview'    => array(
+                            'type'     => 'css',
+                            'selector' => '.my-heading',
+                            'property' => 'color',
+                        ),
+                    ),
+                ),
+            ),
+        ),
+    ),
+    'style' => array(
+        'title'    => __('Style', 'my-plugin'),
+        'sections' => array(
+            'colors' => array(
+                'title'  => __('Colors', 'my-plugin'),
+                'fields' => array(
+                    'bg_color' => array(
+                        'type'  => 'color',
+                        'label' => __('Background', 'my-plugin'),
+                    ),
+                ),
+            ),
+        ),
+    ),
+)
+```
+</CodeGroup>
+
+### Available Field Types
+
+<Tabs>
+  <Tab title="Text & Content">
+    - `text` - Single line text input
+    - `textarea` - Multi-line text area
+    - `editor` - WordPress rich text editor
+    - `code` - Code editor with syntax highlighting
+  </Tab>
+  
+  <Tab title="Media">
+    - `photo` - Image selector
+    - `multiple-photos` - Multiple image selector
+    - `video` - Video file selector
+    - `audio` - Audio file selector
+  </Tab>
+  
+  <Tab title="Selection">
+    - `select` - Dropdown select
+    - `button-group` - Button group selector
+    - `checkbox` - Single checkbox
+    - `multiple-checkboxes` - Multiple checkboxes
+  </Tab>
+  
+  <Tab title="Design">
+    - `color` - Color picker
+    - `gradient` - Gradient builder
+    - `photo` - Image uploader
+    - `border` - Border controls
+    - `dimension` - Spacing controls
+    - `typography` - Font settings
+  </Tab>
+  
+  <Tab title="Advanced">
+    - `unit` - Number with unit selector
+    - `slider` - Range slider
+    - `animation` - Animation selector
+    - `loop-settings` - Query builder
+    - `link` - Link selector
+  </Tab>
+</Tabs>
+
+## Advanced Module Features
+
+### Partial Refresh
+
+Enable live preview without page reload:
+
+```php
+public function __construct() {
+    parent::__construct(array(
+        'name'            => __('My Module', 'my-plugin'),
+        'partial_refresh' => true, // Enable live preview
+    ));
+}
+```
+
+### Container Modules
+
+Modules that accept child modules:
+
+```php
+public $accepts = array('my-child-module'); // Accept specific children
+// OR
+public $accepts = 'all'; // Accept any module
+```
+
+### Module Dependencies
+
+Declare dependencies between modules:
+
+```php modules/class-fl-builder.php:174
+$deps = array(
+    'post-carousel' => array(
+        'post-grid',
+        'photo',
+    ),
+    'callout' => array(
+        'button',
+        'photo',
+        'icon',
+    ),
+);
+```
+
+<Warning>
+When a module has dependencies, the dependent modules must be enabled for the parent module to function properly.
+</Warning>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Always Sanitize Input">
+    ```php
+    public function update($settings) {
+        $settings->text = wp_kses_post($settings->text);
+        $settings->url  = esc_url($settings->url);
+        return $settings;
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Escape Output">
+    ```php
+    <h2><?php echo esc_html($settings->heading); ?></h2>
+    <a href="<?php echo esc_url($settings->link); ?>">Link</a>
+    <img src="<?php echo esc_url($settings->photo_src); ?>" />
+    ```
+  </Accordion>
+  
+  <Accordion title="Use Nonces for AJAX">
+    ```php
+    wp_nonce_field('my_module_action', 'my_module_nonce');
+    ```
+  </Accordion>
+  
+  <Accordion title="Enqueue Scripts Properly">
+    ```php
+    public function enqueue_scripts() {
+        if (FLBuilderModel::is_builder_active()) {
+            // Builder preview scripts
+        } else {
+            // Frontend scripts only
+            $this->add_js('frontend', $this->url . 'js/frontend.js');
+        }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Module Developer Guide" icon="code" href="/developer/custom-modules">
+    Complete guide to building custom modules
+  </Card>
+  <Card title="Settings Forms" icon="sliders" href="/developer/settings-forms">
+    Learn about all available field types
+  </Card>
+  <Card title="Module Examples" icon="star" href="/examples/modules">
+    Example modules with source code
+  </Card>
+  <Card title="API Reference" icon="book" href="/api/module-class">
+    FLBuilderModule class reference
+  </Card>
+</CardGroup>

@@ -1,0 +1,626 @@
+---
+title: 'Hooks & Filters'
+description: 'Extend Beaver Builder functionality with action hooks and filter hooks'
+icon: 'code'
+---
+
+## Overview
+
+Beaver Builder provides numerous action and filter hooks that allow you to extend or modify its functionality without editing core files.
+
+<Note>
+Always use hooks and filters instead of modifying core files to ensure your customizations survive updates.
+</Note>
+
+## Key Action Hooks
+
+Action hooks allow you to execute custom code at specific points in Beaver Builder's execution.
+
+### UI & Builder Interface
+
+#### fl_builder_ui_enqueue_scripts
+
+Enqueue custom scripts and styles in the builder interface.
+
+```php
+function my_bb_enqueue_ui_scripts() {
+    wp_enqueue_style(
+        'my-builder-styles',
+        MY_BB_URL . 'css/builder.css',
+        array(),
+        '1.0.0'
+    );
+    
+    wp_enqueue_script(
+        'my-builder-js',
+        MY_BB_URL . 'js/builder.js',
+        array( 'jquery' ),
+        '1.0.0',
+        true
+    );
+}
+add_action( 'fl_builder_ui_enqueue_scripts', 'my_bb_enqueue_ui_scripts' );
+```
+
+From `~/workspace/source/classes/class-fl-builder.php:85`:
+
+```php
+add_action( 'fl_builder_ui_enqueue_scripts', __CLASS__ . '::enqueue_ui_styles_scripts', 11 );
+```
+
+#### fl_builder_init_ui
+
+Runs when the builder UI is initialized.
+
+```php
+function my_bb_init_ui() {
+    // Initialize custom UI components
+    MyCustomUIComponent::init();
+}
+add_action( 'fl_builder_init_ui', 'my_bb_init_ui' );
+```
+
+#### fl_builder_before_ui_bar_title / fl_builder_after_ui_bar_title
+
+Add custom content to the builder's top bar.
+
+```php
+function my_bb_custom_ui_bar_content() {
+    ?>
+    <div class="my-custom-bar-item">
+        <button class="my-custom-button">Custom Action</button>
+    </div>
+    <?php
+}
+add_action( 'fl_builder_after_ui_bar_title', 'my_bb_custom_ui_bar_content' );
+```
+
+### Layout Rendering
+
+#### fl_builder_before_render_content / fl_builder_after_render_content
+
+Execute code before and after the layout is rendered.
+
+```php
+function my_bb_before_render() {
+    // Setup custom environment
+    do_action( 'my_custom_pre_render' );
+}
+add_action( 'fl_builder_before_render_content', 'my_bb_before_render' );
+
+function my_bb_after_render() {
+    // Cleanup or additional rendering
+    echo '<div class="custom-footer">Built with Beaver Builder</div>';
+}
+add_action( 'fl_builder_after_render_content', 'my_bb_after_render' );
+```
+
+#### fl_builder_before_render_row / fl_builder_after_render_row
+
+Hook into individual row rendering.
+
+```php
+function my_bb_before_render_row( $row, $groups ) {
+    // Add custom data attribute
+    if ( ! empty( $row->settings->custom_id ) ) {
+        echo '<div data-custom-id="' . esc_attr( $row->settings->custom_id ) . '">';
+    }
+}
+add_action( 'fl_builder_before_render_row', 'my_bb_before_render_row', 10, 2 );
+
+function my_bb_after_render_row( $row, $groups ) {
+    if ( ! empty( $row->settings->custom_id ) ) {
+        echo '</div>';
+    }
+}
+add_action( 'fl_builder_after_render_row', 'my_bb_after_render_row', 10, 2 );
+```
+
+#### fl_builder_before_render_module / fl_builder_after_render_module
+
+Hook into module rendering.
+
+```php
+function my_bb_before_render_module( $module ) {
+    // Track module usage
+    if ( 'button' === $module->slug ) {
+        update_option( 'my_button_module_count', 
+            get_option( 'my_button_module_count', 0 ) + 1 
+        );
+    }
+}
+add_action( 'fl_builder_before_render_module', 'my_bb_before_render_module' );
+```
+
+### Data Management
+
+#### fl_builder_before_save_layout / fl_builder_after_save_layout
+
+Run code when a layout is saved.
+
+```php
+function my_bb_before_save_layout( $post_id, $publish, $data, $settings ) {
+    // Validate data before save
+    error_log( 'Saving layout for post ' . $post_id );
+}
+add_action( 'fl_builder_before_save_layout', 'my_bb_before_save_layout', 10, 4 );
+
+function my_bb_after_save_layout( $post_id, $publish, $data, $settings ) {
+    // Clear custom cache
+    delete_transient( 'my_custom_cache_' . $post_id );
+    
+    // Trigger custom action
+    do_action( 'my_layout_updated', $post_id );
+}
+add_action( 'fl_builder_after_save_layout', 'my_bb_after_save_layout', 10, 4 );
+```
+
+From `~/workspace/source/classes/class-fl-builder-model.php:193`:
+
+```php
+add_action( 'fl_builder_after_save_layout', __CLASS__ . '::save_layout_revision' );
+```
+
+#### fl_builder_cache_cleared
+
+Execute code when Beaver Builder's cache is cleared.
+
+```php
+function my_bb_cache_cleared() {
+    // Clear your custom cache
+    delete_transient( 'my_custom_data' );
+    wp_cache_flush();
+}
+add_action( 'fl_builder_cache_cleared', 'my_bb_cache_cleared' );
+```
+
+### Module-Specific Hooks
+
+#### fl_builder_before_control / fl_builder_after_control
+
+Modify or extend module settings controls.
+
+```php
+function my_bb_custom_control( $name, $value, $field, $settings ) {
+    if ( 'custom_field_type' === $field['type'] ) {
+        ?>
+        <div class="my-custom-control">
+            <input type="text" name="<?php echo $name; ?>" value="<?php echo esc_attr( $value ); ?>" />
+        </div>
+        <?php
+    }
+}
+add_action( 'fl_builder_control_custom_field_type', 'my_bb_custom_control', 10, 4 );
+```
+
+#### fl_builder_posts_module_before_posts / fl_builder_posts_module_after_posts
+
+Add content before or after post modules.
+
+```php
+function my_bb_before_posts( $settings, $query ) {
+    if ( $query->have_posts() ) {
+        echo '<div class="posts-intro">Latest Articles:</div>';
+    }
+}
+add_action( 'fl_builder_posts_module_before_posts', 'my_bb_before_posts', 10, 2 );
+```
+
+From `~/workspace/source/modules/post-grid/includes/frontend.php:23`:
+
+```php
+do_action( 'fl_builder_posts_module_before_posts', $settings, $query );
+```
+
+## Key Filter Hooks
+
+Filter hooks allow you to modify data before it's used or returned.
+
+### Module Registration
+
+#### fl_builder_register_module
+
+Modify module registration parameters.
+
+```php
+function my_bb_modify_module_registration( $form, $slug ) {
+    // Add a custom tab to all modules
+    if ( ! isset( $form['custom_tab'] ) ) {
+        $form['custom_tab'] = array(
+            'title'    => __( 'Custom Settings', 'my-plugin' ),
+            'sections' => array(
+                'custom' => array(
+                    'title'  => '',
+                    'fields' => array(
+                        'custom_field' => array(
+                            'type'  => 'text',
+                            'label' => __( 'Custom Field', 'my-plugin' ),
+                        ),
+                    ),
+                ),
+            ),
+        );
+    }
+    
+    return $form;
+}
+add_filter( 'fl_builder_register_module', 'my_bb_modify_module_registration', 10, 2 );
+```
+
+#### fl_builder_module_categories
+
+Add custom module categories.
+
+```php
+function my_bb_custom_module_categories( $categories ) {
+    $categories['ecommerce'] = __( 'E-Commerce', 'my-plugin' );
+    $categories['social']    = __( 'Social Media', 'my-plugin' );
+    return $categories;
+}
+add_filter( 'fl_builder_module_categories', 'my_bb_custom_module_categories' );
+```
+
+### CSS & JavaScript
+
+#### fl_builder_render_css
+
+Modify the generated CSS before it's rendered.
+
+```php
+function my_bb_custom_css( $css, $nodes, $global_settings ) {
+    // Add custom global CSS
+    $custom_css = '
+        .fl-builder-content {
+            font-family: "Custom Font", sans-serif;
+        }
+    ';
+    
+    return $css . $custom_css;
+}
+add_filter( 'fl_builder_render_css', 'my_bb_custom_css', 10, 3 );
+```
+
+From `~/workspace/source/classes/class-fl-builder.php:96`:
+
+```php
+add_filter( 'fl_builder_render_css', __CLASS__ . '::rewrite_css_cache_urls', 9999 );
+```
+
+#### fl_builder_render_js
+
+Modify the generated JavaScript.
+
+```php
+function my_bb_custom_js( $js, $nodes, $global_settings ) {
+    $custom_js = '
+        jQuery(document).ready(function($) {
+            console.log("Custom Beaver Builder JS loaded");
+        });
+    ';
+    
+    return $js . $custom_js;
+}
+add_filter( 'fl_builder_render_js', 'my_bb_custom_js', 10, 3 );
+```
+
+### Settings & Data
+
+#### fl_builder_node_settings
+
+Modify node settings before rendering.
+
+```php
+function my_bb_modify_node_settings( $settings, $node ) {
+    // Add custom class to all modules
+    if ( 'module' === $node->type ) {
+        if ( ! isset( $settings->class ) ) {
+            $settings->class = '';
+        }
+        $settings->class .= ' my-custom-class';
+    }
+    
+    return $settings;
+}
+add_filter( 'fl_builder_node_settings', 'my_bb_modify_node_settings', 10, 2 );
+```
+
+#### fl_builder_module_attributes
+
+Modify module HTML attributes.
+
+```php
+function my_bb_custom_module_attributes( $attrs, $module ) {
+    // Add custom data attribute to button modules
+    if ( 'button' === $module->slug ) {
+        $attrs['data-button-id'] = $module->node;
+        $attrs['data-button-text'] = $module->settings->text;
+    }
+    
+    return $attrs;
+}
+add_filter( 'fl_builder_module_attributes', 'my_bb_custom_module_attributes', 10, 2 );
+```
+
+#### fl_builder_render_module_content
+
+Modify module output before it's rendered.
+
+```php
+function my_bb_modify_module_content( $content, $module ) {
+    // Wrap all heading modules in a custom div
+    if ( 'heading' === $module->slug ) {
+        $content = '<div class="custom-heading-wrapper">' . $content . '</div>';
+    }
+    
+    return $content;
+}
+add_filter( 'fl_builder_render_module_content', 'my_bb_modify_module_content', 10, 2 );
+```
+
+### Layout & Content
+
+#### fl_builder_layout_data
+
+Modify layout data before rendering.
+
+```php
+function my_bb_modify_layout_data( $data ) {
+    // Modify all button modules
+    foreach ( $data as $node_id => $node ) {
+        if ( isset( $node->type ) && 'module' === $node->type ) {
+            if ( isset( $node->settings->type ) && 'button' === $node->settings->type ) {
+                // Force all buttons to open in new tab
+                $node->settings->link_target = '_blank';
+            }
+        }
+    }
+    
+    return $data;
+}
+add_filter( 'fl_builder_layout_data', 'my_bb_modify_layout_data' );
+```
+
+#### fl_builder_content_classes
+
+Add custom classes to the builder content wrapper.
+
+```php
+function my_bb_content_classes( $classes ) {
+    $classes[] = 'my-custom-theme';
+    
+    if ( is_front_page() ) {
+        $classes[] = 'homepage-layout';
+    }
+    
+    return $classes;
+}
+add_filter( 'fl_builder_content_classes', 'my_bb_content_classes' );
+```
+
+### UI Configuration
+
+#### fl_builder_ui_js_config
+
+Modify the JavaScript configuration for the builder UI.
+
+```php
+function my_bb_ui_config( $config ) {
+    // Add custom UI strings
+    $config['strings']['myCustomString'] = __( 'Custom String', 'my-plugin' );
+    
+    // Add custom settings
+    $config['myCustomSetting'] = array(
+        'enabled' => true,
+        'options' => array( 'option1', 'option2' ),
+    );
+    
+    return $config;
+}
+add_filter( 'fl_builder_ui_js_config', 'my_bb_ui_config' );
+```
+
+#### fl_builder_ui_bar_buttons
+
+Add custom buttons to the builder UI bar.
+
+```php
+function my_bb_custom_ui_buttons( $buttons ) {
+    $buttons['my-custom-button'] = array(
+        'label' => __( 'Custom Action', 'my-plugin' ),
+        'url'   => '#',
+        'class' => 'my-custom-button',
+    );
+    
+    return $buttons;
+}
+add_filter( 'fl_builder_ui_bar_buttons', 'my_bb_custom_ui_buttons' );
+```
+
+### Loop & Query
+
+#### fl_builder_loop_query_args
+
+Modify WP_Query arguments for post modules.
+
+```php
+function my_bb_custom_query_args( $args ) {
+    // Exclude specific post IDs
+    $args['post__not_in'] = array( 1, 5, 10 );
+    
+    // Force specific order
+    $args['orderby'] = 'menu_order';
+    $args['order']   = 'ASC';
+    
+    return $args;
+}
+add_filter( 'fl_builder_loop_query_args', 'my_bb_custom_query_args' );
+```
+
+From `~/workspace/source/modules/search/search.php:29`:
+
+```php
+add_filter( 'fl_builder_loop_query_args', array( $this, 'loop_query_args' ) );
+```
+
+## Practical Examples
+
+### Add Custom Module Tab
+
+Add a custom settings tab to all modules:
+
+```php
+function my_bb_add_analytics_tab( $form, $slug ) {
+    $form['analytics'] = array(
+        'title'    => __( 'Analytics', 'my-plugin' ),
+        'sections' => array(
+            'tracking' => array(
+                'title'  => __( 'Tracking', 'my-plugin' ),
+                'fields' => array(
+                    'track_clicks' => array(
+                        'type'    => 'select',
+                        'label'   => __( 'Track Clicks', 'my-plugin' ),
+                        'default' => 'no',
+                        'options' => array(
+                            'yes' => __( 'Yes', 'my-plugin' ),
+                            'no'  => __( 'No', 'my-plugin' ),
+                        ),
+                    ),
+                    'tracking_id' => array(
+                        'type'  => 'text',
+                        'label' => __( 'Tracking ID', 'my-plugin' ),
+                    ),
+                ),
+            ),
+        ),
+    );
+    
+    return $form;
+}
+add_filter( 'fl_builder_register_module', 'my_bb_add_analytics_tab', 10, 2 );
+```
+
+### Custom Field Type
+
+Create a custom field type for module settings:
+
+```php
+// Register custom field
+function my_bb_register_custom_field( $fields ) {
+    $fields['color_palette'] = MY_BB_DIR . 'fields/color-palette.php';
+    return $fields;
+}
+add_filter( 'fl_builder_custom_fields', 'my_bb_register_custom_field' );
+
+// Render the field
+function my_bb_render_color_palette_field( $name, $value, $field, $settings ) {
+    $colors = array( '#FF0000', '#00FF00', '#0000FF', '#FFFF00' );
+    ?>
+    <div class="color-palette-field">
+        <?php foreach ( $colors as $color ) : ?>
+            <div class="color-option" 
+                 style="background-color: <?php echo esc_attr( $color ); ?>;"
+                 data-color="<?php echo esc_attr( $color ); ?>">
+            </div>
+        <?php endforeach; ?>
+        <input type="hidden" 
+               name="<?php echo esc_attr( $name ); ?>" 
+               value="<?php echo esc_attr( $value ); ?>" />
+    </div>
+    <?php
+}
+add_action( 'fl_builder_control_color_palette', 'my_bb_render_color_palette_field', 10, 4 );
+```
+
+### Conditional Module Loading
+
+Load modules based on user roles or capabilities:
+
+```php
+function my_bb_conditional_module_loading( $enabled, $instance ) {
+    // Only show premium modules to admins
+    if ( strpos( $instance->slug, 'premium-' ) === 0 ) {
+        return current_user_can( 'manage_options' );
+    }
+    
+    return $enabled;
+}
+add_filter( 'fl_builder_module_enabled', 'my_bb_conditional_module_loading', 10, 2 );
+```
+
+### Global Module Modifications
+
+Apply changes to all modules of a specific type:
+
+```php
+function my_bb_modify_all_buttons( $settings, $node ) {
+    if ( 'module' === $node->type && 'button' === $node->settings->type ) {
+        // Add tracking parameters to all button links
+        if ( ! empty( $settings->link ) ) {
+            $settings->link = add_query_arg( 'utm_source', 'bb-button', $settings->link );
+        }
+    }
+    
+    return $settings;
+}
+add_filter( 'fl_builder_node_settings', 'my_bb_modify_all_buttons', 10, 2 );
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Priority Matters" icon="sort">
+    Use appropriate hook priorities (10 is default, lower runs first)
+  </Card>
+  <Card title="Check Conditions" icon="shield-check">
+    Always verify objects/data exist before manipulating them
+  </Card>
+  <Card title="Return Values" icon="arrow-rotate-left">
+    Always return the filtered value, even if unchanged
+  </Card>
+  <Card title="Performance" icon="gauge-high">
+    Avoid heavy operations in frequently-called hooks
+  </Card>
+</CardGroup>
+
+<Warning>
+When using filters, **always return a value** even if you don't modify it. Returning nothing will break functionality.
+</Warning>
+
+## Reference List
+
+### Common Action Hooks
+
+- `fl_builder_ui_enqueue_scripts` - Enqueue UI scripts
+- `fl_builder_init_ui` - UI initialization
+- `fl_builder_before_render_content` - Before layout renders
+- `fl_builder_after_render_content` - After layout renders
+- `fl_builder_before_save_layout` - Before layout saves
+- `fl_builder_after_save_layout` - After layout saves
+- `fl_builder_cache_cleared` - Cache cleared
+- `fl_builder_before_render_module` - Before module renders
+- `fl_builder_after_render_module` - After module renders
+
+### Common Filter Hooks
+
+- `fl_builder_register_module` - Module registration
+- `fl_builder_render_css` - Generated CSS
+- `fl_builder_render_js` - Generated JavaScript
+- `fl_builder_node_settings` - Node settings
+- `fl_builder_module_attributes` - Module HTML attributes
+- `fl_builder_content_classes` - Content wrapper classes
+- `fl_builder_ui_js_config` - UI configuration
+- `fl_builder_loop_query_args` - Post query args
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Module Settings" icon="sliders" href="/developer/module-settings">
+    Learn about settings forms
+  </Card>
+  <Card title="Custom Modules" icon="cube" href="/developer/custom-modules">
+    Build custom modules
+  </Card>
+  <Card title="Getting Started" icon="rocket" href="/developer/getting-started">
+    Development environment setup
+  </Card>
+</CardGroup>

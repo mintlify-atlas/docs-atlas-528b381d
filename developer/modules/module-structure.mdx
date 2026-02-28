@@ -1,0 +1,360 @@
+---
+title: Module Structure
+description: Understanding the anatomy of a Beaver Builder module
+---
+
+Every Beaver Builder module follows a consistent directory structure and requires specific files to function properly. Understanding this structure is essential for creating maintainable modules.
+
+## Directory Layout
+
+A typical module directory structure:
+
+```
+my-module/
+├── my-module.php              # Main module file (required)
+├── icon.svg                   # Module icon (optional)
+├── includes/
+│   ├── frontend.php           # Frontend HTML template (required)
+│   ├── frontend.css.php       # Frontend CSS template (optional)
+│   └── frontend.js.php        # Frontend JavaScript template (optional)
+├── css/
+│   └── frontend.css           # Static CSS (optional)
+└── js/
+    └── frontend.js            # Static JavaScript (optional)
+```
+
+## Required Files
+
+### Main Module File
+
+The primary file must match your module directory name: `my-module/my-module.php`
+
+```php my-module.php
+<?php
+/**
+ * @class MyCustomModule
+ */
+class MyCustomModule extends FLBuilderModule {
+
+    /**
+     * Constructor - sets up module properties
+     */
+    public function __construct() {
+        parent::__construct(array(
+            'name'            => __( 'My Module', 'text-domain' ),
+            'description'     => __( 'Module description here.', 'text-domain' ),
+            'category'        => __( 'Basic', 'text-domain' ),
+            'icon'            => 'button.svg',
+            'partial_refresh' => true,
+        ));
+    }
+}
+
+/**
+ * Register the module with settings
+ */
+FLBuilder::register_module('MyCustomModule', array(
+    // Settings configuration
+));
+```
+
+### Frontend Template
+
+Required file: `includes/frontend.php`
+
+This file renders your module's HTML output:
+
+```php includes/frontend.php
+<?php
+/**
+ * Frontend template for My Module
+ * 
+ * Variables available:
+ * $module - The module object
+ * $id - The module's unique node ID
+ * $settings - The module settings object
+ */
+?>
+<div class="my-module-wrapper">
+    <h3><?php echo esc_html( $settings->title ); ?></h3>
+    <p><?php echo esc_html( $settings->text ); ?></p>
+</div>
+```
+
+<Note>
+  The `$module`, `$id`, and `$settings` variables are automatically available in frontend templates. You don't need to declare them.
+</Note>
+
+## Module Class Properties
+
+The `FLBuilderModule` base class provides numerous properties you can set in your constructor:
+
+### Basic Properties
+
+```php
+parent::__construct(array(
+    // Display Information
+    'name'        => __( 'Module Name', 'text-domain' ),  // Required
+    'description' => __( 'Module description', 'text-domain' ),
+    'category'    => __( 'Basic', 'text-domain' ),        // Module panel category
+    'icon'        => 'button.svg',                        // Icon filename or SVG
+    'group'       => false,                               // Optional grouping
+    
+    // Module Behavior
+    'enabled'         => true,    // Enable/disable module
+    'editor_export'   => true,    // Export to WordPress editor
+    'partial_refresh' => true,    // Enable partial refresh
+    
+    // Advanced Options
+    'dir'  => plugin_dir_path( __FILE__ ),  // Module directory
+    'url'  => plugin_dir_url( __FILE__ ),   // Module URL
+));
+```
+
+### Icon Property
+
+The `icon` property accepts several formats:
+
+<CodeGroup>
+```php Icon File Reference
+// Reference a file in /img/svg/ directory
+'icon' => 'button.svg',
+
+// Reference a Dashicon
+'icon' => 'admin-post',
+```
+
+```php Inline SVG
+// Provide inline SVG code
+'icon' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>',
+```
+
+```php Module Directory SVG
+// Place icon.svg in your module directory
+// Beaver Builder will automatically use it
+my-module/
+├── my-module.php
+└── icon.svg
+```
+</CodeGroup>
+
+### Wrapper Control
+
+```php
+parent::__construct(array(
+    'include_wrapper' => false,  // Remove default wrapper div
+    'element_setting' => false,  // Hide Container Element setting
+));
+```
+
+<Warning>
+  When `include_wrapper` is false, your frontend template must output a single root element with the module attributes. See the [Frontend Rendering](/developer/modules/frontend-rendering#custom-wrapper) guide.
+</Warning>
+
+### Container Modules
+
+For modules that accept child modules:
+
+```php
+parent::__construct(array(
+    'accepts' => array('button', 'heading'),  // Accept specific modules
+    // OR
+    'accepts' => 'all',                       // Accept all modules
+    
+    'parents' => array('row', 'column'),      // Allowed parent types
+    // OR
+    'parents' => 'all',                       // Allow all parents (default)
+));
+```
+
+## Available Module Properties
+
+These properties are automatically set and available in your module class:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `$node` | string | Unique module ID |
+| `$parent` | string | Parent node ID |
+| `$position` | int | Sort order |
+| `$name` | string | Display name |
+| `$description` | string | Description |
+| `$category` | string | Module category |
+| `$slug` | string | Module folder name |
+| `$dir` | string | Directory path |
+| `$url` | string | Directory URL |
+| `$settings` | object | Module settings |
+| `$form` | array | Settings form config |
+
+## Optional Files
+
+### Dynamic CSS Template
+
+File: `includes/frontend.css.php`
+
+```php includes/frontend.css.php
+<?php
+/**
+ * Dynamic CSS template
+ * 
+ * Variables:
+ * $id - Module node ID
+ * $module - Module object  
+ * $settings - Module settings
+ */
+
+// Use CSS helper functions
+FLBuilderCSS::responsive_rule( array(
+    'settings'     => $settings,
+    'setting_name' => 'padding',
+    'selector'     => ".fl-node-$id .my-module-wrapper",
+    'prop'         => 'padding',
+) );
+?>
+
+/* Custom CSS rules */
+.fl-node-<?php echo $id; ?> .my-module-wrapper {
+    background-color: <?php echo $settings->bg_color; ?>;
+}
+```
+
+<Tip>
+  Always scope your CSS with `.fl-node-<?php echo $id; ?>` to prevent styles from affecting other modules.
+</Tip>
+
+### Dynamic JavaScript Template
+
+File: `includes/frontend.js.php`
+
+```php includes/frontend.js.php
+<?php
+/**
+ * Dynamic JavaScript template
+ * 
+ * Wrap code in jQuery ready function
+ */
+?>
+(function($) {
+    $('.fl-node-<?php echo $id; ?> .my-module-wrapper').on('click', function() {
+        // Module-specific JavaScript
+        console.log('Module settings:', <?php echo json_encode( $settings ); ?>);
+    });
+})(jQuery);
+```
+
+### Static CSS and JavaScript
+
+For code that doesn't need to be dynamic:
+
+```
+my-module/
+├── css/
+│   └── frontend.css       # Automatically enqueued
+└── js/
+    └── frontend.js        # Automatically enqueued
+```
+
+<Note>
+  Static `frontend.css` and `frontend.js` files in the `css/` and `js/` directories are automatically enqueued. You don't need to manually enqueue them.
+</Note>
+
+## Real-World Examples
+
+<Tabs>
+  <Tab title="Button Module">
+    The Button module from Beaver Builder core:
+
+    ```
+    button/
+    ├── button.php                    # Main module class
+    ├── includes/
+    │   ├── frontend.php              # Button HTML
+    │   ├── frontend.css.php          # Dynamic button styles
+    │   └── frontend.js.php           # Lightbox functionality
+    └── css/
+        └── frontend.css              # Base button styles
+    ```
+
+    Key features:
+    - Custom wrapper control (`include_wrapper: false`)
+    - Dynamic styling based on settings
+    - Conditional JavaScript for lightbox
+  </Tab>
+
+  <Tab title="Heading Module">
+    The Heading module structure:
+
+    ```
+    heading/
+    ├── heading.php                   # Main module class
+    ├── includes/
+    │   ├── frontend.php              # Heading tag output
+    │   └── frontend.css.php          # Typography styles
+    ```
+
+    Key features:
+    - Simple structure with minimal files
+    - Dynamic HTML tag selection
+    - Responsive typography
+  </Tab>
+</Tabs>
+
+## Module Categories
+
+Beaver Builder includes these default categories:
+
+- **Basic** - Simple content modules (headings, text, images)
+- **Advanced** - Complex modules (sliders, forms, galleries)
+- **Layout** - Structural modules (rows, columns)
+- **WordPress** - WordPress widgets
+
+You can also create custom categories:
+
+```php
+'category' => __( 'My Custom Category', 'text-domain' ),
+```
+
+## Directory Detection
+
+Beaver Builder automatically detects your module's directory and URL. However, for modules in non-standard locations, you can specify them:
+
+```php
+parent::__construct(array(
+    'name' => __( 'My Module', 'text-domain' ),
+    'dir'  => plugin_dir_path( __FILE__ ),
+    'url'  => plugins_url( '', __FILE__ ),
+));
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="File Naming" icon="file">
+    - Match directory name: `my-module/my-module.php`
+    - Use lowercase with hyphens
+    - Keep names descriptive and unique
+  </Card>
+
+  <Card title="Class Naming" icon="code">
+    - Use PascalCase
+    - Make it unique and descriptive
+    - Consider prefixing with your plugin name
+  </Card>
+
+  <Card title="Code Organization" icon="folder-tree">
+    - Keep templates in `includes/` directory
+    - Use `css/` and `js/` for static assets
+    - Group related modules in subdirectories
+  </Card>
+
+  <Card title="Documentation" icon="book">
+    - Add docblocks to your module class
+    - Comment complex logic in templates
+    - Document custom properties and methods
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<Card title="Frontend Rendering" icon="paintbrush" href="/developer/modules/frontend-rendering">
+  Learn how to render module output with templates and dynamic CSS
+</Card>
